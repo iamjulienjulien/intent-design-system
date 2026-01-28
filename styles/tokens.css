@@ -1,2 +1,15 @@
 /* styles/tokens.css */
-/* CSS tokens (variables) for Intent Design System (hybrid mode). */
+/* CSS tokens (variables) for Intent Design System (hybrid mode).
+   Consumers can override these in their own CSS (themes, dark mode, etc.)
+*/
+
+:root {
+    --ids-paper: 255 255 255;
+    --ids-ink: 17 24 39; /* slate-900-ish */
+
+    --ids-informed: 59 130 246; /* blue-500 */
+    --ids-empowered: 16 185 129; /* emerald-500 */
+    --ids-warned: 245 158 11; /* amber-500 */
+    --ids-threatened: 244 63 94; /* rose-500 */
+    --ids-themed: 168 85 247; /* purple-500 */
+}
