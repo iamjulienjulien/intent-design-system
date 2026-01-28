@@ -18,9 +18,28 @@
         "tailwindcss": ">=3.4"
     },
     "devDependencies": {
+        "tailwindcss": "^4.1.18",
+        "tsup": "^8.5.1",
         "typescript": "^5.0.0"
     },
     "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
         "typecheck": "tsc -p tsconfig.json --noEmit"
+    },
+    "files": [
+        "dist",
+        "styles"
+    ],
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./tailwind-preset": {
+            "types": "./dist/tailwind-preset.d.ts",
+            "import": "./dist/tailwind-preset.js"
+        },
+        "./tokens.css": "./styles/tokens.css"
     }
 }

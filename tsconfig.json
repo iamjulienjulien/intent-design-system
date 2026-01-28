@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "rootDir": "src",
+        "rootDir": ".",
         "outDir": "dist",
 
         "module": "ESNext",
@@ -23,6 +23,6 @@
         "moduleResolution": "bundler",
         "skipLibCheck": true
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "styles/tailwind-preset.ts"],
     "exclude": ["dist", "node_modules"]
 }
