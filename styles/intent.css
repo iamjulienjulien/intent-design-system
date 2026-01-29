@@ -1,0 +1,261 @@
+/* ============================================================================
+   styles/intent.css
+   Intent Design System – Runtime CSS (hybrid mode C)
+============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   Surface base
+---------------------------------------------------------------------------- */
+
+.intent-surface {
+    position: relative;
+    overflow: hidden;
+
+    /* Compose ring + elevation shadow without collisions */
+    box-shadow: var(--intent-ring-shadow, none), var(--intent-elev-shadow, none);
+}
+
+/* Fill */
+.intent-bg {
+    background-color: color-mix(
+        in oklab,
+        var(--intent-bg) calc(var(--intent-bg-opacity, 1) * 100%),
+        transparent
+    );
+}
+
+/* Text */
+.intent-text {
+    color: var(--intent-text);
+}
+
+/* Ring (outlined + elevated) */
+.intent-ring {
+    /* ✅ ring via shadow var (works well for elevated) */
+    --intent-ring-shadow: 0 0 0 2px
+        color-mix(
+            in oklab,
+            var(--intent-ring) calc(var(--intent-ring-opacity, 1) * 100%),
+            transparent
+        );
+
+    /* ✅ hard fallback for outlined visibility (also nice on white/black) */
+    outline: 2px solid
+        color-mix(
+            in oklab,
+            var(--intent-ring) calc(var(--intent-ring-opacity, 1) * 100%),
+            transparent
+        );
+    outline-offset: 0;
+}
+
+/* Shadow token (elevated) */
+.intent-shadow-soft {
+    --intent-elev-shadow: 0 10px 30px rgb(0 0 0 / 0.08);
+}
+
+/* ----------------------------------------------------------------------------
+   Glow layers
+---------------------------------------------------------------------------- */
+
+.intent-glow-layer {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+
+    background-repeat: no-repeat;
+    background-image: var(--intent-glow-bg);
+
+    /* ✅ opacity always comes from resolveIntent */
+    opacity: var(--intent-glow-opacity, 0);
+
+    filter: var(--intent-glow-filter, none);
+
+    will-change: opacity, filter;
+}
+
+.intent-glow-fill {
+    --intent-glow-opacity: var(--intent-glow-fill-opacity);
+    filter: saturate(1.08) brightness(1.04);
+}
+
+.intent-glow-border {
+    --intent-glow-opacity: var(--intent-glow-border-opacity);
+
+    filter: saturate(1.12) brightness(1.18);
+    padding: 2px;
+
+    /* Border-only mask */
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+
+    /* ✅ Standard property for compatibility */
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}
+
+/* ============================================================================
+   Controls
+============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   Control base hooks
+---------------------------------------------------------------------------- */
+
+.intent-control {
+    position: relative;
+    overflow: hidden;
+
+    /* Surfaces already set these vars; controls reuse them */
+    box-shadow: var(--intent-ring-shadow, none), var(--intent-elev-shadow, none);
+}
+
+.intent-control-button {
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+
+    /* baseline */
+    border: 0;
+    background: none;
+    font: inherit;
+
+    /* Default “control feel” */
+    letter-spacing: -0.01em;
+    user-select: none;
+
+    /* If consumer forgets to give radius, keep it pleasant */
+    border-radius: inherit;
+}
+
+.intent-control-button.is-disabled,
+.intent-control-button:disabled {
+    cursor: not-allowed;
+}
+
+/* ----------------------------------------------------------------------------
+   Controls: DO NOT reset background globally
+---------------------------------------------------------------------------- */
+
+/* If you have a reset somewhere, scope it to ghost only */
+.intent-control-button[data-variant="ghost"] {
+    background-color: transparent;
+}
+
+/* Ensure intent-bg wins for controls */
+.intent-control-button.intent-bg {
+    background-color: color-mix(
+        in oklab,
+        var(--intent-bg) calc(var(--intent-bg-opacity, 1) * 100%),
+        transparent
+    );
+}
+
+/* ----------------------------------------------------------------------------
+   Button sizing hooks (mapped from sizeClass in component)
+---------------------------------------------------------------------------- */
+
+.ids-btn-xs {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.75rem;
+    line-height: 1.05rem;
+    font-weight: 600;
+}
+
+.ids-btn-sm {
+    padding: 0.55rem 0.85rem;
+    font-size: 0.8125rem;
+    line-height: 1.1rem;
+    font-weight: 600;
+}
+
+.ids-btn-md {
+    padding: 0.7rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 650;
+}
+
+.ids-btn-lg {
+    padding: 0.85rem 1.15rem;
+    font-size: 0.95rem;
+    line-height: 1.35rem;
+    font-weight: 650;
+}
+
+.ids-btn-xl {
+    padding: 1rem 1.3rem;
+    font-size: 1.05rem;
+    line-height: 1.45rem;
+    font-weight: 700;
+}
+
+/* ----------------------------------------------------------------------------
+   Control visuals (reusing surface hooks)
+   - Background comes from .intent-bg when variant maps to it
+   - Ring comes from .intent-ring when variant maps to it
+---------------------------------------------------------------------------- */
+
+/* Hover / active: subtle “presence” without needing more tokens */
+.intent-control-button:hover:not(:disabled) {
+    transform: translateY(-0.5px);
+}
+
+.intent-control-button:active:not(:disabled),
+.intent-control-button.is-pressed {
+    transform: translateY(0px) scale(0.99);
+}
+
+/* Focus-visible: keep it crisp and accessible */
+.intent-control-button:focus {
+    outline: none;
+}
+
+.intent-control-button:focus-visible {
+    /* A neutral focus halo that plays well with intent ring */
+    box-shadow:
+        0 0 0 4px rgb(255 255 255 / 0.08),
+        var(--intent-ring-shadow, none),
+        var(--intent-elev-shadow, none);
+}
+
+/* ----------------------------------------------------------------------------
+   Internal sub-elements (icons/label/spinner)
+---------------------------------------------------------------------------- */
+
+.intent-control-label {
+    display: inline-block;
+}
+
+.intent-control-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Minimal spinner (no SVG dependency) */
+.intent-control-spinner {
+    width: 1em;
+    height: 1em;
+    border-radius: 999px;
+    border: 2px solid rgb(255 255 255 / 0.22);
+    border-top-color: rgb(255 255 255 / 0.75);
+    animation: ids-spin 0.8s linear infinite;
+}
+
+@keyframes ids-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================================================
+   Optional: nicer defaults when consumer doesn't set radius explicitly
+============================================================================ */
+
+.rounded-ids-2xl {
+    border-radius: 1rem;
+}
