@@ -1,0 +1,658 @@
+/* ============================================================================
+   src/components/intent/IntentTree.css
+   IntentTree (SVG)
+   - Stable hooks only (no dynamic Tailwind)
+   - Designed to be themeable via CSS variables (Intent DS can override)
+============================================================================ */
+
+.intent-tree {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 360px;
+
+    /* Sensible defaults; your Intent DS can override these. */
+    --it-bg: rgba(10, 12, 18, 0.35);
+    --it-fg: rgba(255, 255, 255, 0.92);
+    --it-muted: rgba(255, 255, 255, 0.62);
+
+    --it-stroke: rgba(255, 255, 255, 0.14);
+    --it-stroke-strong: rgba(255, 255, 255, 0.22);
+
+    --it-node-bg: rgba(18, 22, 32, 0.72);
+    --it-node-border: rgba(255, 255, 255, 0.16);
+    --it-node-border-strong: rgba(255, 255, 255, 0.26);
+
+    --it-link: rgba(255, 255, 255, 0.16);
+    --it-link-selected: rgba(255, 255, 255, 0.42);
+
+    --it-grid: rgba(255, 255, 255, 0.05);
+
+    --it-focus: rgba(255, 255, 255, 0.75);
+
+    --it-radius: 18px;
+    --it-radius-sm: 12px;
+
+    --it-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    --it-shadow-strong: 0 14px 40px rgba(0, 0, 0, 0.35);
+
+    --it-font:
+        ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial,
+        "Apple Color Emoji", "Segoe UI Emoji";
+    --it-mono:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+        monospace;
+
+    --it-toolbar-bg: rgba(12, 14, 20, 0.75);
+    --it-toolbar-border: rgba(255, 255, 255, 0.14);
+
+    --it-btn-bg: rgba(255, 255, 255, 0.06);
+    --it-btn-bg-hover: rgba(255, 255, 255, 0.1);
+    --it-btn-bg-active: rgba(255, 255, 255, 0.14);
+    --it-btn-border: rgba(255, 255, 255, 0.14);
+
+    --it-input-bg: rgba(255, 255, 255, 0.06);
+    --it-input-border: rgba(255, 255, 255, 0.14);
+    --it-input-placeholder: rgba(255, 255, 255, 0.45);
+
+    --it-dim-opacity: 0.28;
+
+    --it-minimap-bg: rgba(12, 14, 20, 0.72);
+    --it-minimap-border: rgba(255, 255, 255, 0.14);
+
+    --it-anim: 140ms;
+    --it-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    background: var(--it-bg);
+    color: var(--it-fg);
+    font-family: var(--it-font);
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+/* Helpful flags */
+.intent-tree.is-fullscreen {
+    border-radius: 0;
+}
+
+/* Empty */
+.intent-tree-empty {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    min-height: 240px;
+    color: var(--it-muted);
+    font-size: 14px;
+    letter-spacing: 0.2px;
+}
+
+/* ============================================================================
+   SVG stage
+============================================================================ */
+
+.intent-tree-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none; /* pointer pan */
+    user-select: none;
+}
+
+.intent-tree-stage {
+    transform-origin: 0 0;
+}
+
+/* Grid */
+.intent-tree-grid line {
+    stroke: var(--it-grid);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+/* Links */
+.intent-tree-link {
+    fill: none;
+    stroke: var(--it-link);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+    transition:
+        opacity var(--it-anim) var(--it-ease),
+        stroke var(--it-anim) var(--it-ease);
+}
+
+.intent-tree-link.is-selected {
+    stroke: var(--it-link-selected);
+}
+
+.intent-tree-link.is-dimmed {
+    opacity: var(--it-dim-opacity);
+}
+
+/* ============================================================================
+   Nodes
+============================================================================ */
+
+.intent-tree-node {
+    cursor: pointer;
+    transition:
+        opacity var(--it-anim) var(--it-ease),
+        filter var(--it-anim) var(--it-ease),
+        transform var(--it-anim) var(--it-ease);
+}
+
+.intent-tree-node.is-dimmed {
+    opacity: var(--it-dim-opacity);
+}
+
+.intent-tree-nodeHit {
+    fill: transparent;
+}
+
+/* node "glow" for selection */
+.intent-tree-node.is-selected {
+    filter: drop-shadow(0 6px 18px rgba(255, 255, 255, 0.12));
+}
+
+.intent-tree-node.is-ancestor {
+    filter: drop-shadow(0 6px 18px rgba(255, 255, 255, 0.08));
+}
+
+.intent-tree-node.is-descendant {
+    filter: drop-shadow(0 6px 18px rgba(255, 255, 255, 0.08));
+}
+
+.intent-tree-node.is-sibling {
+    filter: drop-shadow(0 6px 18px rgba(255, 255, 255, 0.06));
+}
+
+/* Badge circle (small marker) */
+.intent-tree-nodeBadge {
+    fill: rgba(255, 255, 255, 0.22);
+    vector-effect: non-scaling-stroke;
+}
+
+/* foreignObject wrapper */
+.intent-tree-nodeFo {
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+}
+
+/* Card */
+.intent-tree-nodeCard {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+
+    padding: 10px 12px;
+    border-radius: var(--it-radius);
+    background: var(--it-node-bg);
+    border: 1px solid var(--it-node-border);
+    box-shadow: var(--it-shadow);
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    transition:
+        border-color var(--it-anim) var(--it-ease),
+        background var(--it-anim) var(--it-ease),
+        box-shadow var(--it-anim) var(--it-ease),
+        transform var(--it-anim) var(--it-ease);
+}
+
+.intent-tree-node:hover .intent-tree-nodeCard {
+    border-color: var(--it-node-border-strong);
+    box-shadow: var(--it-shadow-strong);
+}
+
+.intent-tree-node.is-selected .intent-tree-nodeCard {
+    border-color: var(--it-focus);
+}
+
+/* Header */
+.intent-tree-nodeTop {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.intent-tree-nodeTitleWrap {
+    flex: 1;
+    min-width: 0;
+}
+
+.intent-tree-nodeLabel {
+    font-size: 14px;
+    font-weight: 650;
+    line-height: 1.15;
+    letter-spacing: 0.2px;
+    color: var(--it-fg);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intent-tree-nodeSubtitle {
+    margin-top: 3px;
+    font-size: 12px;
+    line-height: 1.2;
+    color: var(--it-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Toggle button inside card */
+.intent-tree-nodeToggle {
+    appearance: none;
+    border: 1px solid var(--it-btn-border);
+    background: var(--it-btn-bg);
+    color: var(--it-fg);
+    border-radius: 999px;
+    width: 28px;
+    height: 22px;
+    display: inline-grid;
+    place-items: center;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+    transition:
+        background var(--it-anim) var(--it-ease),
+        border-color var(--it-anim) var(--it-ease),
+        transform var(--it-anim) var(--it-ease);
+}
+
+.intent-tree-nodeToggle:hover {
+    background: var(--it-btn-bg-hover);
+}
+
+.intent-tree-nodeToggle:active {
+    background: var(--it-btn-bg-active);
+    transform: translateY(1px);
+}
+
+.intent-tree-nodeToggle:focus-visible {
+    outline: 2px solid var(--it-focus);
+    outline-offset: 2px;
+}
+
+.intent-tree-nodeTogglePlaceholder {
+    width: 28px;
+    height: 22px;
+}
+
+/* Bottom row */
+.intent-tree-nodeBottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 20px;
+}
+
+/* Dates */
+.intent-tree-nodeDates {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.intent-tree-nodeDate {
+    font-size: 11px;
+    line-height: 1.2;
+    color: var(--it-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.intent-tree-nodeDatesPlaceholder {
+    height: 1px;
+    flex: 1;
+}
+
+/* Tags */
+.intent-tree-nodeTags {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    min-width: 0;
+}
+
+.intent-tree-nodeTag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 4px 8px;
+    border-radius: 999px;
+
+    border: 1px solid var(--it-stroke);
+    background: rgba(255, 255, 255, 0.04);
+
+    font-size: 11px;
+    line-height: 1;
+    color: var(--it-fg);
+
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intent-tree-nodeTagEmoji {
+    font-size: 12px;
+}
+
+.intent-tree-nodeTagLabel {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intent-tree-nodeTagMore {
+    font-size: 11px;
+    color: var(--it-muted);
+    padding: 0 4px;
+}
+
+/* ============================================================================
+   Toolbar
+============================================================================ */
+
+.intent-tree-toolbar {
+    position: absolute;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 10px;
+    margin: 10px;
+
+    background: var(--it-toolbar-bg);
+    border: 1px solid var(--it-toolbar-border);
+    border-radius: 14px;
+    backdrop-filter: blur(10px);
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+}
+
+.intent-tree-toolbar.is-pos-top-left {
+    top: 0;
+    left: 0;
+}
+
+.intent-tree-toolbar.is-pos-top-right {
+    top: 0;
+    right: 0;
+}
+
+.intent-tree-toolbar.is-pos-bottom-left {
+    bottom: 0;
+    left: 0;
+}
+
+.intent-tree-toolbar.is-pos-bottom-right {
+    bottom: 0;
+    right: 0;
+}
+
+.intent-tree-toolbarBtn {
+    appearance: none;
+    border: 1px solid var(--it-btn-border);
+    background: var(--it-btn-bg);
+    color: var(--it-fg);
+    border-radius: 12px;
+    padding: 7px 10px;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background var(--it-anim) var(--it-ease),
+        border-color var(--it-anim) var(--it-ease),
+        transform var(--it-anim) var(--it-ease),
+        opacity var(--it-anim) var(--it-ease);
+}
+
+.intent-tree-toolbarBtn:hover {
+    background: var(--it-btn-bg-hover);
+}
+
+.intent-tree-toolbarBtn:active {
+    background: var(--it-btn-bg-active);
+    transform: translateY(1px);
+}
+
+.intent-tree-toolbarBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.intent-tree-toolbarBtn:focus-visible {
+    outline: 2px solid var(--it-focus);
+    outline-offset: 2px;
+}
+
+.intent-tree-toolbarMeta {
+    font-family: var(--it-mono);
+    font-size: 11px;
+    color: var(--it-muted);
+    padding-left: 4px;
+    user-select: none;
+}
+
+/* ============================================================================
+   Search
+============================================================================ */
+
+.intent-tree-search {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.intent-tree-searchInput {
+    width: 180px;
+    max-width: 28vw;
+
+    border: 1px solid var(--it-input-border);
+    background: var(--it-input-bg);
+    color: var(--it-fg);
+
+    border-radius: 12px;
+    padding: 7px 10px;
+
+    font-size: 12px;
+    line-height: 1;
+
+    outline: none;
+    transition:
+        border-color var(--it-anim) var(--it-ease),
+        background var(--it-anim) var(--it-ease);
+}
+
+.intent-tree-searchInput::placeholder {
+    color: var(--it-input-placeholder);
+}
+
+.intent-tree-searchInput:focus {
+    border-color: var(--it-focus);
+}
+
+.intent-tree-searchMenu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 20;
+
+    width: 320px;
+    max-width: 60vw;
+
+    background: rgba(12, 14, 20, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    padding: 6px;
+
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+}
+
+.intent-tree-searchItem {
+    width: 100%;
+    text-align: left;
+
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    padding: 8px 10px;
+    border-radius: 12px;
+
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--it-fg);
+
+    cursor: pointer;
+    transition:
+        background var(--it-anim) var(--it-ease),
+        border-color var(--it-anim) var(--it-ease);
+}
+
+.intent-tree-searchItem:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.intent-tree-searchItemLabel {
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intent-tree-searchItemSub {
+    font-size: 11px;
+    color: var(--it-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ============================================================================
+   Mini-map
+============================================================================ */
+
+.intent-tree-minimap {
+    position: absolute;
+    z-index: 4;
+    right: 10px;
+    bottom: 10px;
+
+    border-radius: 14px;
+    background: var(--it-minimap-bg);
+    border: 1px solid var(--it-minimap-border);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+
+    overflow: hidden;
+}
+
+.intent-tree-minimapSvg {
+    display: block;
+    cursor: pointer;
+}
+
+.intent-tree-minimapLink {
+    stroke: rgba(255, 255, 255, 0.12);
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+}
+
+.intent-tree-minimapLink.is-dimmed {
+    opacity: var(--it-dim-opacity);
+}
+
+.intent-tree-minimapNode {
+    fill: rgba(255, 255, 255, 0.08);
+    stroke: rgba(255, 255, 255, 0.12);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.intent-tree-minimapNode.is-selected {
+    fill: rgba(255, 255, 255, 0.18);
+    stroke: rgba(255, 255, 255, 0.35);
+}
+
+.intent-tree-minimapNode.is-dimmed {
+    opacity: var(--it-dim-opacity);
+}
+
+.intent-tree-minimapCamera {
+    fill: rgba(255, 255, 255, 0.06);
+    stroke: rgba(255, 255, 255, 0.35);
+    stroke-width: 1.4;
+    vector-effect: non-scaling-stroke;
+}
+
+/* ============================================================================
+   A11y / reduced motion
+============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .intent-tree-node,
+    .intent-tree-nodeCard,
+    .intent-tree-link,
+    .intent-tree-toolbarBtn,
+    .intent-tree-searchItem {
+        transition: none !important;
+    }
+}
+
+/* ============================================================================
+   Optional: make it nicer on light backgrounds
+   If your DS already handles theme, you can remove this.
+============================================================================ */
+
+.intent-tree[data-mode="light"] {
+    --it-bg: rgba(250, 250, 252, 0.9);
+    --it-fg: rgba(18, 20, 26, 0.92);
+    --it-muted: rgba(18, 20, 26, 0.6);
+
+    --it-stroke: rgba(18, 20, 26, 0.14);
+    --it-stroke-strong: rgba(18, 20, 26, 0.22);
+
+    --it-node-bg: rgba(255, 255, 255, 0.92);
+    --it-node-border: rgba(18, 20, 26, 0.14);
+    --it-node-border-strong: rgba(18, 20, 26, 0.22);
+
+    --it-link: rgba(18, 20, 26, 0.18);
+    --it-link-selected: rgba(18, 20, 26, 0.42);
+
+    --it-grid: rgba(18, 20, 26, 0.06);
+
+    --it-toolbar-bg: rgba(255, 255, 255, 0.82);
+    --it-toolbar-border: rgba(18, 20, 26, 0.12);
+
+    --it-btn-bg: rgba(18, 20, 26, 0.05);
+    --it-btn-bg-hover: rgba(18, 20, 26, 0.08);
+    --it-btn-bg-active: rgba(18, 20, 26, 0.12);
+    --it-btn-border: rgba(18, 20, 26, 0.14);
+
+    --it-input-bg: rgba(18, 20, 26, 0.05);
+    --it-input-border: rgba(18, 20, 26, 0.14);
+    --it-input-placeholder: rgba(18, 20, 26, 0.45);
+
+    --it-minimap-bg: rgba(255, 255, 255, 0.84);
+    --it-minimap-border: rgba(18, 20, 26, 0.12);
+
+    --it-focus: rgba(18, 20, 26, 0.6);
+}

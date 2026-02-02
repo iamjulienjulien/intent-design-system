@@ -1,0 +1,41 @@
+/* ============================================================================
+   styles/intent/index.css
+   Intent Design System – Runtime CSS entrypoint
+   - Import order matters (primitives → glow → surfaces → controls → components)
+============================================================================ */
+
+/* ============================================================================
+   0) Core primitives (shared helpers & tokens)
+============================================================================ */
+
+@import "./00-primitives.css";
+@import "./01-glow.css";
+@import "./02-surface.css";
+@import "./03-control.base.css";
+
+/* ============================================================================
+   1) Controls
+============================================================================ */
+
+@import "./IntentControlButton.css";
+@import "./IntentControlField.css";
+@import "./IntentControlLink.css";
+@import "./IntentControlSelect.css";
+@import "./IntentControlTabs.css";
+@import "./IntentControlToggle.css";
+@import "./IntentControlSegmented.css";
+
+/* ============================================================================
+   2) Other components
+============================================================================ */
+
+@import "./IntentDivider.css";
+@import "./IntentIndicator.css";
+@import "./IntentCommandPalette.css";
+@import "./IntentJourney.css";
+@import "./IntentToast.css";
+@import "./IntentCodeViewer.css";
+@import "./IntentTable.css";
+@import "./IntentPickerTone.css";
+@import "./IntentPickerGlow.css";
+@import "./IntentTree.css";

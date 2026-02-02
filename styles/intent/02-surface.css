@@ -1,0 +1,11 @@
+/* ============================================================================
+   🧩 02-surface.css
+   IntentSurface
+============================================================================ */
+
+.intent-surface {
+    position: relative;
+    overflow: hidden;
+
+    box-shadow: var(--intent-ring-shadow, none), var(--intent-elev-shadow, none);
+}

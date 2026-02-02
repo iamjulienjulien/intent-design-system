@@ -1,0 +1,130 @@
+/* src/components/intent/intent-control-segmented.css */
+/* IntentControlSegmented
+   - Stable hooks only
+   - Frame + dividers + active segment affordance
+*/
+
+.intent-control.intent-control-segmented.intent-seg {
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+    padding: 0.25rem;
+    gap: 0.25rem;
+
+    /* subtle group frame */
+    background: color-mix(in oklab, var(--intent-bg) 14%, transparent);
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--intent-border) 30%, transparent),
+        var(--intent-ring-shadow, none),
+        var(--intent-elev-shadow, none);
+}
+
+/* sizes (CSS owns real px; hooks from TS) */
+.intent-control.intent-control-segmented.ids-seg-xs {
+    --seg-h: 28px;
+}
+.intent-control.intent-control-segmented.ids-seg-sm {
+    --seg-h: 32px;
+}
+.intent-control.intent-control-segmented.ids-seg-md {
+    --seg-h: 36px;
+}
+.intent-control.intent-control-segmented.ids-seg-lg {
+    --seg-h: 40px;
+}
+.intent-control.intent-control-segmented.ids-seg-xl {
+    --seg-h: 44px;
+}
+
+/* segment button */
+.intent-control.intent-control-segmented .intent-seg-btn {
+    height: var(--seg-h, 36px);
+    border-radius: calc(var(--ids-radius-2xl, 1.25rem) - 0.25rem);
+    padding: 0 0.75rem;
+    line-height: 1;
+    font-size: 0.875rem;
+    min-width: 0;
+}
+
+/* label */
+.intent-control.intent-control-segmented .intent-seg-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+/* Disabled group */
+.intent-control.intent-control-segmented.is-disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* optional: slightly tighten in xs */
+.intent-control.intent-control-segmented.ids-seg-xs .intent-seg-btn {
+    padding: 0 0.6rem;
+    font-size: 0.8125rem;
+}
+
+/* focus ring harmony (segment uses its own intent ring already)
+   but we ensure it's visually above the frame */
+.intent-control.intent-control-segmented .intent-seg-btn:focus-visible {
+    position: relative;
+    z-index: 5;
+}
+
+/* Make selected segment feel "above" others (especially with ghost inactive) */
+.intent-control.intent-control-segmented .intent-seg-btn.is-selected {
+    z-index: 3;
+}
+
+/* Optional: divider feel when many segments, without hard borders */
+.intent-control.intent-control-segmented .intent-seg-btn:not(.is-selected) {
+    box-shadow: none;
+}
+
+/* Optional: reduce pointer events on disabled option */
+.intent-control.intent-control-segmented .intent-seg-btn.is-option-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Sliding pill indicator (single mode only)
+   - Lives under buttons
+   - Moves via transform + width transitions
+*/
+.intent-control.intent-control-segmented {
+    position: relative;
+    overflow: hidden; /* keeps pill neat in rounded corners */
+}
+
+.intent-control.intent-control-segmented .intent-seg-pill {
+    position: absolute;
+    top: 0.25rem;
+    bottom: 0.25rem;
+    left: 0;
+    border-radius: calc(var(--ids-radius-2xl, 1.25rem) - 0.25rem);
+
+    /* The pill uses resolved intent vars, but feels "material" */
+    background: color-mix(in oklab, var(--intent-bg) 28%, transparent);
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--intent-border) 32%, transparent),
+        0 10px 24px -18px color-mix(in oklab, var(--intent-ink) 22%, transparent);
+
+    z-index: 1; /* under labels, above the frame */
+    pointer-events: none;
+
+    transition:
+        transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+        width 260ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms ease;
+    opacity: 0;
+    will-change: transform, width;
+    filter: saturate(1.05);
+}
+
+.intent-control.intent-control-segmented .intent-seg-pill.is-visible {
+    opacity: 1;
+}
+
+.intent-control.intent-control-segmented .intent-seg-pill.is-hidden {
+    opacity: 0;
+}

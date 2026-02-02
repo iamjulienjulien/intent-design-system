@@ -1,0 +1,345 @@
+/* ============================================================================
+   styles/intent/IntentCodeViewer.css
+   IntentCodeViewer
+   - Intent-first code/data viewer
+   - Token colors derived from resolver vars
+   - Supports Prism (.token.*) + Highlight.js (.hljs-*)
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-code-viewer {
+    /* important: make it a vertical layout host */
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+
+    /* prevent grid children from blowing width */
+    min-width: 0;
+
+    /* Token palette (derived from intent vars) */
+    --ids-code-bg: color-mix(in oklab, var(--intent-bg) 14%, transparent);
+    --ids-code-border: color-mix(in oklab, var(--intent-border) 18%, transparent);
+
+    --ids-code-ink: color-mix(in oklab, var(--intent-ink) 92%, white 8%);
+    --ids-code-muted: color-mix(in oklab, var(--intent-ink) 60%, transparent);
+
+    /* Highlight colors */
+    --ids-code-keyword: color-mix(in oklab, var(--intent-ring) 72%, white 28%);
+    --ids-code-string: color-mix(in oklab, var(--intent-ring) 42%, lime 58%);
+    --ids-code-number: color-mix(in oklab, var(--intent-ring) 58%, amber 42%);
+    --ids-code-boolean: color-mix(in oklab, var(--intent-ring) 64%, cyan 36%);
+    --ids-code-function: color-mix(in oklab, var(--intent-ring) 68%, white 32%);
+    --ids-code-class: color-mix(in oklab, var(--intent-ring) 52%, violet 48%);
+    --ids-code-attr: color-mix(in oklab, var(--intent-ring) 52%, sky 48%);
+    --ids-code-punct: color-mix(in oklab, var(--intent-ink) 70%, transparent);
+    --ids-code-comment: color-mix(in oklab, var(--intent-ink) 46%, transparent);
+
+    --ids-code-selection: color-mix(in oklab, var(--intent-ring) 18%, transparent);
+
+    /* ✅ gutter sizing (key fix) */
+    --ids-code-gutter-w: 3.25rem; /* tweak: 2.75rem..4rem */
+}
+
+/* ============================================================================
+   Header
+============================================================================ */
+
+.intent-code-header {
+    flex: 0 0 auto; /* ✅ ensure it stays a top row, not inside body sizing */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    padding: 0.9rem 1rem;
+
+    background: color-mix(in oklab, var(--intent-bg) 10%, transparent);
+    border-bottom: 1px solid var(--ids-code-border);
+
+    /* ✅ prevent header content forcing weird widths */
+    min-width: 0;
+}
+
+/* ✅ Safety: if header accidentally sits inside the grid container, force span */
+.intent-code-body .intent-code-header {
+    grid-column: 1 / -1;
+}
+
+.intent-code-titleRow {
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.intent-code-title {
+    font-size: 0.875rem;
+    line-height: 1.1rem;
+    font-weight: 650;
+    letter-spacing: 0.005em;
+    color: var(--ids-code-ink);
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: min(40ch, 60vw);
+}
+
+.intent-code-meta {
+    font-size: 0.75rem;
+    opacity: 0.65;
+    color: var(--ids-code-muted);
+    white-space: nowrap;
+}
+
+.intent-code-actions {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.intent-code-copy {
+    padding: 0.45rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    line-height: 1rem;
+}
+
+/* ============================================================================
+   Body layout
+============================================================================ */
+
+.intent-code-body {
+    flex: 1 1 auto;
+    min-height: 0; /* ✅ allows inner scroll areas to behave */
+    min-width: 0;
+
+    display: grid;
+    grid-template-columns: var(--ids-code-gutter-w) minmax(0, 1fr); /* ✅ crucial */
+    background: var(--ids-code-bg);
+}
+
+.intent-code-viewer:not(.has-lines) .intent-code-body {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+/* ============================================================================
+   Gutter
+============================================================================ */
+
+.intent-code-gutter {
+    width: var(--ids-code-gutter-w); /* ✅ enforce gutter width */
+    min-width: var(--ids-code-gutter-w);
+    max-width: var(--ids-code-gutter-w);
+
+    padding: 0.9rem 0.75rem;
+    border-right: 1px solid var(--ids-code-border);
+
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+
+    color: var(--ids-code-muted);
+    user-select: none;
+
+    /* ✅ avoid gutter expanding due to content */
+    overflow: hidden;
+}
+
+/* Each line number stays right-aligned and doesn't claim width */
+.intent-code-lineNo {
+    text-align: right;
+    opacity: 0.55;
+    white-space: nowrap;
+}
+
+/* ============================================================================
+   Code area
+============================================================================ */
+
+.intent-code-pre {
+    margin: 0;
+    padding: 0.9rem 1rem;
+
+    overflow: auto;
+
+    /* ✅ prevent pre from forcing the grid column to grow */
+    min-width: 0;
+}
+
+.intent-code {
+    display: block;
+
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+
+    color: var(--ids-code-ink);
+    white-space: pre;
+
+    /* ✅ critical in grid contexts */
+    min-width: 0;
+}
+
+/* wrap */
+.intent-code-viewer.is-wrap .intent-code-pre {
+    overflow: auto;
+}
+.intent-code-viewer.is-wrap .intent-code {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* selection */
+.intent-code::selection,
+.intent-code *::selection {
+    background: var(--ids-code-selection);
+}
+
+/* ============================================================================
+   Footer
+============================================================================ */
+
+.intent-code-footer {
+    flex: 0 0 auto;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--ids-code-border);
+
+    font-size: 0.75rem;
+    line-height: 1.1rem;
+    color: var(--ids-code-muted);
+
+    background: color-mix(in oklab, var(--intent-bg) 8%, transparent);
+
+    min-width: 0;
+}
+
+/* ============================================================================
+   Token styling (Prism)
+============================================================================ */
+
+.intent-code .token.comment,
+.intent-code .token.prolog,
+.intent-code .token.doctype,
+.intent-code .token.cdata {
+    color: var(--ids-code-comment);
+}
+
+.intent-code .token.punctuation {
+    color: var(--ids-code-punct);
+}
+
+.intent-code .token.property,
+.intent-code .token.tag,
+.intent-code .token.constant,
+.intent-code .token.symbol,
+.intent-code .token.deleted {
+    color: var(--ids-code-attr);
+}
+
+.intent-code .token.boolean {
+    color: var(--ids-code-boolean);
+}
+
+.intent-code .token.number {
+    color: var(--ids-code-number);
+}
+
+.intent-code .token.selector,
+.intent-code .token.attr-name,
+.intent-code .token.string,
+.intent-code .token.char,
+.intent-code .token.builtin,
+.intent-code .token.inserted {
+    color: var(--ids-code-string);
+}
+
+.intent-code .token.operator,
+.intent-code .token.entity,
+.intent-code .token.url {
+    color: var(--ids-code-punct);
+}
+
+.intent-code .token.atrule,
+.intent-code .token.attr-value,
+.intent-code .token.keyword {
+    color: var(--ids-code-keyword);
+    font-weight: 650;
+}
+
+.intent-code .token.function,
+.intent-code .token.regex,
+.intent-code .token.important,
+.intent-code .token.variable {
+    color: var(--ids-code-function);
+}
+
+.intent-code .token.class-name,
+.intent-code .token.namespace {
+    color: var(--ids-code-class);
+}
+
+/* ============================================================================
+   Token styling (Highlight.js)
+============================================================================ */
+
+.intent-code .hljs-comment,
+.intent-code .hljs-quote {
+    color: var(--ids-code-comment);
+}
+
+.intent-code .hljs-keyword,
+.intent-code .hljs-selector-tag,
+.intent-code .hljs-literal {
+    color: var(--ids-code-keyword);
+    font-weight: 650;
+}
+
+.intent-code .hljs-string,
+.intent-code .hljs-title,
+.intent-code .hljs-section {
+    color: var(--ids-code-string);
+}
+
+.intent-code .hljs-number {
+    color: var(--ids-code-number);
+}
+
+.intent-code .hljs-built_in,
+.intent-code .hljs-type,
+.intent-code .hljs-class {
+    color: var(--ids-code-class);
+}
+
+.intent-code .hljs-attr,
+.intent-code .hljs-attribute,
+.intent-code .hljs-name {
+    color: var(--ids-code-attr);
+}
+
+.intent-code .hljs-punctuation,
+.intent-code .hljs-symbol {
+    color: var(--ids-code-punct);
+}
+
+/* ============================================================================
+   Light mode adjustments (optional)
+============================================================================ */
+
+.intent-code-viewer[data-mode="light"] {
+    --ids-code-bg: color-mix(in oklab, var(--intent-bg) 8%, white 92%);
+    --ids-code-border: color-mix(in oklab, var(--intent-border) 32%, transparent);
+
+    --ids-code-ink: color-mix(in oklab, var(--intent-ink) 88%, black 12%);
+    --ids-code-muted: color-mix(in oklab, var(--intent-ink) 52%, transparent);
+
+    --ids-code-selection: color-mix(in oklab, var(--intent-ring) 14%, transparent);
+}

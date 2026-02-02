@@ -22,10 +22,20 @@ import {
     DEFAULT_INTENT,
     DEFAULT_VARIANT,
     DEFAULT_TONE,
+    DEFAULT_THEME_COLOR,
     DEFAULT_GLOW_BY_INTENT,
     INTENT_TO_SEMANTIC_COLOR,
     TONE_TO_COLOR_FAMILY,
 } from "./mapping";
+
+import {
+    getThemeGlowBackgroundCss,
+    getDefaultThemeCssRgb,
+    getDefaultThemeRgb,
+    rgbToCssRgb,
+    lighten,
+    darken,
+} from "../colors/themeHelpers";
 
 /* ============================================================================
    🧭 Semantic → Tailwind family mapping (for text tint)
@@ -98,7 +108,7 @@ function intensityToAlpha(intensity: Intensity, opts: { min: number; max: number
 
 /** Tailwind v4 exposes palette CSS vars: --color-emerald-500, etc. */
 function tailwindColorVar(tone: string, step: number) {
-    return `var(--color-${tone}-${step})`;
+    return `var(--ids-color-${tone}-${step})`;
 }
 
 /**
@@ -180,10 +190,14 @@ const GLOW_BACKGROUND: Record<GlowKey, string> = {
         radial("165% 150%", "85% 30%", "rgba(190,18,60,0.20)", "72%"),
     ].join(","),
 
-    theme: [
-        radial("80% 200%", "15%", "hsl(var(--accent) / 0.34)", "78%"),
-        radial("60% 200%", "85%", "hsl(var(--accent-2) / 0.32)", "76%"),
-    ].join(","),
+    theme: getThemeGlowBackgroundCss(radial, {
+        size1: "80% 200%",
+        at1: "15%",
+        stop1: "78%",
+        size2: "60% 200%",
+        at2: "85%",
+        stop2: "76%",
+    }),
 
     aurora: [
         radial("190% 150%", "15% 20%", "rgba(34,211,238,0.28)", "74%"),
@@ -301,10 +315,19 @@ export function resolveIntent(input: IntentInput = {}): ResolvedIntent {
         style["--intent-ring"] = tailwindColorVar(gFamily, 600);
         style["--intent-ring-opacity"] = String(ringOpacityBoosted);
     } else if (toneKey === "themed") {
-        // NOTE: themed uses token HSL; leaving as-is for now.
-        style["--intent-bg"] = "hsl(var(--main-color))";
-        style["--intent-text"] = "hsl(var(--main-color))";
-        style["--intent-ring"] = "hsl(var(--main-color))";
+        // themed: keep bg as base theme, but brighten ring/text like other semantic intents
+        const base = getDefaultThemeRgb();
+
+        // “semantic-like” tinting:
+        // - dark: text much lighter (like step 200), ring slightly lighter than base
+        // - light: text darker (like step 800), ring slightly darker than base
+        const textRgb = mode === "dark" ? lighten(base, 0.72) : darken(base, 0.62);
+        const ringRgb = mode === "dark" ? lighten(base, 0.22) : darken(base, 0.18);
+
+        style["--intent-bg"] = getDefaultThemeCssRgb(); // base theme rgb(...)
+        style["--intent-text"] = rgbToCssRgb(textRgb);
+        style["--intent-ring"] = rgbToCssRgb(ringRgb);
+
         style["--intent-bg-opacity"] = String(bgOpacity);
         style["--intent-ring-opacity"] = String(ringOpacityBoosted);
     } else if (toneKey === "ink") {
@@ -342,6 +365,11 @@ export function resolveIntent(input: IntentInput = {}): ResolvedIntent {
 
         style["--intent-bg-opacity"] = String(bgOpacity);
         style["--intent-ring-opacity"] = String(ringOpacityBoosted);
+    }
+
+    // after you set --intent-ring (in any branch)
+    if (style["--intent-ring"] && !style["--intent-border"]) {
+        style["--intent-border"] = style["--intent-ring"];
     }
 
     /* ============================================================================
@@ -524,6 +552,20 @@ export function getIntentControlProps(
         : resolved.glowBackground
           ? ({ "--intent-glow": resolved.glowBackground } as any)
           : undefined;
+
+    return style ? { className, style } : { className };
+}
+
+// src/lib/intent/resolve.ts
+
+export function getIntentLayoutProps(
+    resolved: ResolvedIntent,
+    extraClassName?: string
+): IntentSurfaceResolvedProps {
+    const className = extraClassName ?? "";
+
+    // Layout: we want only CSS vars, no visual classes like intent-bg / intent-ring
+    const style = resolved.style ? ({ ...(resolved.style as any) } as any) : undefined;
 
     return style ? { className, style } : { className };
 }

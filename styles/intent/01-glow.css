@@ -1,0 +1,40 @@
+/* ============================================================================
+   ✨ 01-glow.css
+   Glow layers (shared by Surface + Controls + others)
+============================================================================ */
+
+.intent-glow-layer {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+
+    background-repeat: no-repeat;
+    background-image: var(--intent-glow-bg);
+
+    opacity: var(--intent-glow-opacity, 0);
+    filter: var(--intent-glow-filter, none);
+
+    will-change: opacity, filter;
+}
+
+.intent-glow-fill {
+    --intent-glow-opacity: var(--intent-glow-fill-opacity);
+    filter: saturate(1.08) brightness(1.04);
+}
+
+.intent-glow-border {
+    --intent-glow-opacity: var(--intent-glow-border-opacity);
+    filter: saturate(1.12) brightness(1.18);
+
+    padding: 2px;
+
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}

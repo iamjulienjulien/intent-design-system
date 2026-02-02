@@ -1,10 +1,10 @@
 "use client";
 
-// src/components/intent/IntentControlButton.tsx
-// IntentControlButton
-// - First Intent Control component (button)
-// - Uses resolveIntent() to compute stable class hooks + CSS vars
-// - Supports glow layers like IntentSurface
+// src/components/intent/IntentControlLink.tsx
+// IntentControlLink
+// - Intent-aware link control
+// - Same intent + glow rules as IntentControlButton
+// - Semantic navigation (anchor), not an action
 // - No dynamic Tailwind classes: only stable hooks
 
 import * as React from "react";
@@ -23,20 +23,20 @@ function cn(...classes: Array<string | false | null | undefined>) {
     return classes.filter(Boolean).join(" ");
 }
 
-type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
+type LinkSize = "xs" | "sm" | "md" | "lg" | "xl";
 
-function sizeClass(size: ButtonSize) {
+function sizeClass(size: LinkSize) {
     switch (size) {
         case "xs":
-            return "ids-btn-xs";
+            return "ids-link-xs";
         case "sm":
-            return "ids-btn-sm";
+            return "ids-link-sm";
         case "lg":
-            return "ids-btn-lg";
+            return "ids-link-lg";
         case "xl":
-            return "ids-btn-xl";
+            return "ids-link-xl";
         default:
-            return "ids-btn-md";
+            return "ids-link-md";
     }
 }
 
@@ -44,26 +44,25 @@ function sizeClass(size: ButtonSize) {
    🧩 TYPES
 ============================================================================ */
 
-export type IntentControlButtonProps = IntentInput &
-    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "className" | "children"> & {
+export type IntentControlLinkProps = IntentInput &
+    Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "className" | "children"> & {
         className?: string;
         children?: React.ReactNode;
 
-        size?: ButtonSize; // default: "md"
+        size?: LinkSize; // default: "md"
         fullWidth?: boolean;
-
-        loading?: boolean;
-        pressed?: boolean;
 
         leftIcon?: React.ReactNode;
         rightIcon?: React.ReactNode;
+
+        external?: boolean; // convenience: target + rel
     };
 
 /* ============================================================================
    📋 DOCS EXPORTS
 ============================================================================ */
 
-const INTENT_CONTROL_BUTTON_LOCAL_PROPS_TABLE: DocsPropRow[] = [
+const INTENT_CONTROL_LINK_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "className",
         description: {
@@ -77,8 +76,8 @@ const INTENT_CONTROL_BUTTON_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "children",
         description: {
-            fr: "Contenu du bouton (label).",
-            en: "Button content (label).",
+            fr: "Contenu du lien (label).",
+            en: "Link content (label).",
         },
         type: "React.ReactNode",
         required: false,
@@ -87,8 +86,8 @@ const INTENT_CONTROL_BUTTON_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "size",
         description: {
-            fr: "Taille du bouton (affecte padding, hauteur, typo).",
-            en: "Button size (affects padding, height, typography).",
+            fr: "Taille du lien (affecte padding, hauteur, typo).",
+            en: "Link size (affects padding, height, typography).",
         },
         type: `"xs" | "sm" | "md" | "lg" | "xl"`,
         required: false,
@@ -98,30 +97,8 @@ const INTENT_CONTROL_BUTTON_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "fullWidth",
         description: {
-            fr: "Étire le bouton sur toute la largeur disponible.",
-            en: "Stretches the button to full available width.",
-        },
-        type: "boolean",
-        required: false,
-        default: "false",
-        fromSystem: false,
-    },
-    {
-        name: "loading",
-        description: {
-            fr: "Affiche un spinner et force disabled (préserve l’état).",
-            en: "Shows a spinner and forces disabled (preserves state).",
-        },
-        type: "boolean",
-        required: false,
-        default: "false",
-        fromSystem: false,
-    },
-    {
-        name: "pressed",
-        description: {
-            fr: "État “pressed” (aria-pressed + hook visuel).",
-            en: "Pressed state (aria-pressed + visual hook).",
+            fr: "Étire le lien sur toute la largeur disponible.",
+            en: "Stretches the link to full available width.",
         },
         type: "boolean",
         required: false,
@@ -131,8 +108,8 @@ const INTENT_CONTROL_BUTTON_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "leftIcon",
         description: {
-            fr: "Icône à gauche du label (ignorée si loading=true).",
-            en: "Left icon (ignored if loading=true).",
+            fr: "Icône à gauche du label.",
+            en: "Left icon.",
         },
         type: "React.ReactNode",
         required: false,
@@ -149,59 +126,67 @@ const INTENT_CONTROL_BUTTON_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         fromSystem: false,
     },
     {
+        name: "external",
+        description: {
+            fr: "Convenience: force target=_blank + rel=noreferrer noopener.",
+            en: "Convenience: forces target=_blank + rel=noreferrer noopener.",
+        },
+        type: "boolean",
+        required: false,
+        default: "false",
+        fromSystem: false,
+    },
+    {
         name: "(native props)",
         description: {
-            fr: "Toutes les props natives du button (type, onClick, aria-*, data-*…).",
-            en: "All native button props (type, onClick, aria-*, data-*…).",
+            fr: "Toutes les props natives du lien (href, target, rel, onClick, aria-*, data-*…).",
+            en: "All native anchor props (href, target, rel, onClick, aria-*, data-*…).",
         },
-        type: "Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'children'>",
+        type: "Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'className' | 'children'>",
         required: false,
         fromSystem: false,
     },
 ];
 
-export const IntentControlButtonPropsTable: DocsPropRow[] = [
-    ...INTENT_CONTROL_BUTTON_LOCAL_PROPS_TABLE,
+export const IntentControlLinkPropsTable: DocsPropRow[] = [
+    ...INTENT_CONTROL_LINK_LOCAL_PROPS_TABLE,
     ...SYSTEM_PROPS_TABLE,
 ];
 
-export const IntentControlButtonIdentity: ComponentIdentity = {
-    name: "IntentControlButton",
+export const IntentControlLinkIdentity: ComponentIdentity = {
+    name: "IntentControlLink",
     kind: "control",
     description: {
-        fr: "Bouton intent-first (controls) : hooks CSS stables + variables résolues via resolveIntent().",
-        en: "Intent-first control button: stable CSS hooks + resolved variables via resolveIntent().",
+        fr: "Lien intent-first (navigation) : hooks CSS stables + variables résolues via resolveIntent().",
+        en: "Intent-first link (navigation): stable CSS hooks + resolved variables via resolveIntent().",
     },
-    since: "0.1.0",
+    since: "0.2.0",
     docs: {
-        route: "/playground/components/IntentControlButton",
+        route: "/playground/components/IntentControlLink",
     },
     anatomy: {
-        root: "<button>",
+        root: "<a>",
         glowFillLayer: ".intent-glow-layer.intent-glow-fill",
         glowBorderLayer: ".intent-glow-layer.intent-glow-border",
         content: ".intent-control-label (wrapped in z-10)",
-        spinner: ".intent-control-spinner",
         leftIcon: ".intent-control-icon-left",
         rightIcon: ".intent-control-icon-right",
     },
     classHooks: [
         "intent-control",
-        "intent-control-button",
+        "intent-control-link",
         "intent-bg",
         "intent-ink",
         "intent-border",
         "intent-glow-layer",
         "intent-glow-fill",
         "intent-glow-border",
-        "is-pressed",
-        "is-loading",
         "is-disabled",
-        "ids-btn-xs",
-        "ids-btn-sm",
-        "ids-btn-md",
-        "ids-btn-lg",
-        "ids-btn-xl",
+        "ids-link-xs",
+        "ids-link-sm",
+        "ids-link-md",
+        "ids-link-lg",
+        "ids-link-xl",
     ],
 };
 
@@ -209,7 +194,7 @@ export const IntentControlButtonIdentity: ComponentIdentity = {
    ✅ MAIN
 ============================================================================ */
 
-export function IntentControlButton(props: IntentControlButtonProps) {
+export function IntentControlLink(props: IntentControlLinkProps) {
     const {
         className,
         children,
@@ -217,13 +202,11 @@ export function IntentControlButton(props: IntentControlButtonProps) {
         size = "md",
         fullWidth = false,
 
-        loading = false,
-        pressed = false,
-
         leftIcon,
         rightIcon,
+        external = false,
 
-        // ✅ Pull DS props OUT so they never reach the DOM via {...buttonProps}
+        // ✅ Pull DS props OUT so they never reach the DOM
         intent,
         variant,
         tone,
@@ -232,15 +215,15 @@ export function IntentControlButton(props: IntentControlButtonProps) {
         mode,
         disabled: disabledProp,
 
-        // ✅ Only real DOM props remain here
-        ...buttonProps
+        // ✅ Only real anchor props remain here
+        ...anchorProps
     } = props;
 
-    const disabled = Boolean(disabledProp) || loading;
+    const disabled = Boolean(disabledProp);
 
     const intentInput: IntentInput = {
         ...(intent !== undefined ? { intent } : {}),
-        ...(variant !== undefined ? { variant } : {}), // ✅ IMPORTANT
+        ...(variant !== undefined ? { variant } : {}),
         ...(tone !== undefined ? { tone } : {}),
         ...(glow !== undefined ? { glow } : {}),
         ...(intensity !== undefined ? { intensity } : {}),
@@ -249,11 +232,10 @@ export function IntentControlButton(props: IntentControlButtonProps) {
     };
 
     const resolved = resolveIntent(intentInput);
-
-    const surfaceProps = getIntentControlProps(resolved, className);
+    const controlProps = getIntentControlProps(resolved, className);
 
     /* ============================================================================
-       ✨ Glow layers (same rules as IntentSurface)
+       ✨ Glow layers (same rules as IntentControlButton)
     ============================================================================ */
 
     const hasGlow = Boolean(resolved.glowBackground);
@@ -262,9 +244,6 @@ export function IntentControlButton(props: IntentControlButtonProps) {
     const glowAllowed = hasGlow && v !== "ghost";
     const isGlowed = resolved.intent === "glowed";
 
-    // Variant rules:
-    // - Normal intents: flat/elevated => fill, outlined/elevated => border
-    // - glowed: aura exists even in outlined (fill allowed for all except ghost)
     const allowFillGlow = glowAllowed && (isGlowed || v === "flat" || v === "elevated");
     const allowBorderGlow = glowAllowed && (v === "outlined" || v === "elevated");
 
@@ -279,31 +258,35 @@ export function IntentControlButton(props: IntentControlButtonProps) {
     ============================================================================ */
 
     const rootCls = cn(
-        "intent-control intent-control-button",
-        "relative inline-flex items-center justify-center",
+        "intent-control intent-control-link",
+        "relative inline-flex items-center",
         "select-none whitespace-nowrap",
         "rounded-ids-2xl",
         "transition",
         sizeClass(size),
         fullWidth && "w-full",
-        pressed && "is-pressed",
-        loading && "is-loading",
         disabled && "is-disabled"
     );
 
     return (
-        <button
-            {...buttonProps}
-            {...surfaceProps}
-            className={cn(surfaceProps.className, rootCls)}
-            disabled={disabled}
-            type={buttonProps.type ?? "button"}
-            aria-pressed={pressed || undefined}
-            aria-busy={loading || undefined}
+        <a
+            {...anchorProps}
+            {...controlProps}
+            className={cn(controlProps.className, rootCls)}
+            aria-disabled={disabled || undefined}
             data-intent={resolved.intent}
             data-variant={resolved.variant}
             data-intensity={resolved.intensity}
             data-mode={resolved.mode}
+            target={external ? "_blank" : anchorProps.target}
+            rel={external ? "noreferrer noopener" : anchorProps.rel}
+            onClick={(e) => {
+                if (disabled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                anchorProps.onClick?.(e);
+            }}
         >
             {/* Glow layers (under content) */}
             {glowAllowed ? (
@@ -311,7 +294,7 @@ export function IntentControlButton(props: IntentControlButtonProps) {
                     {allowFillGlow ? (
                         <span
                             aria-hidden
-                            className={cn("intent-glow-layer intent-glow-fill")}
+                            className="intent-glow-layer intent-glow-fill"
                             style={{ opacity: readOpacity("--intent-glow-fill-opacity") }}
                         />
                     ) : null}
@@ -319,7 +302,7 @@ export function IntentControlButton(props: IntentControlButtonProps) {
                     {allowBorderGlow ? (
                         <span
                             aria-hidden
-                            className={cn("intent-glow-layer intent-glow-border")}
+                            className="intent-glow-layer intent-glow-border"
                             style={{
                                 opacity: readOpacity("--intent-glow-border-opacity"),
                                 borderRadius: "inherit",
@@ -331,9 +314,7 @@ export function IntentControlButton(props: IntentControlButtonProps) {
 
             {/* Content */}
             <span className="relative z-10 inline-flex items-center gap-2">
-                {loading ? (
-                    <span aria-hidden className="intent-control-spinner" />
-                ) : leftIcon ? (
+                {leftIcon ? (
                     <span className="intent-control-icon intent-control-icon-left">{leftIcon}</span>
                 ) : null}
 
@@ -345,6 +326,6 @@ export function IntentControlButton(props: IntentControlButtonProps) {
                     </span>
                 ) : null}
             </span>
-        </button>
+        </a>
     );
 }

@@ -1,0 +1,114 @@
+/* ============================================================================
+   styles/intent/IntentDivider.css
+   IntentDivider
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-control.intent-divider {
+    /* Defaults */
+    --ids-divider-color: var(--intent-border, rgba(255, 255, 255, 0.18));
+    --ids-divider-opacity: 0.55;
+
+    --ids-divider-thickness: 1px;
+    --ids-divider-gap: 0.75rem;
+    --ids-divider-label-pad-x: 0.5rem;
+
+    position: relative;
+    min-width: 0;
+}
+
+/* ============================================================================
+   Orientation
+============================================================================ */
+
+.intent-control.intent-divider.intent-divider-horizontal {
+    width: 100%;
+}
+
+.intent-control.intent-divider.intent-divider-vertical {
+    height: 100%;
+}
+
+/* ============================================================================
+   Parts
+============================================================================ */
+
+.intent-control.intent-divider .intent-divider-line {
+    background: var(--ids-divider-color);
+    opacity: var(--ids-divider-opacity);
+    border-radius: 999px;
+}
+
+.intent-control.intent-divider.intent-divider-horizontal .intent-divider-line {
+    height: var(--ids-divider-thickness);
+}
+
+.intent-control.intent-divider.intent-divider-vertical .intent-divider-line {
+    width: var(--ids-divider-thickness);
+}
+
+.intent-control.intent-divider .intent-divider-label {
+    color: var(--intent-ink, rgba(255, 255, 255, 0.85));
+    opacity: 0.7;
+
+    padding: 0 var(--ids-divider-label-pad-x);
+    line-height: 1;
+
+    user-select: none;
+}
+
+/* ============================================================================
+   States
+============================================================================ */
+
+.intent-control.intent-divider.has-label {
+    gap: var(--ids-divider-gap);
+}
+
+.intent-control.intent-divider.is-disabled {
+    --ids-divider-opacity: 0.35;
+    opacity: 0.75;
+}
+
+/* ============================================================================
+   Size hooks (thickness)
+============================================================================ */
+
+.intent-control.intent-divider.ids-divider-hairline {
+    --ids-divider-thickness: 1px;
+}
+
+.intent-control.intent-divider.ids-divider-thin {
+    --ids-divider-thickness: 2px;
+}
+
+.intent-control.intent-divider.ids-divider-medium {
+    --ids-divider-thickness: 3px;
+}
+
+/* ============================================================================
+   Size hooks (gap)
+============================================================================ */
+
+.intent-control.intent-divider.ids-divider-gap-xs {
+    --ids-divider-gap: 0.5rem;
+}
+
+.intent-control.intent-divider.ids-divider-gap-sm {
+    --ids-divider-gap: 0.75rem;
+}
+
+.intent-control.intent-divider.ids-divider-gap-md {
+    --ids-divider-gap: 1rem;
+}
+
+/* ============================================================================
+   Mode overrides
+============================================================================ */
+
+.intent-control.intent-divider[data-mode="light"] {
+    --ids-divider-color: var(--intent-border, rgba(0, 0, 0, 0.18));
+}

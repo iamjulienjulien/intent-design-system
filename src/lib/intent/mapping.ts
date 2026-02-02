@@ -97,3 +97,7 @@ export const TONE_TO_RGB: Record<ToneName, string> = {
 ---------------------------------------------------------------------------- */
 
 export const TONE_INK_RGB = "17 24 39"; // slate-900-ish
+
+export const DEFAULT_THEME_COLOR = "167 103 162";
+
+// export const DEFAULT_THEME_COLOR = "167 103 162";

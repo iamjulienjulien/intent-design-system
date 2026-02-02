@@ -1,0 +1,64 @@
+/* ============================================================================
+   styles/intent/IntentPickerTone.css
+   IntentPickerTone
+============================================================================ */
+
+.intent-picker-tone-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    padding-right: 1.75rem;
+    cursor: pointer;
+}
+
+.intent-picker-tone .intent-control-field-trailing {
+    opacity: 0.7;
+}
+
+/* IntentPickerTone (swatches + palette) */
+
+.intent-picker-tone-swatch {
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 999px;
+    flex: 0 0 auto;
+}
+
+.intent-picker-tone-palette {
+    margin-top: 0.55rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    opacity: 0.9;
+}
+
+.intent-picker-tone-swatchBtn {
+    border: 0;
+    background: transparent;
+    padding: 0.1rem;
+    border-radius: 999px;
+    cursor: pointer;
+    opacity: 0.85;
+}
+
+.intent-picker-tone-swatchBtn:hover {
+    opacity: 1;
+}
+
+.intent-picker-tone-swatchBtn.is-active {
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--intent-ring) 45%, transparent);
+}
+
+.intent-picker-tone-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.intent-picker-tone-optionText {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

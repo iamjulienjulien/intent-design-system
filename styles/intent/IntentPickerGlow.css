@@ -1,0 +1,150 @@
+/* ============================================================================
+   IntentPickerGlow
+============================================================================ */
+
+.intent-picker-glow {
+    width: 100%;
+    min-width: 0;
+}
+
+/* Option row content inside IntentControlSelect option label */
+.intent-picker-glow-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+}
+
+.intent-picker-glow-optionText {
+    display: inline-block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.9;
+}
+
+/* ============================================================================
+   Swatch
+============================================================================ */
+
+.intent-picker-glow-swatch {
+    width: 0.95rem;
+    height: 0.95rem;
+    border-radius: 999px;
+
+    flex: 0 0 auto;
+
+    /* Fallback if gradients are not set inline */
+    background: color-mix(in oklab, var(--intent-ink) 40%, transparent);
+
+    /* Soft ring that works on both dark/light */
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 60%, transparent),
+        0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+/* If you want the swatch to look more "glowy" without relying on the DS glow layer */
+.intent-picker-glow-swatch {
+    filter: saturate(1.05);
+}
+
+/* ============================================================================
+   Optional: make the dropdown list feel more "panel-ish"
+   (works because your select options already have stable hooks)
+============================================================================ */
+
+/* Adds breathing room and aligns rich labels */
+.intent-control.intent-control-select .intent-control-option .intent-picker-glow-option {
+    width: 100%;
+}
+
+/* Slightly increase the option row height feel (without changing the component sizing) */
+.intent-control.intent-control-select .intent-control-option .intent-picker-glow-optionText {
+    font-size: 0.875rem;
+    line-height: 1.2;
+}
+
+/* Highlight: make swatch pop a tiny bit */
+.intent-control.intent-control-select
+    .intent-control-option.is-highlighted
+    .intent-picker-glow-swatch {
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 75%, transparent),
+        0 0 0 3px color-mix(in oklab, var(--intent-bg) 18%, transparent);
+}
+
+/* Selected: a little more contrast */
+.intent-control.intent-control-select
+    .intent-control-option.is-selected
+    .intent-picker-glow-optionText {
+    opacity: 0.98;
+}
+
+/* Disabled option: mute everything */
+.intent-control.intent-control-select
+    .intent-control-option.is-option-disabled
+    .intent-picker-glow-optionText {
+    opacity: 0.4;
+}
+
+.intent-control.intent-control-select
+    .intent-control-option.is-option-disabled
+    .intent-picker-glow-swatch {
+    opacity: 0.35;
+    filter: saturate(0.8);
+}
+
+/* ============================================================================
+   Light mode tweaks
+============================================================================ */
+
+.intent-control.intent-control-select[data-mode="light"] .intent-picker-glow-swatch {
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 70%, transparent),
+        0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+/* ============================================================================
+   Optional: if you later add a mini palette row under the select
+============================================================================ */
+
+.intent-picker-glow-palette {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.intent-picker-glow-swatchBtn {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 0.125rem;
+    border-radius: 999px;
+    cursor: pointer;
+
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--intent-border) 30%, transparent);
+    transition:
+        transform 120ms ease,
+        box-shadow 120ms ease;
+}
+
+.intent-picker-glow-swatchBtn:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--intent-border) 55%, transparent),
+        0 0 0 4px color-mix(in oklab, var(--intent-bg) 14%, transparent);
+}
+
+.intent-picker-glow-swatchBtn.is-active {
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--intent-border) 75%, transparent),
+        0 0 0 6px color-mix(in oklab, var(--intent-bg) 16%, transparent);
+}
+
+.intent-picker-glow-swatchBtn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    transform: none;
+}

@@ -1,0 +1,301 @@
+/* ============================================================================
+   styles/intent/IntentCommandPalette.css
+   IntentCommandPalette
+   - Overlay + panel + search + results list
+   - Stable hooks only, uses resolver vars via shared helpers
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-command {
+    position: relative;
+}
+
+/* ============================================================================
+   Overlay
+============================================================================ */
+
+.intent-command-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+
+    padding: 10vh 1rem 2rem;
+
+    /* dim the world */
+    background: rgba(0, 0, 0, 0.75);
+
+    /* helps blur on supported browsers without relying on it */
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+/* ============================================================================
+   Panel (surface)
+============================================================================ */
+
+.intent-command-panel {
+    width: min(760px, 100%);
+    max-height: 72vh;
+
+    overflow: hidden;
+
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+
+    /* let surface recipe paint (intent-bg/intent-ring/intent-shadow-soft) */
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============================================================================
+   Panel backplate (opaque layer)
+   - Removes perceived transparency behind the surface recipe
+   - Keeps intent vars + glow/ring working above it
+============================================================================ */
+
+.intent-command-panel {
+    position: relative;
+    isolation: isolate; /* create a new stacking context */
+}
+
+/* Opaque backplate behind the surface */
+.intent-command-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+
+    border-radius: inherit;
+
+    /* Opaque base (tuned for dark mode) */
+    background: rgba(8, 10, 16, 0.92);
+
+    /* Optional: subtle texture */
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Light mode variant */
+.intent-command-panel[data-mode="light"]::before {
+    background: rgba(250, 250, 252, 0.94);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================================================
+   Header / input
+============================================================================ */
+
+.intent-command-header {
+    padding: 0.75rem;
+    width: 100%;
+}
+
+.intent-command-inputWrap {
+    border-radius: calc(var(--ids-radius-2xl, 1.25rem) - 0.35rem);
+    padding: 0.65rem 0.8rem;
+
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.intent-command-input {
+    flex: 1 1 auto;
+    min-width: 0;
+
+    background: transparent;
+    border: 0;
+    outline: none;
+
+    color: var(--intent-ink);
+    font: inherit;
+
+    font-size: 0.95rem;
+    line-height: 1.2rem;
+
+    opacity: 0.95;
+}
+
+.intent-command-input::placeholder {
+    opacity: 0.55;
+}
+
+.intent-command-kbdHint {
+    flex: 0 0 auto;
+    opacity: 0.7;
+}
+
+.intent-command-kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0.18rem 0.45rem;
+    border-radius: 0.55rem;
+
+    font-size: 0.75rem;
+    line-height: 1;
+
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================================
+   List
+============================================================================ */
+
+.intent-command-list {
+    padding: 0.25rem 0.5rem 0.75rem;
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+/* Group */
+.intent-command-group {
+    margin-top: 0.5rem;
+}
+
+.intent-command-groupLabel {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+
+    opacity: 0.55;
+    user-select: none;
+}
+
+/* Empty */
+.intent-command-empty {
+    padding: 1.25rem 0.75rem;
+    opacity: 0.75;
+}
+
+/* ============================================================================
+   Item
+============================================================================ */
+
+.intent-command-item {
+    width: 100%;
+    text-align: left;
+
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    padding: 0.65rem 0.65rem;
+    border-radius: 0.95rem;
+
+    border: 0;
+    background: transparent;
+    color: inherit;
+
+    cursor: pointer;
+    user-select: none;
+
+    transition:
+        background 140ms ease,
+        transform 80ms ease,
+        opacity 140ms ease;
+}
+
+.intent-command-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.intent-command-item.is-active {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.intent-command-item:active {
+    transform: translateY(1px);
+}
+
+.intent-command-item.is-disabled,
+.intent-command-item:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Icon / dot */
+.intent-command-itemIcon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 18px;
+    height: 18px;
+
+    opacity: 0.9;
+    margin-top: 2px;
+}
+
+.intent-command-itemDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+
+    background: color-mix(in oklab, var(--intent-accent, currentColor) 70%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--intent-accent, currentColor) 28%, transparent);
+
+    flex: 0 0 auto;
+    margin-top: 7px;
+}
+
+/* Main */
+.intent-command-itemMain {
+    flex: 1 1 auto;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.intent-command-itemLabel {
+    font-size: 0.92rem;
+    line-height: 1.15rem;
+    opacity: 0.95;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intent-command-itemDescription {
+    font-size: 0.8125rem;
+    line-height: 1.05rem;
+    opacity: 0.65;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Right hint */
+.intent-command-itemHint {
+    flex: 0 0 auto;
+
+    font-size: 0.75rem;
+    opacity: 0.55;
+
+    margin-top: 2px;
+}
+
+/* ============================================================================
+   Footer
+============================================================================ */
+
+.intent-command-footer {
+    padding: 0.65rem 0.75rem;
+    opacity: 0.75;
+    width: 100%;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}

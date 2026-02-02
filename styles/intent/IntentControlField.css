@@ -1,0 +1,266 @@
+/* ============================================================================
+   styles/intent/IntentControlField.css
+   IntentControlField
+   - Field wrapper for form controls (input/textarea/select, etc.)
+   - Uses resolver vars (ink/bg/border/ring) via shared helpers
+   - Stable hooks only
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-control-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+
+    min-width: 0;
+    color: var(--intent-ink);
+}
+
+.intent-control-field.is-compact {
+    gap: 0.35rem;
+}
+
+/* ============================================================================
+   Header (label row)
+============================================================================ */
+
+.intent-control-field-header {
+    min-width: 0;
+}
+
+.intent-control-field-labelRow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+
+    min-width: 0;
+}
+
+.intent-control-field-label {
+    font-size: 0.75em;
+    line-height: 0.18em;
+
+    opacity: 0.55;
+    min-width: 0;
+
+    letter-spacing: 0.18em;
+}
+
+.intent-control-field-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    font-size: 0.75rem;
+    opacity: 0.55;
+
+    white-space: nowrap;
+}
+
+.intent-control-field-required {
+    opacity: 0.85;
+}
+
+.intent-control-field-optional {
+    opacity: 0.75;
+}
+
+/* ============================================================================
+   Frame (the “field” container)
+   - Default: neutral (resolver decides)
+   - Only flat/elevated: gets a background fill
+   - No always-on 1px border (avoid the unwanted thin outline)
+============================================================================ */
+
+.intent-control-field-frame {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+
+    overflow: visible;
+
+    padding: 0;
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+
+    /* ✅ Neutral by default (do NOT force paint) */
+    background: none;
+    border: 0;
+    box-shadow: none;
+
+    transition:
+        background 160ms ease,
+        box-shadow 160ms ease,
+        transform 120ms ease;
+}
+
+/* ✅ Padding enabled (default behavior) */
+.intent-control-field.is-padded .intent-control-field-frame {
+    padding: 0.7rem 0.9rem;
+}
+
+/* Compact + padded */
+.intent-control-field.is-compact.is-padded .intent-control-field-frame {
+    padding: 0.55rem 0.75rem;
+}
+
+.intent-control-field:not(.is-padded) .intent-control-field-frame {
+    gap: 0;
+}
+
+/* ============================================================================
+   Variant-driven paint rules
+   - We rely on the root data-variant set in TSX
+============================================================================ */
+
+/* ✅ Background only for flat + elevated */
+.intent-control-field[data-variant="flat"] .intent-control-field-frame,
+.intent-control-field[data-variant="elevated"] .intent-control-field-frame {
+    background-color: color-mix(
+        in oklab,
+        var(--intent-bg) calc(var(--intent-bg-opacity, 0.12) * 100%),
+        transparent
+    );
+}
+
+/* ✅ Outlined/elevated get a subtle "field edge" (not for flat/ghost) */
+.intent-control-field[data-variant="outlined"] .intent-control-field-frame,
+.intent-control-field[data-variant="elevated"] .intent-control-field-frame {
+    box-shadow: inset 0 0 0 1px
+        color-mix(
+            in oklab,
+            var(--intent-border) calc(var(--intent-ring-opacity, 0.18) * 100%),
+            transparent
+        );
+}
+
+/* ✅ Elevated gets depth (in addition to resolver ring/shadow if present) */
+.intent-control-field[data-variant="elevated"] .intent-control-field-frame {
+    box-shadow:
+        inset 0 0 0 1px
+            color-mix(
+                in oklab,
+                var(--intent-border) calc(var(--intent-ring-opacity, 0.18) * 100%),
+                transparent
+            ),
+        var(--intent-elev-shadow, none);
+}
+
+/* Ghost stays fully transparent/unstyled by default */
+.intent-control-field[data-variant="ghost"] .intent-control-field-frame {
+    background: none;
+    box-shadow: none;
+}
+
+/* ============================================================================
+   Hover / Focus
+============================================================================ */
+
+/* Hover polish (skip ghost + disabled) */
+.intent-control-field:not(.is-disabled)[data-variant="flat"] .intent-control-field-frame:hover,
+.intent-control-field:not(.is-disabled)[data-variant="outlined"] .intent-control-field-frame:hover,
+.intent-control-field:not(.is-disabled)[data-variant="elevated"] .intent-control-field-frame:hover {
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--intent-ring) 42%, transparent),
+        var(--intent-elev-shadow, none);
+}
+
+/* Focus-within (skip ghost) */
+.intent-control-field[data-variant="flat"] .intent-control-field-frame:focus-within,
+.intent-control-field[data-variant="outlined"] .intent-control-field-frame:focus-within,
+.intent-control-field[data-variant="elevated"] .intent-control-field-frame:focus-within {
+    box-shadow:
+        0 0 0 2px color-mix(in oklab, var(--intent-ring) 22%, transparent),
+        0 0 0 6px color-mix(in oklab, var(--intent-ring) 10%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, var(--intent-ring) 40%, transparent),
+        var(--intent-elev-shadow, none);
+}
+
+/* Invalid state (works for all but can be skipped on ghost if you want) */
+.intent-control-field.is-invalid .intent-control-field-frame {
+    box-shadow:
+        0 0 0 2px color-mix(in oklab, var(--intent-ring) 18%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, var(--intent-ring) 50%, transparent),
+        var(--intent-elev-shadow, none);
+}
+
+/* Disabled */
+.intent-control-field.is-disabled .intent-control-field-frame {
+    cursor: not-allowed;
+}
+
+/* Disabled */
+.intent-control-field.is-disabled {
+    opacity: 0.65;
+}
+
+.intent-control-field.is-disabled .intent-control-field-frame {
+    cursor: not-allowed;
+}
+
+/* ============================================================================
+   Slots (leading / control / trailing)
+============================================================================ */
+
+.intent-control-field-leading,
+.intent-control-field-trailing {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+
+    opacity: 0.85;
+}
+
+.intent-control-field-control {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* ============================================================================
+   Generic child control styling
+   (Consumer opts-in by adding these classes to inputs/textarea)
+============================================================================ */
+
+.intent-control-field-input,
+.intent-control-field-textarea {
+    width: 100%;
+    min-width: 0;
+
+    background: transparent;
+    border: 0;
+    outline: none;
+
+    color: inherit;
+    font: inherit;
+
+    padding: 0;
+    margin: 0;
+
+    opacity: 0.92;
+}
+
+.intent-control-field-input::placeholder,
+.intent-control-field-textarea::placeholder {
+    opacity: 0.55;
+}
+
+/* ============================================================================
+   Hint / error
+============================================================================ */
+
+.intent-control-field-hint,
+.intent-control-field-error {
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    opacity: 0.7;
+}
+
+.intent-control-field-error {
+    opacity: 0.9;
+}

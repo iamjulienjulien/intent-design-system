@@ -1,5 +1,2 @@
-/* styles/index.css */
-/* Convenience entrypoint: import all runtime CSS in one line. */
-
 @import "./tokens.css";
-@import "./intent.css";
+@import "./intent/index.css";

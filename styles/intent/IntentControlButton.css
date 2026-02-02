@@ -1,0 +1,70 @@
+/* ============================================================================
+   IntentControlButton.css
+============================================================================ */
+
+.ids-btn-xs {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.75rem;
+    line-height: 1.05rem;
+    font-weight: 600;
+}
+
+.ids-btn-sm {
+    padding: 0.55rem 0.85rem;
+    font-size: 0.8125rem;
+    line-height: 1.1rem;
+    font-weight: 600;
+}
+
+.ids-btn-md {
+    padding: 0.7rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 650;
+}
+
+.ids-btn-lg {
+    padding: 0.85rem 1.15rem;
+    font-size: 0.95rem;
+    line-height: 1.35rem;
+    font-weight: 650;
+}
+
+.ids-btn-xl {
+    padding: 1rem 1.3rem;
+    font-size: 1.05rem;
+    line-height: 1.45rem;
+    font-weight: 700;
+}
+
+.intent-control-button {
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+
+    border: 0;
+    background: none;
+    font: inherit;
+
+    letter-spacing: -0.01em;
+    user-select: none;
+
+    border-radius: inherit;
+}
+
+.intent-control-button.is-disabled,
+.intent-control-button:disabled {
+    cursor: not-allowed;
+}
+
+.intent-control-button[data-variant="ghost"] {
+    background-color: transparent;
+}
+
+.intent-control-button:hover:not(:disabled) {
+    transform: translateY(-0.5px);
+}
+
+.intent-control-button:active:not(:disabled),
+.intent-control-button.is-pressed {
+    transform: translateY(0px) scale(0.99);
+}

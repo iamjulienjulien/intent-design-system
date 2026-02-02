@@ -5,6 +5,26 @@
 
 ---
 
+## 🚀 v0.2.0 — A Major Step Forward
+
+Version **0.2.0** marks a foundational milestone for Intent Design System.
+
+What started with **2 core components** (`IntentSurface`, `IntentControlButton`)  
+has grown into a **coherent ecosystem of 18 intent-first components**, covering:
+
+- surfaces
+- controls
+- data display
+- layout & structure
+- indicators and feedback
+
+This release focuses on **consistency, composability, and narrative clarity**.
+
+> Intent Design System is no longer a concept.  
+> It is now a usable, extensible system.
+
+---
+
 ## ✨ What is Intent Design System?
 
 Intent Design System is **not** a styling framework.
@@ -24,10 +44,10 @@ They are **consequences**.
 
 ## 📦 Installation
 
+> The design system is distributed via **npm**.
+
 ```bash
 npm install intent-design-system
-# or
-pnpm add intent-design-system
 ```
 
 ### CSS import (required)
@@ -54,6 +74,9 @@ import { IntentSurface } from "intent-design-system";
 <IntentSurface intent="empowered">Success!</IntentSurface>
 ```
 
+Intent is the **semantic contract**.  
+Variant, tone, glow, and intensity adapt automatically.
+
 ---
 
 ## 🧭 Intents
@@ -75,7 +98,8 @@ import { IntentSurface } from "intent-design-system";
 - `elevated`
 - `ghost`
 
-Variants frame intent. They never change it.
+Variants **frame** intent.  
+They never change its meaning.
 
 ---
 
@@ -95,7 +119,8 @@ Variants frame intent. They never change it.
 ```
 
 Aesthetic glows:
-aurora · ember · cosmic · mythic · royal · mono
+
+`aurora` · `ember` · `cosmic` · `mythic` · `royal` · `mono`
 
 ---
 
@@ -110,7 +135,7 @@ aurora · ember · cosmic · mythic · royal · mono
 
 ---
 
-## ⚙️ API
+## ⚙️ Unified Intent API
 
 ```ts
 intent?: IntentName;
@@ -124,6 +149,13 @@ disabled?: boolean;
 
 ---
 
+## 🧪 Playground
+
+The playground is a **separate repository**, used for exploration and validation.  
+It is **not yet published** and intentionally decoupled from the library.
+
+---
+
 ## 🧠 Philosophy
 
 Intent is meaning.  
@@ -131,3 +163,19 @@ Visuals are consequences.
 
 The interface is not a menu.  
 It is a **world**.
+
+---
+
+## 👋 About the developer
+
+**Julien Julien**  
+Full Stack Developer & narrative project creator.
+
+> I design sustainable digital applications and tools  
+> where code, structure, and storytelling move forward together.
+>
+> I favor clear, evolutive systems,  
+> built for the long term rather than the instant.
+
+📍 Angers, France 🇫🇷  
+🌍 https://julienjulien.fr

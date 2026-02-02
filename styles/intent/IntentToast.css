@@ -1,0 +1,332 @@
+/* ============================================================================
+   styles/intent/IntentToast.css
+   IntentToast
+   - Intent-first transient notification (non-blocking)
+   - Uses resolver vars (ink/bg/border/ring/shadow)
+   - Placement + motion
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-toast {
+    position: fixed;
+    z-index: 80;
+
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    width: min(28rem, calc(100vw - 2rem));
+    max-width: calc(100vw - 2rem);
+
+    padding: 0.9rem 1rem;
+
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+
+    color: var(--intent-ink);
+
+    /* ✅ Defaults: do NOT force surface visuals */
+    background-color: transparent;
+    border: 1px solid transparent;
+
+    box-shadow: none;
+
+    /* Motion */
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+    animation: ids-toast-in 160ms ease forwards;
+
+    pointer-events: auto;
+
+    /* Optional: will be enabled on variants that have bg */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    text-rendering: geometricPrecision;
+}
+
+/* ============================================================================
+   Variant mapping
+============================================================================ */
+
+/* elevated = real surface */
+.intent-toast[data-variant="elevated"] {
+    background-color: color-mix(
+        in oklab,
+        var(--intent-bg) calc(var(--intent-bg-opacity, 0.12) * 100%),
+        transparent
+    );
+
+    border-color: color-mix(
+        in oklab,
+        var(--intent-border) calc(var(--intent-ring-opacity, 0.18) * 100%),
+        transparent
+    );
+
+    box-shadow:
+        0 20px 55px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.06),
+        var(--intent-ring-shadow, none),
+        var(--intent-elev-shadow, none);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* outlined = border only (no fill) */
+.intent-toast[data-variant="outlined"] {
+    background-color: transparent;
+
+    border-color: color-mix(
+        in oklab,
+        var(--intent-border) calc(var(--intent-ring-opacity, 0.26) * 100%),
+        transparent
+    );
+
+    box-shadow:
+        0 14px 40px rgba(0, 0, 0, 0.25),
+        var(--intent-ring-shadow, none);
+}
+
+/* ghost = floating text container, ultra subtle */
+.intent-toast[data-variant="ghost"] {
+    background-color: transparent;
+    border-color: transparent;
+
+    box-shadow:
+        0 10px 28px rgba(0, 0, 0, 0.22),
+        var(--intent-ring-shadow, none);
+}
+
+/* flat = no chrome at all (optionally keep a tiny shadow) */
+.intent-toast[data-variant="flat"] {
+    background-color: color-mix(
+        in oklab,
+        var(--intent-bg) calc(var(--intent-bg-opacity, 0.12) * 100%),
+        transparent
+    );
+    border-color: transparent;
+
+    /* choose one: none OR tiny */
+    box-shadow: none;
+    /* box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18); */
+}
+
+/* ============================================================================
+   Light mode tweaks (only where relevant)
+============================================================================ */
+
+.intent-toast[data-mode="light"][data-variant="elevated"] {
+    background-color: color-mix(in oklab, var(--intent-bg) 88%, white 12%);
+    border-color: color-mix(in oklab, var(--intent-border) 42%, transparent);
+    box-shadow:
+        0 28px 65px rgba(0, 0, 0, 0.14),
+        0 0 0 1px rgba(0, 0, 0, 0.08),
+        var(--intent-ring-shadow, none),
+        var(--intent-elev-shadow, none);
+}
+
+.intent-toast[data-mode="light"][data-variant="outlined"] {
+    border-color: color-mix(in oklab, var(--intent-border) 42%, transparent);
+    box-shadow:
+        0 18px 44px rgba(0, 0, 0, 0.12),
+        var(--intent-ring-shadow, none);
+}
+
+.intent-toast[data-mode="light"][data-variant="ghost"] {
+    box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.1),
+        var(--intent-ring-shadow, none);
+}
+
+/* ============================================================================
+   Placement
+============================================================================ */
+
+.intent-toast.is-top-right {
+    top: 1rem;
+    right: 1rem;
+}
+
+.intent-toast.is-top-left {
+    top: 1rem;
+    left: 1rem;
+}
+
+.intent-toast.is-bottom-right {
+    bottom: 1rem;
+    right: 1rem;
+
+    /* bottom toasts rise upward */
+    transform: translateY(6px) scale(0.985);
+    animation-name: ids-toast-in-bottom;
+}
+
+.intent-toast.is-bottom-left {
+    bottom: 1rem;
+    left: 1rem;
+
+    transform: translateY(6px) scale(0.985);
+    animation-name: ids-toast-in-bottom;
+}
+
+/* ============================================================================
+   Slots layout
+============================================================================ */
+
+.intent-toast-icon {
+    flex: 0 0 auto;
+
+    width: 2rem;
+    height: 2rem;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 0.95rem;
+
+    /* Icon chip-like hint, very subtle */
+    background-color: color-mix(in oklab, var(--intent-bg) 14%, transparent);
+    border: 1px solid color-mix(in oklab, var(--intent-border) 18%, transparent);
+
+    opacity: 0.92;
+}
+
+.intent-toast-content {
+    flex: 1 1 auto;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.intent-toast-title {
+    font-size: 0.875rem;
+    line-height: 1.2rem;
+    font-weight: 600;
+
+    letter-spacing: 0.005em;
+    opacity: 0.95;
+}
+
+.intent-toast-description {
+    font-size: 0.8125rem;
+    line-height: 1.2rem;
+
+    opacity: 0.75;
+}
+
+/* Action container: keep compact */
+.intent-toast-action {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    margin-left: 0.25rem;
+}
+
+/* Close button */
+.intent-toast-close {
+    flex: 0 0 auto;
+
+    width: 1.75rem;
+    height: 1.75rem;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 0.9rem;
+
+    background: transparent;
+    border: 1px solid transparent;
+
+    color: inherit;
+    opacity: 0.6;
+
+    cursor: pointer;
+
+    transition:
+        opacity 140ms ease,
+        background 140ms ease,
+        border-color 140ms ease,
+        transform 120ms ease;
+}
+
+.intent-toast-close:hover {
+    opacity: 0.9;
+    background-color: color-mix(in oklab, var(--intent-bg) 14%, transparent);
+    border-color: color-mix(in oklab, var(--intent-border) 18%, transparent);
+}
+
+.intent-toast-close:active {
+    transform: translateY(1px);
+}
+
+/* Keyboard focus */
+.intent-toast-close:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 2px color-mix(in oklab, var(--intent-ring) 20%, transparent),
+        0 0 0 6px color-mix(in oklab, var(--intent-ring) 10%, transparent);
+}
+
+/* ============================================================================
+   Motion
+============================================================================ */
+
+@keyframes ids-toast-in {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes ids-toast-in-bottom {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Optional: you can add this class if later you implement exit animations */
+.intent-toast.is-leaving {
+    animation: ids-toast-out 140ms ease forwards;
+}
+
+.intent-toast.is-bottom-right.is-leaving,
+.intent-toast.is-bottom-left.is-leaving {
+    animation-name: ids-toast-out-bottom;
+}
+
+@keyframes ids-toast-out {
+    to {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.985);
+    }
+}
+
+@keyframes ids-toast-out-bottom {
+    to {
+        opacity: 0;
+        transform: translateY(6px) scale(0.985);
+    }
+}
+
+/* ============================================================================
+   Reduced motion
+============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .intent-toast {
+        animation: none;
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}

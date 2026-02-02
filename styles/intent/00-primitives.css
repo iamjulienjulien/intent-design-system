@@ -1,0 +1,51 @@
+/* ============================================================================
+   🧱 00-primitives.css
+   Shared primitives (hooks used by multiple components)
+============================================================================ */
+
+.intent-bg {
+    background-color: color-mix(
+        in oklab,
+        var(--intent-bg) calc(var(--intent-bg-opacity, 1) * 100%),
+        transparent
+    );
+}
+
+.intent-ink {
+    color: var(--intent-ink);
+}
+
+.intent-border {
+    border-color: var(--intent-border);
+}
+
+.intent-ring {
+    --intent-ring-shadow: 0 0 0 2px
+        color-mix(
+            in oklab,
+            var(--intent-ring) calc(var(--intent-ring-opacity, 1) * 100%),
+            transparent
+        );
+
+    outline: 2px solid
+        color-mix(
+            in oklab,
+            var(--intent-ring) calc(var(--intent-ring-opacity, 1) * 100%),
+            transparent
+        );
+    outline-offset: 0;
+}
+
+.intent-shadow-soft {
+    --intent-elev-shadow: 0 10px 30px rgb(0 0 0 / 0.08);
+}
+
+.intent-text {
+    color: var(--intent-text, oklch(from rgb(var(--ids-ink)) l c h));
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+.rounded-ids-2xl {
+    border-radius: 1rem !important;
+}

@@ -1,0 +1,82 @@
+/* ============================================================================
+   IntentControlLink.css
+============================================================================ */
+
+.intent-control-link {
+    -webkit-tap-highlight-color: transparent;
+
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+
+    letter-spacing: -0.01em;
+
+    border-radius: inherit;
+    color: inherit;
+}
+
+.intent-control-link.is-disabled,
+.intent-control-link[aria-disabled="true"] {
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.65;
+}
+
+.intent-control-link[data-variant="ghost"] {
+    background-color: transparent;
+}
+
+.intent-control-link:hover:not([aria-disabled="true"]) {
+    transform: translateY(-0.5px);
+    text-decoration: none;
+}
+
+.intent-control-link:active:not([aria-disabled="true"]) {
+    transform: translateY(0px) scale(0.99);
+}
+
+.intent-control-link:focus {
+    outline: none;
+}
+
+.intent-control-link:focus-visible {
+    box-shadow:
+        0 0 0 4px rgb(255 255 255 / 0.08),
+        var(--intent-ring-shadow, none),
+        var(--intent-elev-shadow, none);
+}
+
+.ids-link-xs {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.75rem;
+    line-height: 1.05rem;
+    font-weight: 600;
+}
+
+.ids-link-sm {
+    padding: 0.55rem 0.85rem;
+    font-size: 0.8125rem;
+    line-height: 1.1rem;
+    font-weight: 600;
+}
+
+.ids-link-md {
+    padding: 0.7rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 650;
+}
+
+.ids-link-lg {
+    padding: 0.85rem 1.15rem;
+    font-size: 0.95rem;
+    line-height: 1.35rem;
+    font-weight: 650;
+}
+
+.ids-btn-xl {
+    padding: 1rem 1.3rem;
+    font-size: 1.05rem;
+    line-height: 1.45rem;
+    font-weight: 700;
+}

@@ -1,0 +1,356 @@
+/* ============================================================================
+   styles/intent/IntentJourney.css
+   IntentJourney
+   - Intent-first journey (stepper / timeline)
+   - Stable hooks only
+   - Uses resolver vars via control recipe on steps
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-journey {
+    position: relative;
+    min-width: 0;
+    color: var(--intent-ink);
+}
+
+/* List */
+.intent-journey-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    display: flex;
+    min-width: 0;
+}
+
+/* Orientation */
+.intent-journey.is-vertical .intent-journey-list {
+    flex-direction: column;
+    gap: var(--ids-journey-gap, 0.55rem);
+}
+
+.intent-journey.is-horizontal .intent-journey-list {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--ids-journey-gap, 0.6rem);
+
+    /* allow wrap in tiny screens */
+    flex-wrap: wrap;
+}
+
+/* Each row = rail + button */
+.intent-journey-stepRow {
+    position: relative;
+    min-width: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ids-journey-row-gap, 0.6rem);
+}
+
+/* vertical rows stack normally */
+.intent-journey.is-vertical .intent-journey-stepRow {
+    width: 100%;
+}
+
+/* horizontal rows behave like columns */
+.intent-journey.is-horizontal .intent-journey-stepRow {
+    flex: 0 1 auto;
+}
+
+/* ============================================================================
+   Sizes (root hook)
+============================================================================ */
+
+.intent-journey.ids-journey-xs {
+    --ids-journey-gap: 0.45rem;
+    --ids-journey-row-gap: 0.5rem;
+
+    --ids-journey-step-px: 0.65rem;
+    --ids-journey-step-py: 0.5rem;
+
+    --ids-journey-font: 0.8125rem;
+    --ids-journey-desc: 0.75rem;
+
+    --ids-journey-icon: 1.35rem;
+    --ids-journey-index: 0.75rem;
+
+    --ids-journey-rail-w: 2px;
+    --ids-journey-rail-h: 1.6rem;
+}
+
+.intent-journey.ids-journey-sm {
+    --ids-journey-gap: 0.5rem;
+    --ids-journey-row-gap: 0.55rem;
+
+    --ids-journey-step-px: 0.75rem;
+    --ids-journey-step-py: 0.55rem;
+
+    --ids-journey-font: 0.875rem;
+    --ids-journey-desc: 0.75rem;
+
+    --ids-journey-icon: 1.5rem;
+    --ids-journey-index: 0.8125rem;
+
+    --ids-journey-rail-w: 2px;
+    --ids-journey-rail-h: 1.75rem;
+}
+
+.intent-journey.ids-journey-md {
+    --ids-journey-gap: 0.55rem;
+    --ids-journey-row-gap: 0.6rem;
+
+    --ids-journey-step-px: 0.85rem;
+    --ids-journey-step-py: 0.6rem;
+
+    --ids-journey-font: 0.9375rem;
+    --ids-journey-desc: 0.8125rem;
+
+    --ids-journey-icon: 1.6rem;
+    --ids-journey-index: 0.875rem;
+
+    --ids-journey-rail-w: 2px;
+    --ids-journey-rail-h: 1.9rem;
+}
+
+.intent-journey.ids-journey-lg {
+    --ids-journey-gap: 0.65rem;
+    --ids-journey-row-gap: 0.7rem;
+
+    --ids-journey-step-px: 0.95rem;
+    --ids-journey-step-py: 0.7rem;
+
+    --ids-journey-font: 1rem;
+    --ids-journey-desc: 0.875rem;
+
+    --ids-journey-icon: 1.75rem;
+    --ids-journey-index: 0.9375rem;
+
+    --ids-journey-rail-w: 3px;
+    --ids-journey-rail-h: 2.1rem;
+}
+
+/* ============================================================================
+   Rail (timeline line)
+============================================================================ */
+
+.intent-journey-rail {
+    position: relative;
+    flex: 0 0 auto;
+
+    border-radius: 999px;
+
+    background: color-mix(
+        in oklab,
+        var(--intent-border, rgba(255, 255, 255, 0.18)) 55%,
+        transparent
+    );
+    opacity: 0.75;
+}
+
+/* Vertical rail */
+.intent-journey.is-vertical .intent-journey-rail {
+    width: var(--ids-journey-rail-w, 2px);
+    height: var(--ids-journey-rail-h, 1.9rem);
+
+    margin-left: calc((var(--ids-journey-icon, 1.6rem) / 2) - (var(--ids-journey-rail-w, 2px) / 2));
+    margin-top: 0.15rem;
+}
+
+/* No rail on last */
+.intent-journey.is-vertical .intent-journey-stepRow.is-last .intent-journey-rail {
+    opacity: 0;
+}
+
+/* Horizontal rail: small connector before each step (except first) */
+.intent-journey.is-horizontal .intent-journey-rail {
+    height: var(--ids-journey-rail-w, 2px);
+    width: 1.25rem;
+
+    margin-top: calc((var(--ids-journey-step-py, 0.6rem) + (var(--ids-journey-icon, 1.6rem) / 2)));
+}
+
+/* In horizontal mode, hide rail for first element by relying on markup
+   (the component always renders rail; we mute the first visually) */
+.intent-journey.is-horizontal .intent-journey-stepRow:first-child .intent-journey-rail {
+    width: 0;
+    opacity: 0;
+}
+
+/* Done/active rail polish */
+.intent-journey-rail.is-done {
+    background: color-mix(in oklab, var(--intent-ring, currentColor) 65%, transparent);
+    opacity: 0.9;
+}
+.intent-journey-rail.is-active {
+    background: color-mix(in oklab, var(--intent-ring, currentColor) 55%, transparent);
+    opacity: 0.95;
+}
+
+/* Light mode rail tweak */
+.intent-journey[data-mode="light"] .intent-journey-rail {
+    background: color-mix(in oklab, var(--intent-border, rgba(0, 0, 0, 0.18)) 65%, transparent);
+}
+
+/* ============================================================================
+   Step (button)
+============================================================================ */
+
+.intent-journey-step {
+    min-width: 0;
+    text-align: left;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+
+    padding: var(--ids-journey-step-py, 0.6rem) var(--ids-journey-step-px, 0.85rem);
+
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+}
+
+/* Cursor only when interactive */
+.intent-journey.is-clickable .intent-journey-step {
+    cursor: pointer;
+}
+
+/* Icon */
+.intent-journey-stepIcon {
+    width: var(--ids-journey-icon, 1.6rem);
+    height: var(--ids-journey-icon, 1.6rem);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 auto;
+
+    border-radius: 999px;
+}
+
+/* Index badge look (when no custom icon) */
+.intent-journey-stepIndex {
+    font-size: var(--ids-journey-index, 0.875rem);
+    line-height: 1;
+    opacity: 0.9;
+
+    width: var(--ids-journey-icon, 1.6rem);
+    height: var(--ids-journey-icon, 1.6rem);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 999px;
+
+    background: color-mix(in oklab, var(--intent-bg, currentColor) 14%, transparent);
+    box-shadow: inset 0 0 0 1px
+        color-mix(in oklab, var(--intent-border, currentColor) 24%, transparent);
+}
+
+/* Main text */
+.intent-journey-stepMain {
+    min-width: 0;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.intent-journey-stepLabel {
+    font-size: var(--ids-journey-font, 0.9375rem);
+    line-height: 1.15;
+    opacity: 0.95;
+
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intent-journey-stepDescription {
+    font-size: var(--ids-journey-desc, 0.8125rem);
+    line-height: 1.25;
+    opacity: 0.62;
+
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Right meta */
+.intent-journey-stepMeta {
+    margin-left: auto;
+    flex: 0 0 auto;
+    opacity: 0.75;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* ============================================================================
+   States
+============================================================================ */
+
+.intent-journey-step.is-disabled,
+.intent-journey.is-disabled .intent-journey-step {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+/* Active emphasis */
+.intent-journey-step.is-active .intent-journey-stepLabel {
+    opacity: 1;
+}
+
+.intent-journey-step.is-active .intent-journey-stepIndex {
+    background: color-mix(in oklab, var(--intent-bg, currentColor) 20%, transparent);
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--intent-ring, currentColor) 35%, transparent),
+        0 8px 22px rgb(0 0 0 / 0.18);
+}
+
+/* Done: little “completed” vibe without hardcoding a color */
+.intent-journey-step.is-done .intent-journey-stepIndex {
+    background: color-mix(in oklab, var(--intent-bg, currentColor) 18%, transparent);
+    box-shadow: inset 0 0 0 1px
+        color-mix(in oklab, var(--intent-ring, currentColor) 30%, transparent);
+    opacity: 0.95;
+}
+
+/* Hover polish (doesn't fight resolver shadows/rings) */
+.intent-journey.is-clickable:not(.is-disabled) .intent-journey-step:hover:not(.is-disabled) {
+    transform: translateY(0.5px);
+}
+
+.intent-journey.is-clickable:not(.is-disabled) .intent-journey-step:active:not(.is-disabled) {
+    transform: translateY(1px);
+}
+
+/* Focus (keyboard) */
+.intent-journey-step:focus {
+    outline: none;
+}
+
+.intent-journey-step:focus-visible {
+    box-shadow:
+        0 0 0 2px color-mix(in oklab, var(--intent-ring, currentColor) 32%, transparent),
+        0 0 0 6px color-mix(in oklab, var(--intent-ring, currentColor) 14%, transparent),
+        var(--intent-elev-shadow, none);
+}
+
+/* ============================================================================
+   Compact
+============================================================================ */
+
+.intent-journey.is-compact .intent-journey-step {
+    padding: calc(var(--ids-journey-step-py, 0.6rem) * 0.85)
+        calc(var(--ids-journey-step-px, 0.85rem) * 0.9);
+}
+
+.intent-journey.is-compact .intent-journey-stepDescription {
+    display: none;
+}

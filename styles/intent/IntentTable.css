@@ -1,0 +1,227 @@
+/* ============================================================================
+   styles/intent/IntentTable.css
+   IntentTable
+   - Uses resolver vars (ink/bg/border/ring/shadow)
+   - Stable hooks only
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-table {
+    width: 100%;
+    min-width: 0;
+
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+    overflow: hidden;
+
+    color: var(--intent-ink);
+
+    /* Table surface paint uses resolver recipes via classes from composeIntentClassName
+       (intent-bg, intent-ring, intent-shadow-soft, has-intent-glow, etc.) */
+}
+
+/* ============================================================================
+   Scroller
+============================================================================ */
+
+.intent-table-scroller {
+    width: 100%;
+    overflow: auto;
+    max-width: 100%;
+
+    /* Helps keep sticky header properly clipped */
+    position: relative;
+}
+
+/* ============================================================================
+   Table
+============================================================================ */
+
+.intent-table-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.intent-table-caption {
+    caption-side: bottom;
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    opacity: 0.6;
+}
+
+.intent-table-thead {
+    background: color-mix(in oklab, var(--intent-bg) 10%, transparent);
+}
+
+.intent-table.is-sticky .intent-table-thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.intent-table-th {
+    text-align: left;
+    padding: 0.85rem 1rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.7;
+
+    border-bottom: 1px solid color-mix(in oklab, var(--intent-border) 18%, transparent);
+}
+
+.intent-table-th.is-center {
+    text-align: center;
+}
+
+.intent-table-th.is-right {
+    text-align: right;
+}
+
+.intent-table-thInner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.intent-table-sortBadge {
+    font-size: 0.8em;
+    opacity: 0.55;
+}
+
+/* ============================================================================
+   Body
+============================================================================ */
+
+.intent-table-td {
+    padding: 0.85rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.2rem;
+    opacity: 0.92;
+
+    border-bottom: 1px solid color-mix(in oklab, var(--intent-border) 12%, transparent);
+}
+
+.intent-table-td.is-center {
+    text-align: center;
+}
+
+.intent-table-td.is-right {
+    text-align: right;
+}
+
+/* Compact density */
+.intent-table.is-compact .intent-table-th {
+    padding: 0.65rem 0.85rem;
+}
+.intent-table.is-compact .intent-table-td {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.8125rem;
+}
+
+/* Stripes */
+.intent-table.is-striped .intent-table-row:nth-child(2n) .intent-table-td {
+    background: color-mix(in oklab, var(--intent-bg) 6%, transparent);
+}
+
+/* Hover */
+.intent-table.is-hoverable .intent-table-row:hover .intent-table-td {
+    background: color-mix(in oklab, var(--intent-ring) 10%, transparent);
+}
+
+/* Selectable */
+.intent-table.is-selectable .intent-table-row {
+    cursor: pointer;
+    user-select: none;
+}
+
+.intent-table.is-selectable .intent-table-row:focus-visible {
+    outline: none;
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--intent-ring) 22%, transparent),
+        0 0 0 2px color-mix(in oklab, var(--intent-ring) 18%, transparent),
+        0 0 0 6px color-mix(in oklab, var(--intent-ring) 10%, transparent);
+}
+
+/* Selected row: subtle tint + inset ring */
+.intent-table-row.is-selected .intent-table-td {
+    background: color-mix(in oklab, var(--intent-ring) 14%, transparent);
+}
+
+.intent-table-row.is-selected .intent-table-td:first-child {
+    box-shadow: inset 4px 0 0 0 color-mix(in oklab, var(--intent-ring) 42%, transparent);
+}
+
+/* Per-row intent override (style vars applied on <tr>) */
+.intent-table-row.has-row-intent .intent-table-td {
+    /* Use row vars for subtle emphasis */
+    background: color-mix(in oklab, var(--intent-ring) 10%, transparent);
+}
+
+.intent-table.is-hoverable .intent-table-row.has-row-intent:hover .intent-table-td {
+    background: color-mix(in oklab, var(--intent-ring) 14%, transparent);
+}
+
+/* ============================================================================
+   States: loading / empty
+============================================================================ */
+
+.intent-table-loading,
+.intent-table-empty {
+    padding: 1.25rem 1rem;
+}
+
+.intent-table-loadingLabel {
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    margin-bottom: 0.75rem;
+}
+
+.intent-table-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.intent-table-skeletonRow {
+    height: 12px;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--intent-ink) 10%, transparent);
+    opacity: 0.65;
+}
+
+.intent-table-empty {
+    font-size: 0.875rem;
+    opacity: 0.75;
+}
+
+/* ============================================================================
+   Footer
+============================================================================ */
+
+.intent-table-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid color-mix(in oklab, var(--intent-border) 18%, transparent);
+    background: color-mix(in oklab, var(--intent-bg) 8%, transparent);
+
+    font-size: 0.8125rem;
+    opacity: 0.75;
+}
+
+/* ============================================================================
+   Reduced motion
+============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .intent-table.is-hoverable .intent-table-row:hover .intent-table-td {
+        transition: none;
+    }
+}

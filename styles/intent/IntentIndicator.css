@@ -1,0 +1,99 @@
+/* ============================================================================
+   styles/intent/IntentIndicator.css
+   IntentIndicator
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-indicator {
+    display: inline-flex;
+    align-items: center;
+
+    gap: var(--ids-indicator-gap, 8px);
+    padding: var(--ids-indicator-py, 6px) var(--ids-indicator-px, 12px);
+
+    font-size: var(--ids-indicator-font-size, 13px);
+    line-height: var(--ids-indicator-line-height, 1.25);
+
+    color: inherit;
+}
+
+/* ============================================================================
+   Parts
+============================================================================ */
+
+.intent-indicator .intent-indicator-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: var(--ids-indicator-icon-size, 14px);
+    height: var(--ids-indicator-icon-size, 14px);
+
+    flex: 0 0 auto;
+}
+
+.intent-indicator .intent-indicator-dot {
+    width: var(--ids-indicator-dot-size, 8px);
+    height: var(--ids-indicator-dot-size, 8px);
+    border-radius: 9999px;
+
+    background: color-mix(in oklab, var(--intent-accent, currentColor) 70%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--intent-accent, currentColor) 28%, transparent);
+
+    flex: 0 0 auto;
+}
+
+/* ============================================================================
+   Size hooks (tokens)
+============================================================================ */
+
+.ids-indicator-xs {
+    --ids-indicator-px: 8px;
+    --ids-indicator-py: 4px;
+    --ids-indicator-gap: 6px;
+
+    --ids-indicator-font-size: 11px;
+    --ids-indicator-line-height: 1.2;
+
+    --ids-indicator-icon-size: 12px;
+    --ids-indicator-dot-size: 6px;
+}
+
+.ids-indicator-sm {
+    --ids-indicator-px: 10px;
+    --ids-indicator-py: 5px;
+    --ids-indicator-gap: 8px;
+
+    --ids-indicator-font-size: 12px;
+    --ids-indicator-line-height: 1.25;
+
+    --ids-indicator-icon-size: 13px;
+    --ids-indicator-dot-size: 7px;
+}
+
+.ids-indicator-md {
+    --ids-indicator-px: 12px;
+    --ids-indicator-py: 6px;
+    --ids-indicator-gap: 8px;
+
+    --ids-indicator-font-size: 13px;
+    --ids-indicator-line-height: 1.25;
+
+    --ids-indicator-icon-size: 14px;
+    --ids-indicator-dot-size: 8px;
+}
+
+.ids-indicator-lg {
+    --ids-indicator-px: 14px;
+    --ids-indicator-py: 8px;
+    --ids-indicator-gap: 10px;
+
+    --ids-indicator-font-size: 14px;
+    --ids-indicator-line-height: 1.3;
+
+    --ids-indicator-icon-size: 16px;
+    --ids-indicator-dot-size: 9px;
+}
