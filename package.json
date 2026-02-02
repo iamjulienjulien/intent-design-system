@@ -1,6 +1,6 @@
 {
     "name": "intent-design-system",
-    "version": "0.1.0",
+    "version": "0.2.1",
     "private": false,
     "type": "module",
     "license": "MIT",
@@ -38,6 +38,7 @@
     ],
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "style": "./styles/index.css",
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
@@ -55,9 +56,6 @@
         },
         "./styles/tokens.css": {
             "default": "./styles/tokens.css"
-        },
-        "./styles/intent.css": {
-            "default": "./styles/intent.css"
         }
     }
 }

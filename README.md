@@ -53,7 +53,7 @@ npm install intent-design-system
 ### CSS import (required)
 
 ```ts
-import "intent-design-system/styles/intent.css";
+import "intent-design-system/styles";
 ```
 
 ---
