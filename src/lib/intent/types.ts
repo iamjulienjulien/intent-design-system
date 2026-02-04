@@ -305,6 +305,9 @@ export type ComponentIdentity = {
         toggle?: string;
         segment?: string;
         segmentLabel?: string;
+        tag?: string;
+        tagLabel?: string;
+        tagRemove?: string;
     };
 
     /**

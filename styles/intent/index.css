@@ -20,6 +20,8 @@
 @import "./IntentControlButton.css";
 @import "./IntentControlField.css";
 @import "./IntentControlLink.css";
+@import "./IntentControlInput.css";
+@import "./IntentControlTags.css";
 @import "./IntentControlSelect.css";
 @import "./IntentControlTabs.css";
 @import "./IntentControlToggle.css";

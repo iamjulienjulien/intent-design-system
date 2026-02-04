@@ -1,0 +1,99 @@
+/* src/components/intent/intent-control-input.css */
+/* IntentControlInput
+   - Stable hooks only
+   - Two modes:
+     - standalone: root is a full control "frame"
+     - naked (insideField): only the element, no frame, no padding
+*/
+
+.intent-control.intent-control-input {
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+    min-width: 0;
+}
+
+/* sizes: shared tokens (match your other controls) */
+.intent-control.intent-control-input.ids-input-xs {
+    --ids-input-h: 28px;
+    --ids-input-px: 0.65rem;
+    --ids-input-fs: 0.8125rem;
+}
+.intent-control.intent-control-input.ids-input-sm {
+    --ids-input-h: 32px;
+    --ids-input-px: 0.75rem;
+    --ids-input-fs: 0.875rem;
+}
+.intent-control.intent-control-input.ids-input-md {
+    --ids-input-h: 36px;
+    --ids-input-px: 0.85rem;
+    --ids-input-fs: 0.875rem;
+}
+.intent-control.intent-control-input.ids-input-lg {
+    --ids-input-h: 40px;
+    --ids-input-px: 0.95rem;
+    --ids-input-fs: 0.9375rem;
+}
+.intent-control.intent-control-input.ids-input-xl {
+    --ids-input-h: 44px;
+    --ids-input-px: 1.05rem;
+    --ids-input-fs: 1rem;
+}
+
+/* Standalone slots */
+.intent-control.intent-control-input .intent-control-input-leading,
+.intent-control.intent-control-input .intent-control-input-trailing {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 calc(var(--ids-input-px, 0.85rem) * 0.6);
+    opacity: 0.8;
+    user-select: none;
+}
+
+/* Element base */
+.intent-control-input-el {
+    width: 100%;
+    min-width: 0;
+    font-size: var(--ids-input-fs, 0.875rem);
+    line-height: 1.2;
+    color: var(--intent-ink);
+    caret-color: var(--intent-ink);
+    background: transparent;
+    outline: none;
+    border: 0;
+}
+
+/* Standalone: internal spacing */
+.intent-control-input-standalone.intent-control-input-el {
+    height: var(--ids-input-h, 36px);
+    padding: 0 var(--ids-input-px, 0.85rem);
+}
+
+/* Textarea in standalone: allow vertical growth */
+textarea.intent-control-input-standalone.intent-control-input-el {
+    min-height: calc(var(--ids-input-h, 36px) * 1.4);
+    padding-top: calc(var(--ids-input-px, 0.85rem) * 0.75);
+    padding-bottom: calc(var(--ids-input-px, 0.85rem) * 0.75);
+    resize: vertical;
+}
+
+/* Naked (insideField): no padding, let Field frame manage spacing */
+.intent-control-input-naked.intent-control-input-el {
+    padding: 0;
+    height: auto;
+}
+
+/* Placeholder */
+.intent-control-input-el::placeholder {
+    color: color-mix(in oklab, var(--intent-ink) 55%, transparent);
+}
+
+/* Disabled */
+.intent-control-input-el.is-disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Invalid hook (usually field handles error text) */
+.intent-control-input-el.is-invalid::placeholder {
+    color: color-mix(in oklab, var(--intent-ink) 70%, transparent);
+}

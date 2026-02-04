@@ -6,6 +6,57 @@ The format is inspired by _Keep a Changelog_ and follows _Semantic Versioning_.
 
 ---
 
+## [0.2.2] — 2026-02-04
+
+### ✨ Minor release — Form controls expansion
+
+This release extends the **form control layer** of Intent Design System,  
+introducing intent-first inputs designed to work **standalone** or **composed** inside fields.
+
+---
+
+### ➕ Added
+
+#### 🕹️ Controls
+
+- **IntentControlInput**
+    - Unified input / textarea component
+    - Standalone mode (with visual frame)
+    - `insideField` mode for seamless integration with `IntentControlField`
+    - Optional textarea autosize (`minRows` / `maxRows`)
+    - Intent-driven invalid / disabled states
+
+- **IntentControlTags**
+    - Multi-value input control (tags / chips / keywords)
+    - Add, remove and navigate values via keyboard
+    - Designed for structured inputs (labels, categories, filters)
+    - Fully compatible with `IntentControlField`
+
+---
+
+### 🎨 Visual & UX Improvements
+
+- Consistent editable-control styling across inputs, selects and segmented controls
+- Improved focus management inside composite controls
+- Clear separation between editable controls and field frames
+
+---
+
+### 🧠 Architecture
+
+- Reinforced pattern: **Field owns the frame, Control owns the interaction**
+- Shared intent resolution pipeline across all form controls
+- Stable CSS hooks for naked vs standalone modes
+
+---
+
+### ⚠️ Notes
+
+- No breaking changes
+- CSS entry point remains `/styles/index.css`
+
+---
+
 ## [0.2.0] — 2026-02-02
 
 ### 🚀 Major release — System expansion

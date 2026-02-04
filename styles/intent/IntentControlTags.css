@@ -1,0 +1,129 @@
+/* src/components/intent/intent-control-tags.css */
+/* IntentControlTags
+   - Stable hooks only
+   - Flex-wrap pills + inline input
+*/
+
+.intent-control.intent-control-tags {
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+}
+
+/* Standalone: give it a "field-like" inner padding */
+.intent-control.intent-control-tags.intent-control-tags-standalone {
+    padding: 0.35rem 0.45rem;
+}
+
+/* Inside field: the field already owns padding, keep it tighter */
+.intent-control.intent-control-tags.intent-control-tags-naked {
+    padding: 0;
+}
+
+/* sizes (CSS owns actual px; hooks from TS) */
+.intent-control.intent-control-tags.ids-tags-xs {
+    --tags-h: 28px;
+    --tags-font: 0.8125rem;
+    --tags-gap: 0.375rem;
+}
+.intent-control.intent-control-tags.ids-tags-sm {
+    --tags-h: 32px;
+    --tags-font: 0.875rem;
+    --tags-gap: 0.4rem;
+}
+.intent-control.intent-control-tags.ids-tags-md {
+    --tags-h: 36px;
+    --tags-font: 0.875rem;
+    --tags-gap: 0.45rem;
+}
+.intent-control.intent-control-tags.ids-tags-lg {
+    --tags-h: 40px;
+    --tags-font: 0.9375rem;
+    --tags-gap: 0.5rem;
+}
+.intent-control.intent-control-tags.ids-tags-xl {
+    --tags-h: 44px;
+    --tags-font: 1rem;
+    --tags-gap: 0.55rem;
+}
+
+/* list layout */
+.intent-control.intent-control-tags .intent-tags-list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--tags-gap, 0.45rem);
+    min-height: var(--tags-h, 36px);
+}
+
+/* pill */
+.intent-control.intent-control-tags .intent-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 100%;
+    border-radius: calc(var(--ids-radius-2xl, 1.25rem) - 0.35rem);
+    padding: 0 0.6rem;
+    height: calc(var(--tags-h, 36px) - 8px);
+    font-size: var(--tags-font, 0.875rem);
+
+    background: color-mix(in oklab, var(--intent-bg) 22%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--intent-border) 26%, transparent);
+    color: var(--intent-ink);
+}
+
+/* label */
+.intent-control.intent-control-tags .intent-tag-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* remove button */
+.intent-control.intent-control-tags .intent-tag-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    line-height: 1;
+    font-size: 1rem;
+    opacity: 0.7;
+    transition: opacity 160ms ease;
+    color: inherit;
+    background: transparent;
+}
+
+.intent-control.intent-control-tags .intent-tag-remove:hover {
+    opacity: 1;
+}
+
+.intent-control.intent-control-tags.is-disabled .intent-tag-remove {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* input */
+.intent-control.intent-control-tags .intent-tags-input {
+    flex: 1 1 10ch;
+    min-width: 10ch;
+    height: var(--tags-h, 36px);
+    font-size: var(--tags-font, 0.875rem);
+    line-height: 1;
+
+    background: transparent;
+    color: var(--intent-ink);
+    outline: none;
+    border: 0;
+    padding: 0.15rem 0.25rem;
+}
+
+/* placeholder */
+.intent-control.intent-control-tags .intent-tags-input::placeholder {
+    color: color-mix(in oklab, var(--intent-ink) 45%, transparent);
+}
+
+/* invalid hook (subtle, actual ring is owned by DS frame in standalone or the Field) */
+.intent-control.intent-control-tags.is-invalid .intent-tag {
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--intent-border) 55%, transparent);
+}

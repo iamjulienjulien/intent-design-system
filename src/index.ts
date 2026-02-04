@@ -14,6 +14,8 @@ export * from "./components/IntentIndicator";
 export * from "./components/IntentDivider";
 export * from "./components/IntentControlTabs";
 export * from "./components/IntentControlSelect";
+export * from "./components/IntentControlInput";
+export * from "./components/IntentControlTags";
 export * from "./components/IntentControlField";
 export * from "./components/IntentCommandPalette";
 export * from "./components/IntentJourney";
