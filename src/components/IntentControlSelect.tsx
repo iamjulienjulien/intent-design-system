@@ -8,6 +8,16 @@
 // - Uses resolveIntent() to compute stable class hooks + CSS vars
 // - Supports glow layers like IntentSurface / IntentControlButton
 // - No dynamic Tailwind classes: only stable hooks
+//
+// ✅ Updated (0.2.2):
+// - Adds IntentControlField-related props: insideField, invalid, leading, trailing
+// - insideField=true => root is "naked" (no frame visuals); intended to be wrapped by IntentControlField
+// - Standalone => renders frame visuals on trigger + slots
+//
+// ✅ Updated (0.2.4):
+// - Adds readOnly mode (prevents opening/changing; still focusable for UX)
+// - readOnly implies aria-readonly + hook; does NOT set disabled
+// - When readOnly: click/keys won't open, options won't commit, clear won't work
 
 import * as React from "react";
 
@@ -28,18 +38,7 @@ function cn(...classes: Array<string | false | null | undefined>) {
 type SelectSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 function sizeClass(size: SelectSize) {
-    switch (size) {
-        case "xs":
-            return "ids-select-xs";
-        case "sm":
-            return "ids-select-sm";
-        case "lg":
-            return "ids-select-lg";
-        case "xl":
-            return "ids-select-xl";
-        default:
-            return "ids-select-md";
-    }
+    return `ids-control-${size}`;
 }
 
 function isPrintableChar(e: React.KeyboardEvent) {
@@ -88,6 +87,23 @@ export type IntentControlSelectProps = IntentInput &
         size?: SelectSize; // default: "md"
         fullWidth?: boolean;
 
+        /** Slots (standalone only, like Input/Tags) */
+        leading?: React.ReactNode;
+        trailing?: React.ReactNode;
+
+        /**
+         * When used inside IntentControlField, you generally want the field to own padding.
+         * - insideField=true => no frame visuals on trigger/popover; minimal "naked" hooks
+         * - standalone => frame visuals + padding
+         */
+        insideField?: boolean; // default: false
+
+        /** State */
+        invalid?: boolean; // default false
+
+        /** ✅ ReadOnly: focusable but not interactive */
+        readOnly?: boolean; // default false
+
         /** Behavior */
         clearable?: boolean; // default: false (allows selecting "null" via a clear row)
         closeOnSelect?: boolean; // default: true
@@ -102,8 +118,8 @@ const INTENT_CONTROL_SELECT_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "className",
         description: {
-            fr: "Classes CSS additionnelles appliquées au trigger.",
-            en: "Additional CSS classes applied to the trigger.",
+            fr: "Classes CSS additionnelles appliquées au trigger (standalone ou insideField).",
+            en: "Additional CSS classes applied to the trigger (standalone or insideField).",
         },
         type: "string",
         required: false,
@@ -183,6 +199,59 @@ const INTENT_CONTROL_SELECT_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         fromSystem: false,
     },
     {
+        name: "leading",
+        description: {
+            fr: "Slot à gauche (icône, badge). En mode insideField, préfère plutôt utiliser le leading du Field.",
+            en: "Leading slot (icon, badge). In insideField mode, prefer Field leading slot.",
+        },
+        type: "React.ReactNode",
+        required: false,
+        fromSystem: false,
+    },
+    {
+        name: "trailing",
+        description: {
+            fr: "Slot à droite (action, compteur). En mode insideField, préfère plutôt utiliser le trailing du Field.",
+            en: "Trailing slot (action, counter). In insideField mode, prefer Field trailing slot.",
+        },
+        type: "React.ReactNode",
+        required: false,
+        fromSystem: false,
+    },
+    {
+        name: "insideField",
+        description: {
+            fr: "Mode “naked” pour être wrappé par IntentControlField (le frame appartient au Field).",
+            en: "“Naked” mode intended to be wrapped by IntentControlField (frame owned by Field).",
+        },
+        type: "boolean",
+        required: false,
+        default: "false",
+        fromSystem: false,
+    },
+    {
+        name: "invalid",
+        description: {
+            fr: "Force l’état invalide (aria-invalid + hook).",
+            en: "Forces invalid state (aria-invalid + hook).",
+        },
+        type: "boolean",
+        required: false,
+        default: "false",
+        fromSystem: false,
+    },
+    {
+        name: "readOnly",
+        description: {
+            fr: "Empêche l’ouverture et la sélection tout en restant focusable (aria-readonly + hook).",
+            en: "Prevents opening/selection while remaining focusable (aria-readonly + hook).",
+        },
+        type: "boolean",
+        required: false,
+        default: "false",
+        fromSystem: false,
+    },
+    {
         name: "clearable",
         description: {
             fr: "Affiche une ligne “Clear” (valeur null).",
@@ -240,12 +309,14 @@ export const IntentControlSelectIdentity: ComponentIdentity = {
         en: "Intent-first custom select: combobox + listbox, stable CSS hooks + resolved vars via resolveIntent().",
     },
     since: "0.2.0",
-    docs: { route: "/playground/components/IntentControlSelect" },
+    docs: { route: "/playground/components/intent-control-select" },
     anatomy: {
         root: "<div>",
         trigger: "<button role='combobox'>",
         glowFillLayer: ".intent-glow-layer.intent-glow-fill",
         glowBorderLayer: ".intent-glow-layer.intent-glow-border",
+        leading: ".intent-control-select-leading (standalone only)",
+        trailing: ".intent-control-select-trailing (standalone only)",
         value: ".intent-control-value",
         chevron: ".intent-control-chevron",
         popover: ".intent-control-popover",
@@ -255,6 +326,11 @@ export const IntentControlSelectIdentity: ComponentIdentity = {
     classHooks: [
         "intent-control",
         "intent-control-select",
+        "intent-control-select-standalone",
+        "intent-control-select-naked",
+        "intent-control-select-trigger",
+        "intent-control-select-leading",
+        "intent-control-select-trailing",
         "intent-bg",
         "intent-ink",
         "intent-border",
@@ -263,7 +339,9 @@ export const IntentControlSelectIdentity: ComponentIdentity = {
         "intent-glow-border",
         "is-open",
         "is-disabled",
+        "is-readonly",
         "is-empty",
+        "is-invalid",
         "ids-select-xs",
         "ids-select-sm",
         "ids-select-md",
@@ -292,6 +370,12 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
         placeholder = "Select…",
         size = "md",
         fullWidth = false,
+
+        leading,
+        trailing,
+        insideField = false,
+        invalid = false,
+        readOnly = false,
 
         clearable = false,
         closeOnSelect = true,
@@ -322,6 +406,11 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
     const listboxId = React.useId();
     const disabled = Boolean(disabledProp);
 
+    // ✅ if readOnly flips true while open, close it
+    React.useEffect(() => {
+        if (readOnly && open) setOpen(false);
+    }, [readOnly, open]);
+
     const intentInput: IntentInput = {
         ...(intent !== undefined ? { intent } : {}),
         ...(variant !== undefined ? { variant } : {}),
@@ -334,10 +423,10 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
 
     const resolved = resolveIntent(intentInput);
 
-    // ✅ IMPORTANT: we want vars to cascade to popover -> apply style on ROOT
-    // ✅ ROOT: vars only (popover inherits)
-    // ✅ TRIGGER: visual classes (variant)
-    const layoutProps = getIntentLayoutProps(resolved, className);
+    // Vars cascade to popover -> apply vars on ROOT
+    // Standalone: trigger/popover get visual variant classes (controlProps)
+    // InsideField: field provides visuals; we keep hooks + vars only
+    const layoutProps = getIntentLayoutProps(resolved);
     const controlProps = getIntentControlProps(resolved);
 
     const selectedOption = React.useMemo(
@@ -362,16 +451,19 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
         return Number.isFinite(n) ? n : 0;
     };
 
-    // ✅ Put size hook ON ROOT (matches CSS selectors)
+    // ✅ size hook ON ROOT (matches CSS selectors)
     const rootCls = cn(
         "intent-control intent-control-select",
         sizeClass(size),
-        "relative inline-flex",
         fullWidth && "w-full",
         open && "is-open",
         disabled && "is-disabled",
+        readOnly && "is-readonly",
         isEmpty && "is-empty",
-        align === "end" ? "ids-popover-align-end" : "ids-popover-align-start"
+        invalid && "is-invalid",
+        insideField ? "intent-control-select-naked" : "intent-control-select-standalone",
+        align === "end" ? "ids-popover-align-end" : "ids-popover-align-start",
+        "relative inline-flex"
     );
 
     const triggerCls = cn(
@@ -415,6 +507,8 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
     }, [open, options, value]);
 
     function commitValue(next: string | null) {
+        if (disabled || readOnly) return;
+
         if (!isControlled) setUncontrolledValue(next);
         const opt = next ? options.find((o) => o.value === next) : undefined;
         onValueChange?.(next, opt);
@@ -433,7 +527,6 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
         const clamped = Math.max(-1, Math.min(nextIndex, options.length - 1));
         setHighlightedIndex(clamped);
 
-        // best-effort scroll into view
         const el = listRef.current?.querySelector<HTMLElement>(`[data-idx="${clamped}"]`);
         el?.scrollIntoView({ block: "nearest" });
     }
@@ -460,6 +553,15 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
     const typeaheadRef = React.useRef<{ buf: string; t: number }>({ buf: "", t: 0 });
 
     function handleListKeyDown(e: React.KeyboardEvent) {
+        if (readOnly || disabled) {
+            if (e.key === "Escape") {
+                e.preventDefault();
+                setOpen(false);
+                window.setTimeout(() => triggerRef.current?.focus(), 0);
+            }
+            return;
+        }
+
         if (e.key === "Escape") {
             e.preventDefault();
             setOpen(false);
@@ -517,10 +619,9 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
             const optionText = (opt: IntentControlSelectOption) => {
                 if (opt.searchText) return opt.searchText;
                 if (typeof opt.label === "string") return opt.label;
-                return opt.value; // safe fallback
+                return opt.value;
             };
 
-            // search forward (wrap)
             for (let step = 0; step < options.length; step++) {
                 const idx = (start + 1 + step) % options.length;
                 const opt = options[idx];
@@ -539,7 +640,7 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
         triggerProps.onKeyDown?.(e);
         if (e.defaultPrevented) return;
 
-        if (disabled) return;
+        if (disabled || readOnly) return;
 
         if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -547,42 +648,53 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
         }
     }
 
+    const rootClassName = cn(layoutProps.className, rootCls);
+
+    const triggerClassName = cn(
+        insideField ? "" : controlProps.className, // ✅ only standalone gets visuals
+        triggerCls,
+        className // ✅ user className on trigger (as documented)
+    );
+
     return (
         <div
             ref={rootRef}
-            // ✅ vars only
             {...layoutProps}
-            className={cn(layoutProps.className, rootCls)}
+            className={rootClassName}
             data-intent={resolved.intent}
             data-variant={resolved.variant}
             data-intensity={resolved.intensity}
             data-mode={resolved.mode}
         >
+            {leading && !insideField ? (
+                <span className="intent-control-select-leading" aria-hidden>
+                    {leading}
+                </span>
+            ) : null}
+
             <button
                 {...triggerProps}
                 ref={triggerRef}
                 type={triggerProps.type ?? "button"}
-                className={cn(
-                    controlProps.className, // ✅ variant-driven visuals here
-                    triggerCls,
-                    className // ✅ user className applied to trigger (as documented)
-                )}
+                className={triggerClassName}
                 disabled={disabled}
                 role="combobox"
                 aria-expanded={open}
                 aria-controls={listboxId}
                 aria-haspopup="listbox"
                 aria-disabled={disabled || undefined}
+                aria-invalid={invalid || undefined}
+                aria-readonly={readOnly || undefined}
                 onClick={(e) => {
                     triggerProps.onClick?.(e);
                     if (e.defaultPrevented) return;
-                    if (disabled) return;
-                    setOpen((v) => !v);
+                    if (disabled || readOnly) return;
+                    setOpen((v2) => !v2);
                 }}
                 onKeyDown={handleTriggerKeyDown}
             >
-                {/* Glow layers (under content) */}
-                {glowAllowed ? (
+                {/* Glow layers (under content) - standalone only */}
+                {!insideField && glowAllowed ? (
                     <>
                         {allowFillGlow ? (
                             <span
@@ -615,10 +727,21 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
                 </span>
             </button>
 
+            {trailing && !insideField ? (
+                <span className="intent-control-select-trailing" aria-hidden>
+                    {trailing}
+                </span>
+            ) : null}
+
             {open ? (
-                <div className={cn("intent-control-popover", controlProps.className)}>
-                    {/* Glow layers (under content) */}
-                    {glowAllowed ? (
+                <div
+                    className={cn(
+                        "intent-control-popover",
+                        insideField ? "" : controlProps.className // ✅ visuals only standalone
+                    )}
+                >
+                    {/* Glow layers (under content) - standalone only */}
+                    {!insideField && glowAllowed ? (
                         <>
                             {allowFillGlow ? (
                                 <span
@@ -640,6 +763,7 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
                             ) : null}
                         </>
                     ) : null}
+
                     <ul
                         id={listboxId}
                         ref={listRef}

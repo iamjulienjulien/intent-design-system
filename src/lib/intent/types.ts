@@ -21,6 +21,14 @@ export type VariantName = "flat" | "outlined" | "elevated" | "ghost";
 export type Intensity = "soft" | "medium" | "strong";
 
 /* ============================================================================
+   🎚 ToneStep system
+   - Tailwind palette step override (50..950)
+   - Used to globally lighten/darken tone-based colors
+============================================================================ */
+
+export type ToneStep = 50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 | 950;
+
+/* ============================================================================
    🌓 Mode (light/dark)
    - Explicit mode passed from host app
    - Default will be handled by resolver/components (fallback: "dark")
@@ -84,6 +92,14 @@ export type IntentInput = {
     glow?: boolean | GlowName; // true => implicit intent glow
 
     intensity?: Intensity; // default: "medium"
+
+    /**
+     * Tailwind palette step override (50..950).
+     * Acts like a global lighten/darken knob around the canonical 500 step.
+     * - 400 => lighter
+     * - 700 => darker
+     */
+    toneStep?: ToneStep; // default: 500
     disabled?: boolean;
 };
 
@@ -97,6 +113,8 @@ export type ResolvedIntent = {
     intent: IntentName;
     variant: VariantName;
     intensity: Intensity;
+
+    toneStep?: ToneStep; // default: 500
 
     toneEffective: string | null; // e.g. "emerald" | "informed" | null
 
@@ -167,6 +185,31 @@ export type DocsPropRow = {
     fromSystem: boolean;
 };
 
+export type DocsTypeFieldRow = {
+    name: string;
+    type: string;
+    required?: boolean;
+    description?: {
+        fr: string;
+        en: string;
+    };
+};
+
+export type DocsTypeRow = {
+    name: string; // ex: IntentCommandPaletteGroup
+    description: {
+        fr: string;
+        en: string;
+    };
+    kind?: "type" | "interface" | "union"; // optionnel, utile pour l’affichage
+    source?: string; // optionnel: "IntentCommandPalette.tsx"
+    fields?: DocsTypeFieldRow[]; // pour les shapes
+    examples?: Array<{
+        title?: string;
+        code: string;
+    }>;
+};
+
 export type ComponentKind =
     | "surface"
     | "control"
@@ -174,7 +217,8 @@ export type ComponentKind =
     | "layout"
     | "feedback"
     | "data"
-    | "design";
+    | "design"
+    | "visualization";
 
 export type ComponentIdentity = {
     /** Public component name (exported symbol). */
@@ -308,6 +352,17 @@ export type ComponentIdentity = {
         tag?: string;
         tagLabel?: string;
         tagRemove?: string;
+        tool?: string;
+        editorPane?: string;
+        previewPane?: string;
+        textarea?: string;
+        wrapper?: string;
+        svg?: string;
+        axis?: string;
+        bars?: string;
+        bar?: string;
+        cancel?: string;
+        confirm?: string;
     };
 
     /**

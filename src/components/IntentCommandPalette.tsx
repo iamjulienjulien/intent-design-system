@@ -17,7 +17,7 @@ import {
     composeIntentControlClassName,
 } from "../lib/intent/resolve";
 
-import type { DocsPropRow, ComponentIdentity } from "../lib/intent/types";
+import type { DocsPropRow, ComponentIdentity, DocsTypeRow } from "../lib/intent/types";
 import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
 
 /* ============================================================================
@@ -222,6 +222,126 @@ const INTENT_COMMAND_PALETTE_LOCAL_PROPS_TABLE: DocsPropRow[] = [
 export const IntentCommandPalettePropsTable: DocsPropRow[] = [
     ...INTENT_COMMAND_PALETTE_LOCAL_PROPS_TABLE,
     ...SYSTEM_PROPS_TABLE,
+];
+
+export const IntentCommandPaletteTypesTable: DocsTypeRow[] = [
+    {
+        name: "IntentCommandPaletteItem",
+        kind: "type",
+        description: {
+            fr: "Une action affichée dans la palette (sélectionnable, filtrable, optionnellement désactivée).",
+            en: "One selectable action in the palette (searchable, optionally disabled).",
+        },
+        fields: [
+            {
+                name: "id",
+                type: "string",
+                required: true,
+                description: { fr: "Identifiant stable.", en: "Stable identifier." },
+            },
+            {
+                name: "label",
+                type: "string",
+                required: true,
+                description: { fr: "Texte principal.", en: "Primary label." },
+            },
+            {
+                name: "description",
+                type: "string",
+                required: false,
+                description: { fr: "Texte secondaire.", en: "Secondary description." },
+            },
+            {
+                name: "keywords",
+                type: "string[]",
+                required: false,
+                description: {
+                    fr: "Mots-clés additionnels pour la recherche.",
+                    en: "Extra search keywords.",
+                },
+            },
+            {
+                name: "leftIcon",
+                type: "React.ReactNode",
+                required: false,
+                description: { fr: "Icône à gauche.", en: "Leading icon." },
+            },
+            {
+                name: "rightHint",
+                type: "string",
+                required: false,
+                description: {
+                    fr: 'Hint à droite (ex: "⌘↵").',
+                    en: 'Right-side hint (e.g. "⌘↵").',
+                },
+            },
+            {
+                name: "disabled",
+                type: "boolean",
+                required: false,
+                description: { fr: "Désactive la sélection.", en: "Disables selection." },
+            },
+            {
+                name: "onSelect",
+                type: "(item: IntentCommandPaletteItem) => void",
+                required: false,
+                description: { fr: "Callback lors de la sélection.", en: "Callback on selection." },
+            },
+        ],
+        examples: [
+            {
+                title: "Item simple",
+                code: `{
+  id: "open-quest",
+  label: "Ouvrir une quête",
+  description: "Aller à la quête active",
+  keywords: ["quest", "open"],
+  rightHint: "Enter",
+}`,
+            },
+        ],
+    },
+    {
+        name: "IntentCommandPaletteGroup",
+        kind: "type",
+        description: {
+            fr: "Un groupe d’items (optionnellement titré) rendu comme une section dans la liste.",
+            en: "A group of items (optionally titled) rendered as a section in the list.",
+        },
+        fields: [
+            {
+                name: "id",
+                type: "string",
+                required: true,
+                description: { fr: "Identifiant stable du groupe.", en: "Stable group id." },
+            },
+            {
+                name: "label",
+                type: "string",
+                required: false,
+                description: { fr: "Titre du groupe (optionnel).", en: "Optional group label." },
+            },
+            {
+                name: "items",
+                type: "IntentCommandPaletteItem[]",
+                required: true,
+                description: { fr: "Liste d’items.", en: "Items list." },
+            },
+        ],
+        examples: [
+            {
+                title: "Groupe",
+                code: `{
+  id: "navigation",
+  label: "Navigation",
+  items: [
+    { id: "home", label: "Accueil" },
+    { id: "adventure", label: "Aventure", rightHint: "⌘1" },
+  ],
+}`,
+            },
+        ],
+    },
 ];
 
 export const IntentCommandPaletteIdentity: ComponentIdentity = {

@@ -38,6 +38,17 @@ export const SYSTEM_PROPS_TABLE: DocsPropRow[] = [
         fromSystem: true,
     },
     {
+        name: "toneStep",
+        description: {
+            fr: "Step Tailwind (50..950) pour éclaircir/assombrir les teintes (autour du step canonique 500).",
+            en: "Tailwind step (50..950) to lighten/darken tone-based colors (around the canonical 500 step).",
+        },
+        type: "ToneStep",
+        required: false,
+        default: "500",
+        fromSystem: true,
+    },
+    {
         name: "glow",
         description: {
             fr: "Glow normal (true/false) ou glow esthétique (uniquement si intent='glowed').",

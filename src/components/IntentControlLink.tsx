@@ -313,7 +313,7 @@ export function IntentControlLink(props: IntentControlLinkProps) {
             ) : null}
 
             {/* Content */}
-            <span className="relative z-10 inline-flex items-center gap-2">
+            <span className="relative z-10 inline-flex w-full justify-center items-center gap-2">
                 {leftIcon ? (
                     <span className="intent-control-icon intent-control-icon-left">{leftIcon}</span>
                 ) : null}

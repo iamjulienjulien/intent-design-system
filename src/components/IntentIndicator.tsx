@@ -248,6 +248,7 @@ export function IntentIndicator<T extends React.ElementType = "span">(
         glow,
         intensity,
         mode,
+        toneStep,
         disabled: disabledProp,
 
         // ✅ Only real DOM props remain here
@@ -263,6 +264,7 @@ export function IntentIndicator<T extends React.ElementType = "span">(
         ...(glow !== undefined ? { glow } : {}),
         ...(intensity !== undefined ? { intensity } : {}),
         ...(mode !== undefined ? { mode } : {}),
+        ...(toneStep !== undefined ? { toneStep } : {}),
         disabled,
     };
 
@@ -319,6 +321,7 @@ export function IntentIndicator<T extends React.ElementType = "span">(
             data-variant={resolved.variant}
             data-intensity={resolved.intensity}
             data-mode={resolved.mode}
+            data-tonestep={resolved.toneStep}
         >
             {/* Glow layers (under content) */}
             {glowAllowed ? (

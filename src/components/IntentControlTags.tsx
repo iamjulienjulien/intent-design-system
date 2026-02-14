@@ -27,18 +27,7 @@ function cn(...classes: Array<string | false | null | undefined>) {
 type TagsSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 function sizeClass(size: TagsSize) {
-    switch (size) {
-        case "xs":
-            return "ids-tags-xs";
-        case "sm":
-            return "ids-tags-sm";
-        case "lg":
-            return "ids-tags-lg";
-        case "xl":
-            return "ids-tags-xl";
-        default:
-            return "ids-tags-md";
-    }
+    return `ids-control-${size}`;
 }
 
 function asArray(v: string[] | null | undefined): string[] {
@@ -60,11 +49,77 @@ function defaultValidate(next: string, current: string[], allowDuplicates: boole
 }
 
 function splitPasted(text: string) {
-    // commas, new lines, semicolons, tabs
-    return text
-        .split(/[\n\r,;\t]+/g)
-        .map((s) => s.trim())
-        .filter(Boolean);
+    const out: string[] = [];
+
+    let buf = "";
+    let inQuote: '"' | "'" | null = null;
+    let escaped = false;
+
+    function pushBuf() {
+        let s = buf.trim();
+        if (!s) {
+            buf = "";
+            return;
+        }
+
+        // strip surrounding quotes if present
+        if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+            s = s.slice(1, -1);
+        }
+
+        // cleanup trailing commas
+        s = s.replace(/,+\s*$/, "").trim();
+
+        if (s) out.push(s);
+        buf = "";
+    }
+
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i] ?? "";
+
+        // escaped character inside quotes
+        if (escaped) {
+            buf += c;
+            escaped = false;
+            continue;
+        }
+
+        if (inQuote) {
+            if (c === "\\") {
+                buf += c;
+                escaped = true;
+                continue;
+            }
+
+            if (c === inQuote) {
+                buf += c;
+                inQuote = null;
+                continue;
+            }
+
+            buf += c;
+            continue;
+        }
+
+        // opening quote
+        if (c === '"' || c === "'") {
+            buf += c;
+            inQuote = c;
+            continue;
+        }
+
+        // separators (only when NOT inside quotes)
+        if (c === "\n" || c === "\r" || c === "\t" || c === "," || c === ";") {
+            pushBuf();
+            continue;
+        }
+
+        buf += c;
+    }
+
+    pushBuf();
+
+    return out;
 }
 
 function setRef<T>(ref: React.Ref<T> | undefined, value: T) {
@@ -99,6 +154,9 @@ export type IntentControlTagsProps = IntentInput &
         size?: TagsSize; // default: "md"
         fullWidth?: boolean; // default: false
 
+        /** ✅ Layout: tags take full width and stack vertically */
+        stackItems?: boolean; // default: false
+
         /**
          * When used inside IntentControlField, you generally want the field to own padding.
          * - insideField=true => no frame visuals, minimal padding
@@ -108,6 +166,7 @@ export type IntentControlTagsProps = IntentInput &
 
         /** State */
         invalid?: boolean; // default false
+        readOnly?: boolean; // ✅ default false
 
         /** Behavior */
         allowDuplicates?: boolean; // default false
@@ -199,6 +258,17 @@ const INTENT_CONTROL_TAGS_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         fromSystem: false,
     },
     {
+        name: "stackItems",
+        description: {
+            fr: "Affiche les tags sur une colonne: chaque item fait 100% et s’empile verticalement.",
+            en: "Stacks tags vertically: each item takes full width (100%) and flows in a column.",
+        },
+        type: "boolean",
+        required: false,
+        default: "false",
+        fromSystem: false,
+    },
+    {
         name: "insideField",
         description: {
             fr: "Mode “naked” pour être wrappé par IntentControlField (le frame appartient au Field).",
@@ -214,6 +284,17 @@ const INTENT_CONTROL_TAGS_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         description: {
             fr: "Force l’état invalide (aria-invalid + hook).",
             en: "Forces invalid state (aria-invalid + hook).",
+        },
+        type: "boolean",
+        required: false,
+        default: "false",
+        fromSystem: false,
+    },
+    {
+        name: "readOnly",
+        description: {
+            fr: "Lecture seule: focusable mais non éditable (readOnly + aria-readonly + hook).",
+            en: "Read-only: focusable but not editable (readOnly + aria-readonly + hook).",
         },
         type: "boolean",
         required: false,
@@ -337,14 +418,16 @@ export const IntentControlTagsIdentity: ComponentIdentity = {
         "intent-tag-label",
         "intent-tag-remove",
         "intent-tags-input",
+        "is-stacked",
         "is-invalid",
         "is-disabled",
         "is-empty",
-        "ids-tags-xs",
-        "ids-tags-sm",
-        "ids-tags-md",
-        "ids-tags-lg",
-        "ids-tags-xl",
+        "is-readonly",
+        "ids-control-xs",
+        "ids-control-sm",
+        "ids-control-md",
+        "ids-control-lg",
+        "ids-control-xl",
     ],
 };
 
@@ -365,9 +448,13 @@ export const IntentControlTags = React.forwardRef<HTMLInputElement, IntentContro
 
             size = "md",
             fullWidth = false,
+
+            stackItems = false,
+
             insideField = false,
 
             invalid = false,
+            readOnly = false,
 
             allowDuplicates = false,
             addOn = ["enter", "comma"],
@@ -439,7 +526,7 @@ export const IntentControlTags = React.forwardRef<HTMLInputElement, IntentContro
         }
 
         function addOne(raw: string) {
-            if (disabled) return;
+            if (disabled || readOnly) return;
 
             const nextTag = normalize(raw);
             const validator =
@@ -455,7 +542,7 @@ export const IntentControlTags = React.forwardRef<HTMLInputElement, IntentContro
         }
 
         function addMany(tags: string[]) {
-            if (disabled) return;
+            if (disabled || readOnly) return;
             if (tags.length === 0) return;
 
             let cur = [...value];
@@ -477,7 +564,7 @@ export const IntentControlTags = React.forwardRef<HTMLInputElement, IntentContro
         }
 
         function removeTag(tag: string) {
-            if (disabled) return;
+            if (disabled || readOnly) return;
 
             const idx = value.indexOf(tag);
             if (idx < 0) return;
@@ -490,7 +577,7 @@ export const IntentControlTags = React.forwardRef<HTMLInputElement, IntentContro
         }
 
         function removeLast() {
-            if (disabled) return;
+            if (disabled || readOnly) return;
             if (value.length === 0) return;
 
             const last = value[value.length - 1];
@@ -506,7 +593,7 @@ export const IntentControlTags = React.forwardRef<HTMLInputElement, IntentContro
         }
 
         function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-            if (disabled) return;
+            if (disabled || readOnly) return;
 
             const wantEnter = addOn.includes("enter");
             const wantComma = addOn.includes("comma");
@@ -542,7 +629,7 @@ export const IntentControlTags = React.forwardRef<HTMLInputElement, IntentContro
         }
 
         function onPaste(e: React.ClipboardEvent<HTMLInputElement>) {
-            if (disabled) return;
+            if (disabled || readOnly) return;
 
             const text = e.clipboardData.getData("text/plain");
             const parts = splitPasted(text);
@@ -569,7 +656,9 @@ export const IntentControlTags = React.forwardRef<HTMLInputElement, IntentContro
             sizeClass(size),
             fullWidth && "w-full",
             insideField ? "intent-control-tags-naked" : "intent-control-tags-standalone",
+            stackItems && "is-stacked",
             invalid && "is-invalid",
+            readOnly && "is-readonly",
             disabled && "is-disabled",
             isEmpty && "is-empty"
         );
@@ -591,6 +680,7 @@ export const IntentControlTags = React.forwardRef<HTMLInputElement, IntentContro
                 data-variant={resolved.variant}
                 data-intensity={resolved.intensity}
                 data-mode={resolved.mode}
+                aria-readonly={readOnly || undefined}
                 onMouseDown={(e) => {
                     divProps.onMouseDown?.(e);
                     if (e.defaultPrevented) return;
@@ -614,7 +704,7 @@ export const IntentControlTags = React.forwardRef<HTMLInputElement, IntentContro
                                     type="button"
                                     className="intent-tag-remove"
                                     aria-label={removeAriaLabel(text)}
-                                    disabled={disabled}
+                                    disabled={disabled || readOnly}
                                     onClick={() => removeTag(tag)}
                                 >
                                     ×
@@ -639,6 +729,8 @@ export const IntentControlTags = React.forwardRef<HTMLInputElement, IntentContro
                         onKeyDown={onKeyDown}
                         onPaste={onPaste}
                         onBlur={onBlur}
+                        readOnly={readOnly}
+                        aria-readonly={readOnly || undefined}
                     />
                 </div>
             </div>

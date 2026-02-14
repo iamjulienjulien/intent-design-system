@@ -55,6 +55,9 @@ export type IntentControlFieldProps = IntentInput &
         padded?: boolean; // ✅ new: controls frame padding (default true)
         direction?: "vertical" | "horizontal"; // default "vertical"
 
+        /** Size rhythm (matches Input/Tags/Select) */
+        size?: "xs" | "sm" | "md" | "lg" | "xl"; // default "md"
+
         /** Slots */
         leading?: React.ReactNode;
         trailing?: React.ReactNode;
@@ -292,6 +295,8 @@ export function IntentControlField(props: IntentControlFieldProps) {
         padded = true,
         direction = "vertical",
 
+        size = "md",
+
         leading,
         trailing,
 
@@ -333,6 +338,7 @@ export function IntentControlField(props: IntentControlFieldProps) {
 
     const rootCls = cn(
         "intent-control-field",
+        `ids-control-${size}`,
         compact && "is-compact",
         padded && "is-padded",
         direction === "horizontal" && "is-horizontal",

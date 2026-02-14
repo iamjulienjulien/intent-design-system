@@ -3,11 +3,18 @@
    Intent Design System – Canonical mappings
 ============================================================================ */
 
-import type { IntentName, ToneName, GlowKey, VariantName } from "./types";
+import type { IntentName, ToneName, GlowKey, VariantName, ToneStep } from "./types";
 
 export const DEFAULT_INTENT: IntentName = "informed";
 export const DEFAULT_VARIANT: VariantName = "elevated";
 export const DEFAULT_TONE: ToneName = "theme";
+
+/* ============================================================================
+   ToneStep
+============================================================================ */
+
+export const TONE_STEP_SCALE = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
+export const DEFAULT_TONE_STEP: ToneStep = 500;
 
 /**
  * Mapping intent -> glow key implicite (utilisé quand glow=true)

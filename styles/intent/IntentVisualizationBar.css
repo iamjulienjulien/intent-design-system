@@ -1,0 +1,75 @@
+/* ============================================================================
+   styles/intent/IntentVisualizationBar.css
+   IntentVisualizationBar
+   - Stable hooks only
+============================================================================ */
+
+.intent-visualization.intent-visualization-bar {
+    position: relative;
+    min-width: 0;
+    color: var(--intent-ink);
+}
+
+.intent-visualization.intent-visualization-bar .intent-visualization-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* Axis uses currentColor (ink) */
+.intent-visualization.intent-visualization-bar .intent-visualization-axis {
+    color: var(--intent-ink);
+}
+
+/* Bars: fill comes from intent vars (on parent <g> via inline style) */
+.intent-visualization.intent-visualization-bar .intent-visualization-bar {
+    fill: color-mix(
+        in oklab,
+        var(--intent-bg) calc(var(--intent-bg-opacity, 1) * 100%),
+        transparent
+    );
+
+    stroke: color-mix(in oklab, var(--intent-border) 28%, transparent);
+    stroke-width: 1;
+
+    opacity: 0.95;
+
+    transition:
+        opacity 160ms ease,
+        transform 120ms ease;
+    transform-origin: center;
+}
+
+/* Hover polish (only if clickable) */
+.intent-visualization.intent-visualization-bar.is-clickable .intent-visualization-bar:hover {
+    opacity: 0.85;
+}
+
+/* Focus ring (SVG) */
+.intent-visualization.intent-visualization-bar.is-clickable .intent-visualization-bar:focus {
+    outline: none;
+}
+
+.intent-visualization.intent-visualization-bar.is-clickable
+    .intent-visualization-bar:focus-visible {
+    stroke: color-mix(in oklab, var(--intent-focus, var(--intent-border)) 75%, transparent);
+    stroke-width: 2;
+}
+
+/* Labels */
+.intent-visualization.intent-visualization-bar .intent-visualization-label {
+    fill: color-mix(in oklab, var(--intent-ink) 78%, transparent);
+    font-size: 12px;
+    opacity: 0.85;
+}
+
+.intent-visualization.intent-visualization-bar .intent-visualization-value {
+    fill: color-mix(in oklab, var(--intent-ink) 90%, transparent);
+    font-size: 12px;
+    opacity: 0.92;
+}
+
+/* Empty */
+.intent-visualization.intent-visualization-bar.is-empty {
+    opacity: 0.7;
+}

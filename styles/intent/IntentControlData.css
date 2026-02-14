@@ -1,0 +1,236 @@
+/* styles/intent/IntentControlData.css
+   IntentControlData
+   - Stable hooks only
+============================================================================ */
+
+/* ============================================================================
+   Root (standalone)
+============================================================================ */
+
+.intent-control.intent-control-data {
+    position: relative;
+    min-width: 0;
+}
+
+.intent-control.intent-control-data.w-full {
+    width: 100%;
+}
+
+/* ============================================================================
+   Wrapper (overlay + textarea)
+============================================================================ */
+
+.intent-control-data-wrap {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    width: 100%;
+}
+
+/* Standalone vs insideField */
+.intent-control-data-wrap.intent-control-data-standalone {
+    /* “frame” comes from resolver classes applied on the standalone root */
+    padding: 0;
+}
+
+.intent-control-data-wrap.intent-control-data-naked {
+    padding: 0;
+}
+
+/* ============================================================================
+   Gutter (line numbers)
+============================================================================ */
+
+.intent-control-data-gutter {
+    flex: 0 0 auto;
+    padding: 0.6rem 0.55rem;
+    text-align: right;
+    user-select: none;
+    opacity: 0.55;
+
+    border-right: 1px solid color-mix(in oklab, var(--intent-border) 14%, transparent);
+}
+
+.intent-control-data-ln {
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================
+   Overlay
+   - Sits under the textarea; textarea text is transparent so overlay is visible
+============================================================================ */
+
+.intent-control-data-overlay {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+
+    padding: 0.65rem 0.9rem;
+    line-height: 1.5;
+
+    overflow: auto;
+    white-space: pre;
+    word-wrap: normal;
+
+    pointer-events: none;
+
+    color: var(--intent-ink);
+    opacity: 0.95;
+}
+
+/* if gutter present, offset overlay */
+.intent-control-data-gutter + .intent-control-data-overlay {
+    left: 3.1rem;
+}
+
+/* ============================================================================
+   Textarea
+============================================================================ */
+
+.intent-control-data-el {
+    position: relative;
+    z-index: 1;
+
+    width: 100%;
+    min-width: 0;
+
+    padding: 0.65rem 0.9rem;
+    line-height: 1.5;
+
+    resize: vertical;
+
+    background: transparent;
+    border: 0;
+    outline: none;
+
+    /* critical: hide textarea text but keep caret visible */
+    color: transparent;
+    caret-color: var(--intent-ink);
+
+    /* keep selection visible */
+    -webkit-text-fill-color: transparent;
+}
+
+.intent-control-data-gutter + .intent-control-data-overlay + .intent-control-data-el {
+    padding-left: 0.9rem;
+    margin-left: 3.1rem;
+    width: calc(100% - 3.1rem);
+}
+
+/* Disabled / readonly */
+.intent-control-data-wrap.is-disabled .intent-control-data-el {
+    cursor: not-allowed;
+}
+
+.intent-control-data-wrap.is-readonly .intent-control-data-el {
+    cursor: default;
+}
+
+/* Empty */
+.intent-control-data-wrap.is-empty .intent-control-data-overlay {
+    opacity: 0.5;
+}
+
+/* ============================================================================
+   Sizes
+============================================================================ */
+
+.intent-control-data-wrap.ids-data-xs .intent-control-data-overlay,
+.intent-control-data-wrap.ids-data-xs .intent-control-data-el {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.75rem;
+}
+
+.intent-control-data-wrap.ids-data-sm .intent-control-data-overlay,
+.intent-control-data-wrap.ids-data-sm .intent-control-data-el {
+    padding: 0.55rem 0.8rem;
+    font-size: 0.8125rem;
+}
+
+.intent-control-data-wrap.ids-data-md .intent-control-data-overlay,
+.intent-control-data-wrap.ids-data-md .intent-control-data-el {
+    padding: 0.65rem 0.9rem;
+    font-size: 0.875rem;
+}
+
+.intent-control-data-wrap.ids-data-lg .intent-control-data-overlay,
+.intent-control-data-wrap.ids-data-lg .intent-control-data-el {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+}
+
+.intent-control-data-wrap.ids-data-xl .intent-control-data-overlay,
+.intent-control-data-wrap.ids-data-xl .intent-control-data-el {
+    padding: 0.85rem 1.1rem;
+    font-size: 1rem;
+}
+
+/* ============================================================================
+   Token colors (use intent ink with mixes; no Tailwind colors)
+============================================================================ */
+
+.ids-data-token {
+    border-radius: 0.35rem;
+}
+
+.ids-data-punct {
+    opacity: 0.8;
+}
+
+.ids-data-key {
+    color: color-mix(
+        in oklab,
+        var(--intent-ink) 88%,
+        var(--intent-focus, var(--intent-border)) 12%
+    );
+    opacity: 0.95;
+}
+
+.ids-data-string {
+    color: color-mix(in oklab, var(--intent-ink) 82%, var(--intent-bg, black) 18%);
+    opacity: 0.95;
+}
+
+.ids-data-number {
+    color: color-mix(
+        in oklab,
+        var(--intent-ink) 78%,
+        var(--intent-focus, var(--intent-border)) 22%
+    );
+}
+
+.ids-data-boolean,
+.ids-data-null {
+    color: color-mix(
+        in oklab,
+        var(--intent-ink) 75%,
+        var(--intent-focus, var(--intent-border)) 25%
+    );
+    opacity: 0.95;
+}
+
+.ids-data-comment {
+    opacity: 0.55;
+}
+
+.ids-data-tag {
+    color: color-mix(
+        in oklab,
+        var(--intent-ink) 78%,
+        var(--intent-focus, var(--intent-border)) 22%
+    );
+}
+
+.ids-data-attr {
+    color: color-mix(in oklab, var(--intent-ink) 82%, var(--intent-bg, black) 18%);
+}
+
+.ids-data-keyword {
+    color: color-mix(
+        in oklab,
+        var(--intent-ink) 84%,
+        var(--intent-focus, var(--intent-border)) 16%
+    );
+    opacity: 0.95;
+}

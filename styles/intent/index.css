@@ -12,6 +12,7 @@
 @import "./01-glow.css";
 @import "./02-surface.css";
 @import "./03-control.base.css";
+@import "./ids-control-size.css";
 
 /* ============================================================================
    1) Controls
@@ -26,6 +27,8 @@
 @import "./IntentControlTabs.css";
 @import "./IntentControlToggle.css";
 @import "./IntentControlSegmented.css";
+@import "./IntentControlMarkdown.css";
+@import "./IntentControlData.css";
 
 /* ============================================================================
    2) Other components
@@ -41,3 +44,6 @@
 @import "./IntentPickerTone.css";
 @import "./IntentPickerGlow.css";
 @import "./IntentTree.css";
+@import "./IntentConfirmDialog.css";
+@import "./IntentVisualizationBar.css";
+@import "./IntentDrawer.css";

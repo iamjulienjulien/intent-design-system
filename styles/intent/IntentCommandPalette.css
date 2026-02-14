@@ -153,6 +153,7 @@
     padding: 0.25rem 0.5rem 0.75rem;
     overflow: auto;
     overscroll-behavior: contain;
+    max-width: 100%;
 }
 
 /* Group */

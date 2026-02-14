@@ -7,13 +7,15 @@
     font-size: 0.75rem;
     line-height: 1.05rem;
     font-weight: 600;
+    border-radius: 1rem;
 }
 
 .ids-btn-sm {
-    padding: 0.55rem 0.85rem;
-    font-size: 0.8125rem;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.8rem;
     line-height: 1.1rem;
     font-weight: 600;
+    border-radius: 0.7rem;
 }
 
 .ids-btn-md {
@@ -21,6 +23,7 @@
     font-size: 0.875rem;
     line-height: 1.25rem;
     font-weight: 650;
+    border-radius: 1.05rem;
 }
 
 .ids-btn-lg {
@@ -28,6 +31,7 @@
     font-size: 0.95rem;
     line-height: 1.35rem;
     font-weight: 650;
+    border-radius: 1.2rem;
 }
 
 .ids-btn-xl {
@@ -35,6 +39,7 @@
     font-size: 1.05rem;
     line-height: 1.45rem;
     font-weight: 700;
+    border-radius: 1.35rem;
 }
 
 .intent-control-button {
@@ -42,13 +47,13 @@
     cursor: pointer;
 
     border: 0;
-    background: none;
-    font: inherit;
+    /* background: none; */
+    /* font: inherit; */
 
     letter-spacing: -0.01em;
     user-select: none;
 
-    border-radius: inherit;
+    /* border-radius: inherit; */
 }
 
 .intent-control-button.is-disabled,

@@ -282,7 +282,7 @@ export function IntentControlButton(props: IntentControlButtonProps) {
         "intent-control intent-control-button",
         "relative inline-flex items-center justify-center",
         "select-none whitespace-nowrap",
-        "rounded-ids-2xl",
+        // "rounded-ids-2xl",
         "transition",
         sizeClass(size),
         fullWidth && "w-full",
@@ -330,7 +330,7 @@ export function IntentControlButton(props: IntentControlButtonProps) {
             ) : null}
 
             {/* Content */}
-            <span className="relative z-10 inline-flex items-center gap-2">
+            <span className="relative z-10 inline-flex w-full justify-center items-center gap-2">
                 {loading ? (
                     <span aria-hidden className="intent-control-spinner" />
                 ) : leftIcon ? (

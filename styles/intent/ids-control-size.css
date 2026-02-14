@@ -1,0 +1,44 @@
+/* ============================================================================
+   ids-control-sizes.css
+   Canonical control sizing tokens (Input / Select / Tags / Field)
+============================================================================ */
+
+.ids-control-xs {
+    --ids-control-h: 28px;
+    --ids-control-px: 0.65rem;
+    --ids-control-py: 0.45rem;
+    --ids-control-fs: 0.8125rem;
+    --ids-control-gap: 0.375rem;
+}
+
+.ids-control-sm {
+    --ids-control-h: 32px;
+    --ids-control-px: 0.75rem;
+    --ids-control-py: 0.55rem;
+    --ids-control-fs: 0.875rem;
+    --ids-control-gap: 0.4rem;
+}
+
+.ids-control-md {
+    --ids-control-h: 36px;
+    --ids-control-px: 0.85rem;
+    --ids-control-py: 0.65rem;
+    --ids-control-fs: 0.875rem;
+    --ids-control-gap: 0.45rem;
+}
+
+.ids-control-lg {
+    --ids-control-h: 40px;
+    --ids-control-px: 0.95rem;
+    --ids-control-py: 0.75rem;
+    --ids-control-fs: 0.9375rem;
+    --ids-control-gap: 0.5rem;
+}
+
+.ids-control-xl {
+    --ids-control-h: 44px;
+    --ids-control-px: 1.05rem;
+    --ids-control-py: 0.85rem;
+    --ids-control-fs: 1rem;
+    --ids-control-gap: 0.55rem;
+}

@@ -26,7 +26,7 @@ function cn(...classes: Array<string | false | null | undefined>) {
 
 type SegmentedSize = "xs" | "sm" | "md" | "lg" | "xl";
 
-function sizeClass(size: SegmentedSize) {
+function segHookClass(size: SegmentedSize) {
     switch (size) {
         case "xs":
             return "ids-seg-xs";
@@ -39,6 +39,11 @@ function sizeClass(size: SegmentedSize) {
         default:
             return "ids-seg-md";
     }
+}
+
+// ✅ canonical control tokens (shared with Input/Select/Tabs)
+function controlSizeClass(size: SegmentedSize) {
+    return `ids-control-${size}`;
 }
 
 function asArray(v: string | string[] | null | undefined): string[] {
@@ -361,7 +366,8 @@ export function IntentControlSegmented(props: IntentControlSegmentedProps) {
     const rootCls = cn(
         "intent-control intent-control-segmented",
         "intent-seg",
-        sizeClass(size),
+        segHookClass(size), // ✅ keep existing hooks
+        controlSizeClass(size),
         "relative inline-flex",
         fullWidth && "w-full",
         multiple && "is-multiple",

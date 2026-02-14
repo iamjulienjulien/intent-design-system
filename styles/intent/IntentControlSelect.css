@@ -3,6 +3,7 @@
    IntentControlSelect
    - Stable hooks only
    - Popover should NOT be transparent by default
+   - ✅ Updated: harmonized sizing tokens with DS controls (ids-control-*)
 ============================================================================ */
 
 /* ============================================================================
@@ -13,11 +14,95 @@
     position: relative;
     min-width: 0;
     overflow: visible;
+
+    /* ✅ shared control tokens (default = md) */
+    /* --ids-control-h: 36px;
+    --ids-control-px: 0.85rem;
+    --ids-control-fs: 0.875rem; */
 }
 
 /* fullWidth is handled by class on root in TSX */
 .intent-control.intent-control-select.w-full {
     width: 100%;
+}
+
+/* ✅ Naked mode: when wrapped by IntentControlField, the field owns visuals.
+   Keep vars on root, but remove standalone wrapper layout. */
+.intent-control.intent-control-select.intent-control-select-naked {
+    display: block;
+}
+
+/* ============================================================================
+   Sizes (size hook is on ROOT)
+   - Map ids-select-* hooks to ids-control-* tokens (same as Input)
+============================================================================ */
+
+/* .intent-control.intent-control-select.ids-select-xs {
+    --ids-control-h: 28px;
+    --ids-control-px: 0.65rem;
+    --ids-control-fs: 0.8125rem;
+}
+
+.intent-control.intent-control-select.ids-select-sm {
+    /* --ids-control-h: 32px;
+    --ids-control-px: 0.75rem;
+    --ids-control-fs: 0.875rem; 
+}
+
+.intent-control.intent-control-select.ids-select-md {
+    --ids-control-h: 36px;
+    --ids-control-px: 0.85rem;
+    --ids-control-fs: 0.875rem;
+}
+
+.intent-control.intent-control-select.ids-select-lg {
+    --ids-control-h: 40px;
+    --ids-control-px: 0.95rem;
+    --ids-control-fs: 0.9375rem;
+}
+
+.intent-control.intent-control-select.ids-select-xl {
+    --ids-control-h: 44px;
+    --ids-control-px: 1.05rem;
+    --ids-control-fs: 1rem;
+} */
+
+/* ============================================================================
+   Standalone wrapper layout (leading / trigger / trailing)
+   - Works only when not insideField
+============================================================================ */
+
+.intent-control.intent-control-select.intent-control-select-standalone {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0.5rem;
+}
+
+.intent-control.intent-control-select.intent-control-select-standalone.w-full {
+    display: flex;
+}
+
+/* Leading / trailing (standalone only) */
+.intent-control.intent-control-select.intent-control-select-standalone
+    .intent-control-select-leading,
+.intent-control.intent-control-select.intent-control-select-standalone
+    .intent-control-select-trailing {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+
+    padding: 0 calc(var(--ids-control-px) * 0.6);
+    font-size: var(--ids-control-fs);
+
+    opacity: 0.85;
+    user-select: none;
+}
+
+/* Disabled state also dims slots */
+.intent-control.intent-control-select.is-disabled .intent-control-select-leading,
+.intent-control.intent-control-select.is-disabled .intent-control-select-trailing {
+    opacity: 0.55;
 }
 
 /* ============================================================================
@@ -40,6 +125,12 @@
     border: 0;
     color: inherit;
 
+    /* ✅ harmonized sizing */
+    min-height: var(--ids-control-h);
+    padding: 0 var(--ids-control-px);
+    font-size: var(--ids-control-fs);
+    line-height: 1.2;
+
     transition:
         border-color 160ms ease,
         box-shadow 160ms ease,
@@ -47,6 +138,19 @@
         transform 80ms ease;
 
     user-select: none;
+}
+
+/* ✅ When standalone, trigger should flex inside root */
+.intent-control.intent-control-select.intent-control-select-standalone
+    .intent-control-select-trigger {
+    flex: 1 1 auto;
+}
+
+/* ✅ In naked mode, keep it visually neutral (Field owns visuals). */
+.intent-control.intent-control-select.intent-control-select-naked .intent-control-select-trigger {
+    padding: 0;
+    min-height: auto;
+    border-radius: 0;
 }
 
 /* intent-bg should win (same pattern as button/link) */
@@ -58,8 +162,9 @@
     );
 }
 
-/* Baseline edge when there is no intent-ring */
-.intent-control.intent-control-select .intent-control-select-trigger:not(.intent-ring) {
+/* Baseline edge when there is no intent-ring (standalone only) */
+.intent-control.intent-control-select.intent-control-select-standalone
+    .intent-control-select-trigger:not(.intent-ring) {
     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 22%, transparent);
 }
 
@@ -71,8 +176,8 @@
     box-shadow: none;
 }
 
-/* Hover polish */
-.intent-control.intent-control-select:not(.is-disabled)
+/* Hover polish (standalone only) */
+.intent-control.intent-control-select.intent-control-select-standalone:not(.is-disabled)
     .intent-control-select-trigger:hover:not(.intent-ring) {
     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 38%, transparent);
 }
@@ -97,6 +202,14 @@
     cursor: not-allowed;
 }
 
+/* ✅ Invalid: subtle ring hint (standalone only; Field usually handles it) */
+.intent-control.intent-control-select.intent-control-select-standalone.is-invalid
+    .intent-control-select-trigger:not(.intent-ring) {
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 22%, transparent),
+        0 0 0 4px color-mix(in oklab, var(--intent-border) 22%, transparent);
+}
+
 /* Empty value */
 .intent-control.intent-control-select.is-empty .intent-control-value {
     opacity: 0.55;
@@ -113,6 +226,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-align: left;
 
     opacity: 0.92;
 }
@@ -129,35 +243,6 @@
 .intent-control.intent-control-select.is-open .intent-control-chevron {
     transform: rotate(180deg);
     opacity: 0.9;
-}
-
-/* ============================================================================
-   Sizes (size hook is on ROOT)
-============================================================================ */
-
-.intent-control.intent-control-select.ids-select-xs .intent-control-select-trigger {
-    padding: 0.45rem 0.7rem;
-    font-size: 0.75rem;
-}
-
-.intent-control.intent-control-select.ids-select-sm .intent-control-select-trigger {
-    padding: 0.55rem 0.8rem;
-    font-size: 0.8125rem;
-}
-
-.intent-control.intent-control-select.ids-select-md .intent-control-select-trigger {
-    padding: 0.65rem 0.9rem;
-    font-size: 0.875rem;
-}
-
-.intent-control.intent-control-select.ids-select-lg .intent-control-select-trigger {
-    padding: 0.75rem 1rem;
-    font-size: 0.95rem;
-}
-
-.intent-control.intent-control-select.ids-select-xl .intent-control-select-trigger {
-    padding: 0.85rem 1.1rem;
-    font-size: 1rem;
 }
 
 /* ============================================================================
@@ -188,10 +273,6 @@
 
     /* IMPORTANT: not transparent by default */
     background-color: transparent;
-    /* background-color: color-mix(
-        in oklab,
-        var(--intent-bg) calc(var(--intent-bg-opacity, 1) * 100%)
-    ); */
 
     color: var(--intent-ink);
 
@@ -214,9 +295,6 @@
 
     /* Dark mode default */
     background-color: color-mix(in oklab, black 88%, var(--intent-bg, black) 12%);
-}
-
-.intent-control.intent-control-select .intent-control-popover::before {
     backdrop-filter: saturate(1.05);
 }
 
@@ -240,7 +318,6 @@
 
 /* Optional: if you still want intent-bg to override popover fill explicitly */
 .intent-control.intent-control-select .intent-control-popover.intent-bg {
-    /* background-color: color-mix(in oklab, var(--intent-bg) 85%, black 15%); */
     background-color: color-mix(
         in oklab,
         var(--intent-bg) calc(var(--intent-bg-opacity, 1) * 100%),

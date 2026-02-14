@@ -1,0 +1,116 @@
+/* IntentControlMarkdown
+   - Stable hooks only
+*/
+
+.intent-control.intent-control-markdown {
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+    overflow: hidden;
+}
+
+/* sizes */
+.intent-control.intent-control-markdown.ids-md-xs {
+    --md-pad: 10px;
+    --md-font: 12px;
+}
+.intent-control.intent-control-markdown.ids-md-sm {
+    --md-pad: 12px;
+    --md-font: 13px;
+}
+.intent-control.intent-control-markdown.ids-md-md {
+    --md-pad: 14px;
+    --md-font: 14px;
+}
+.intent-control.intent-control-markdown.ids-md-lg {
+    --md-pad: 16px;
+    --md-font: 15px;
+}
+.intent-control.intent-control-markdown.ids-md-xl {
+    --md-pad: 18px;
+    --md-font: 16px;
+}
+
+/* Standalone frame comes from controlProps.className; naked mode expects Field frame */
+.intent-control.intent-control-markdown.intent-control-markdown-naked {
+    background: transparent;
+    box-shadow: none;
+}
+
+/* toolbar */
+.intent-control.intent-control-markdown .intent-md-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px;
+    border-bottom: 1px solid color-mix(in oklab, var(--intent-border) 22%, transparent);
+    background: color-mix(in oklab, var(--intent-bg) 10%, transparent);
+}
+
+.intent-control.intent-control-markdown .intent-md-tool {
+    height: 30px;
+    min-width: 30px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1;
+    color: var(--intent-ink);
+    background: color-mix(in oklab, var(--intent-bg) 14%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--intent-border) 22%, transparent);
+    user-select: none;
+}
+.intent-control.intent-control-markdown .intent-md-tool:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* body layout */
+.intent-control.intent-control-markdown .intent-md-body {
+    display: grid;
+    grid-template-columns: 1fr;
+}
+
+.intent-control.intent-control-markdown.is-view-split .intent-md-body {
+    grid-template-columns: 1fr 1fr;
+}
+
+.intent-control.intent-control-markdown .intent-md-editorPane,
+.intent-control.intent-control-markdown .intent-md-previewPane {
+    min-width: 0;
+}
+
+.intent-control.intent-control-markdown .intent-md-editor {
+    width: 100%;
+    display: block;
+    border: 0;
+    outline: none;
+    resize: vertical;
+    padding: var(--md-pad, 14px);
+    font-size: var(--md-font, 14px);
+    line-height: 1.55;
+    color: var(--intent-ink);
+    background: transparent;
+}
+
+/* preview */
+.intent-control.intent-control-markdown .intent-md-previewPane {
+    border-left: 1px solid color-mix(in oklab, var(--intent-border) 18%, transparent);
+    padding: var(--md-pad, 14px);
+    font-size: var(--md-font, 14px);
+    color: var(--intent-ink);
+}
+
+.intent-control.intent-control-markdown.is-view-edit .intent-md-previewPane {
+    display: none;
+}
+.intent-control.intent-control-markdown.is-view-preview .intent-md-editorPane {
+    display: none;
+}
+
+.intent-control.intent-control-markdown .intent-md-preview-fallback {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+        monospace;
+    opacity: 0.9;
+}

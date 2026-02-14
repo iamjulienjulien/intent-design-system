@@ -1,0 +1,422 @@
+/* src/styles/intent/intent-drawer.css
+   IntentDrawer styles
+   - No dynamic Tailwind classes
+   - Uses class hooks + data-position + size hooks
+*/
+
+/* ============================================================================
+   Root + overlay
+============================================================================ */
+
+.intent-drawer {
+    /* Layout vars (safe defaults) */
+    --intent-drawer-z: 60;
+    --intent-drawer-overlay-opacity: 0.55;
+
+    /* Inset */
+    --intent-drawer-inset: 16px;
+
+    /* Panel radius & spacing */
+    --intent-drawer-radius: 18px;
+
+    /* Motion */
+    --intent-drawer-duration: 180ms;
+    --intent-drawer-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    /* Fallback size if you don’t set sizePx / width/height inline */
+    --intent-drawer-size: 420px;
+}
+
+.intent-drawer[aria-hidden="true"] {
+    pointer-events: none;
+}
+
+.intent-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--intent-drawer-z);
+
+    display: flex;
+
+    /* Hidden by default (when not open we don’t render it anyway, but safe) */
+    opacity: 0;
+}
+
+.intent-drawer-overlay.has-overlay {
+    background: rgba(0, 0, 0, var(--intent-drawer-overlay-opacity));
+}
+
+.intent-drawer.is-open .intent-drawer-overlay {
+    opacity: 1;
+}
+
+/* ============================================================================
+   Opaque backdrop (underlay behind the panel)
+   - Solves "see-through" when panel surface is translucent/blurred
+============================================================================ */
+
+.intent-drawer.has-opaqueBackdrop .intent-drawer-overlay {
+    position: fixed;
+}
+
+/* Underlay sits above the page, below the panel */
+.intent-drawer.has-opaqueBackdrop .intent-drawer-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+
+    /* Default: use a solid base that works with both modes */
+    background: rgba(10, 10, 12, 0.92);
+}
+
+/* Ensure panel is above underlay */
+.intent-drawer.has-opaqueBackdrop .intent-drawer-panel {
+    position: relative;
+    z-index: 1;
+}
+
+/* Light mode tweak */
+[data-mode="light"] .intent-drawer.has-opaqueBackdrop .intent-drawer-overlay::before {
+    background: rgba(255, 255, 255, 0.92);
+}
+
+/* ============================================================================
+   Positioning (overlay flex alignment)
+============================================================================ */
+
+.intent-drawer.pos-right .intent-drawer-overlay {
+    justify-content: flex-end;
+    align-items: stretch;
+}
+
+.intent-drawer.pos-left .intent-drawer-overlay {
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+.intent-drawer.pos-top .intent-drawer-overlay {
+    justify-content: stretch;
+    align-items: flex-start;
+}
+
+.intent-drawer.pos-bottom .intent-drawer-overlay {
+    justify-content: stretch;
+    align-items: flex-end;
+}
+
+/* ============================================================================
+   Panel base
+============================================================================ */
+
+.intent-drawer-panel {
+    /* The panel is an IntentSurface (intent-surface) in TS, so bg/ring/shadow come from DS */
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+
+    /* Default size (overridden by inline style width/height in TS if sizePx or preset) */
+    width: var(--intent-drawer-size);
+    height: 100%;
+
+    max-width: calc(100vw - (var(--intent-drawer-inset) * 2));
+    max-height: calc(100vh - (var(--intent-drawer-inset) * 2));
+
+    border-radius: var(--intent-drawer-radius);
+
+    transform: translate3d(0, 0, 0);
+    transition:
+        transform var(--intent-drawer-duration) var(--intent-drawer-ease),
+        opacity var(--intent-drawer-duration) var(--intent-drawer-ease);
+    opacity: 1;
+
+    /* Make sure focus outline never gets clipped in weird ways */
+    outline: none;
+}
+
+/* Full-bleed default (when not inset), but keep radius */
+.intent-drawer.pos-right .intent-drawer-panel,
+.intent-drawer.pos-left .intent-drawer-panel {
+    height: 100%;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.intent-drawer.pos-left .intent-drawer-panel {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+/* Top/bottom drawers are horizontal bars */
+.intent-drawer.pos-top .intent-drawer-panel,
+.intent-drawer.pos-bottom .intent-drawer-panel {
+    width: 100%;
+    height: var(--intent-drawer-size);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.intent-drawer.pos-bottom .intent-drawer-panel {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: var(--intent-drawer-radius);
+    border-bottom-right-radius: var(--intent-drawer-radius);
+}
+
+/* ============================================================================
+   Inset mode (panel floats with margins)
+============================================================================ */
+
+.intent-drawer.is-inset .intent-drawer-panel {
+    margin: var(--intent-drawer-inset);
+    border-radius: var(--intent-drawer-radius);
+}
+
+.intent-drawer.is-inset.pos-right .intent-drawer-panel,
+.intent-drawer.is-inset.pos-left .intent-drawer-panel,
+.intent-drawer.is-inset.pos-top .intent-drawer-panel,
+.intent-drawer.is-inset.pos-bottom .intent-drawer-panel {
+    /* Restore rounded corners on all sides */
+    border-radius: var(--intent-drawer-radius);
+}
+
+/* ============================================================================
+   Open/close transitions
+   We animate from an off-screen translate to 0
+============================================================================ */
+
+.intent-drawer.pos-right .intent-drawer-panel {
+    transform: translate3d(12px, 0, 0); /* slight settle */
+}
+.intent-drawer.pos-left .intent-drawer-panel {
+    transform: translate3d(-12px, 0, 0);
+}
+.intent-drawer.pos-top .intent-drawer-panel {
+    transform: translate3d(0, -12px, 0);
+}
+.intent-drawer.pos-bottom .intent-drawer-panel {
+    transform: translate3d(0, 12px, 0);
+}
+
+/* Initial entry: slide from outside viewport */
+.intent-drawer.is-open.pos-right .intent-drawer-panel {
+    animation: intent-drawer-in-right var(--intent-drawer-duration) var(--intent-drawer-ease) both;
+}
+.intent-drawer.is-open.pos-left .intent-drawer-panel {
+    animation: intent-drawer-in-left var(--intent-drawer-duration) var(--intent-drawer-ease) both;
+}
+.intent-drawer.is-open.pos-top .intent-drawer-panel {
+    animation: intent-drawer-in-top var(--intent-drawer-duration) var(--intent-drawer-ease) both;
+}
+.intent-drawer.is-open.pos-bottom .intent-drawer-panel {
+    animation: intent-drawer-in-bottom var(--intent-drawer-duration) var(--intent-drawer-ease) both;
+}
+
+@keyframes intent-drawer-in-right {
+    from {
+        transform: translate3d(100%, 0, 0);
+        opacity: 1;
+    }
+    to {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+}
+@keyframes intent-drawer-in-left {
+    from {
+        transform: translate3d(-100%, 0, 0);
+        opacity: 1;
+    }
+    to {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+}
+@keyframes intent-drawer-in-top {
+    from {
+        transform: translate3d(0, -100%, 0);
+        opacity: 1;
+    }
+    to {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+}
+@keyframes intent-drawer-in-bottom {
+    from {
+        transform: translate3d(0, 100%, 0);
+        opacity: 1;
+    }
+    to {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .intent-drawer-panel {
+        transition: none;
+        animation: none !important;
+        transform: none !important;
+    }
+}
+
+/* ============================================================================
+   Sizes (preset) as CSS fallback
+   (TS also sets width/height inline when sizePx or map applies)
+============================================================================ */
+
+.intent-drawer.size-xs {
+    --intent-drawer-size: 280px;
+}
+.intent-drawer.size-sm {
+    --intent-drawer-size: 340px;
+}
+.intent-drawer.size-md {
+    --intent-drawer-size: 420px;
+}
+.intent-drawer.size-lg {
+    --intent-drawer-size: 520px;
+}
+.intent-drawer.size-xl {
+    --intent-drawer-size: 640px;
+}
+
+/* When top/bottom, these sizes act as height */
+.intent-drawer.pos-top.size-xs,
+.intent-drawer.pos-bottom.size-xs {
+    --intent-drawer-size: 220px;
+}
+.intent-drawer.pos-top.size-sm,
+.intent-drawer.pos-bottom.size-sm {
+    --intent-drawer-size: 280px;
+}
+.intent-drawer.pos-top.size-md,
+.intent-drawer.pos-bottom.size-md {
+    --intent-drawer-size: 340px;
+}
+.intent-drawer.pos-top.size-lg,
+.intent-drawer.pos-bottom.size-lg {
+    --intent-drawer-size: 420px;
+}
+.intent-drawer.pos-top.size-xl,
+.intent-drawer.pos-bottom.size-xl {
+    --intent-drawer-size: 520px;
+}
+
+/* ============================================================================
+   Header / body / footer
+============================================================================ */
+
+.intent-drawer-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+
+    padding: 14px 14px 10px 14px;
+
+    /* subtle divider using currentColor-ish */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.intent-drawer-header--minimal {
+    border-bottom: none;
+    padding: 10px 10px 0 10px;
+}
+
+.intent-drawer-headerMain {
+    min-width: 0;
+}
+
+.intent-drawer-title {
+    font-size: 14px;
+    font-weight: 650;
+    line-height: 1.2;
+}
+
+.intent-drawer-description {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.35;
+    opacity: 0.78;
+}
+
+.intent-drawer-close {
+    flex: 0 0 auto;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+
+    cursor: pointer;
+
+    transition:
+        transform 120ms ease,
+        background 120ms ease,
+        border-color 120ms ease,
+        opacity 120ms ease;
+}
+
+.intent-drawer-close:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.intent-drawer-close:active {
+    transform: translateY(0);
+}
+
+.intent-drawer-close:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.intent-drawer-body {
+    padding: 14px;
+    overflow: auto;
+
+    /* Keeps footer visible even with long content */
+    min-height: 0;
+    flex: 1 1 auto;
+}
+
+.intent-drawer-footer {
+    padding: 12px 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================================
+   Dark/light friendliness
+   (If you have mode hooks, you can override these in your global theme)
+============================================================================ */
+
+[data-mode="light"] .intent-drawer-overlay.has-overlay {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+[data-mode="light"] .intent-drawer-header,
+[data-mode="light"] .intent-drawer-footer {
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-mode="light"] .intent-drawer-close {
+    border-color: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.03);
+}
+
+[data-mode="light"] .intent-drawer-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.14);
+}

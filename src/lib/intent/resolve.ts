@@ -16,6 +16,7 @@ import type {
     ResolvedIntentWithWarnings,
     IntentSurfaceResolvedProps,
     IntentWarning,
+    ToneStep,
 } from "./types";
 
 import {
@@ -26,6 +27,8 @@ import {
     DEFAULT_GLOW_BY_INTENT,
     INTENT_TO_SEMANTIC_COLOR,
     TONE_TO_COLOR_FAMILY,
+    TONE_STEP_SCALE,
+    DEFAULT_TONE_STEP,
 } from "./mapping";
 
 import {
@@ -51,6 +54,40 @@ const SEMANTIC_TO_TW_FAMILY: Record<
     threatened: "rose",
     themed: "violet",
 };
+
+/* ============================================================================
+   🎚 ToneStep helpers
+============================================================================ */
+
+const FALLBACK_TONE_STEP: ToneStep = 500;
+
+function nearestToneStep(step: number): number {
+    const scale = TONE_STEP_SCALE;
+
+    // With the tuple typing, scale[0] / scale[last] are always defined,
+    // but we keep a fallback to be extra robust.
+    const min = scale[0] ?? FALLBACK_TONE_STEP;
+    const max = scale[scale.length - 1] ?? FALLBACK_TONE_STEP;
+
+    const clamped = Math.max(min, Math.min(max, step));
+
+    let best: number = min;
+    let bestDist = Math.abs(clamped - best);
+
+    for (const s of scale) {
+        const d = Math.abs(clamped - s);
+        if (d < bestDist) {
+            best = s;
+            bestDist = d;
+        }
+    }
+
+    return best;
+}
+
+function applyToneStepDelta(baseStep: number, delta: number): number {
+    return nearestToneStep(baseStep + delta);
+}
 
 /* ============================================================================
    🎆 Glow → Tone mapping (for glowed intent text tint)
@@ -117,9 +154,9 @@ function tailwindColorVar(tone: string, step: number) {
  * - light: darker text (800)
  * - glowed in light: slightly softer (700) to blend with aura
  */
-function pickTextStep(mode: "light" | "dark", intent: IntentName): number {
-    if (mode === "dark") return 200;
-    return intent === "glowed" ? 700 : 800;
+function pickTextStep(mode: "light" | "dark", intent: IntentName, delta: number): number {
+    const base = mode === "dark" ? 200 : intent === "glowed" ? 700 : 800;
+    return applyToneStepDelta(base, delta);
 }
 
 /**
@@ -127,8 +164,10 @@ function pickTextStep(mode: "light" | "dark", intent: IntentName): number {
  * - glowed: a bit softer to stay “aura”
  * - others: more contrast
  */
-function pickRingStep(intent: IntentName): number {
-    return intent === "glowed" ? 600 : 700;
+
+function pickRingStep(intent: IntentName, delta: number): number {
+    const base = intent === "glowed" ? 600 : 700;
+    return applyToneStepDelta(base, delta);
 }
 
 /**
@@ -243,6 +282,8 @@ export function resolveIntent(input: IntentInput = {}): ResolvedIntent {
     const disabled = Boolean(input.disabled);
 
     const toneRequested: ToneName = input.tone ?? DEFAULT_TONE;
+    const toneStep: ToneStep = input.toneStep ?? DEFAULT_TONE_STEP;
+    const toneStepDelta = Number(toneStep) - 500;
 
     /* ============================================================================
        🎨 Tone key resolution
@@ -305,26 +346,23 @@ export function resolveIntent(input: IntentInput = {}): ResolvedIntent {
         const gTone = glowKey ? glowToTone(glowKey as GlowName) : "emerald";
         const gFamily = TONE_TO_COLOR_FAMILY[gTone];
 
-        const textStep = pickTextStep(mode, intent);
+        const textStep = pickTextStep(mode, intent, toneStepDelta);
 
         style["--intent-bg"] = "rgb(var(--ids-paper))";
         style["--intent-bg-opacity"] = "0"; // ✅ no fill for glowed
 
         style["--intent-text"] = tailwindColorVar(gFamily, textStep);
 
-        style["--intent-ring"] = tailwindColorVar(gFamily, 600);
+        style["--intent-ring"] = tailwindColorVar(gFamily, applyToneStepDelta(600, toneStepDelta));
         style["--intent-ring-opacity"] = String(ringOpacityBoosted);
     } else if (toneKey === "themed") {
         // themed: keep bg as base theme, but brighten ring/text like other semantic intents
         const base = getDefaultThemeRgb();
 
-        // “semantic-like” tinting:
-        // - dark: text much lighter (like step 200), ring slightly lighter than base
-        // - light: text darker (like step 800), ring slightly darker than base
         const textRgb = mode === "dark" ? lighten(base, 0.72) : darken(base, 0.62);
         const ringRgb = mode === "dark" ? lighten(base, 0.22) : darken(base, 0.18);
 
-        style["--intent-bg"] = getDefaultThemeCssRgb(); // base theme rgb(...)
+        style["--intent-bg"] = getDefaultThemeCssRgb();
         style["--intent-text"] = rgbToCssRgb(textRgb);
         style["--intent-ring"] = rgbToCssRgb(ringRgb);
 
@@ -344,22 +382,24 @@ export function resolveIntent(input: IntentInput = {}): ResolvedIntent {
         toneKey === "themed"
     ) {
         const twFamily = SEMANTIC_TO_TW_FAMILY[toneKey];
-        const textStep = pickTextStep(mode, intent);
+        const textStep = pickTextStep(mode, intent, toneStepDelta);
 
         style["--intent-bg"] = `rgb(var(--ids-${toneKey}))`;
         style["--intent-ring"] = `rgb(var(--ids-${toneKey}))`;
 
-        // ✅ dark: 200, light: 800
         style["--intent-text"] = tailwindColorVar(twFamily, textStep);
 
         style["--intent-bg-opacity"] = String(bgOpacity);
         style["--intent-ring-opacity"] = String(ringOpacityBoosted);
     } else {
         // toned: palette-driven
-        const textStep = pickTextStep(mode, intent);
-        const ringStep = pickRingStep(intent);
+        const textStep = pickTextStep(mode, intent, toneStepDelta);
+        const ringStep = pickRingStep(intent, toneStepDelta);
 
-        style["--intent-bg"] = tailwindColorVar(toneKey, 500);
+        // bg canonical 500 shifted by toneStepDelta => effectively toneStep
+        const bgStep = applyToneStepDelta(500, toneStepDelta);
+
+        style["--intent-bg"] = tailwindColorVar(toneKey, bgStep);
         style["--intent-text"] = tailwindColorVar(toneKey, textStep);
         style["--intent-ring"] = tailwindColorVar(toneKey, ringStep);
 
@@ -447,6 +487,7 @@ export function resolveIntent(input: IntentInput = {}): ResolvedIntent {
         variant,
         intensity,
 
+        toneStep,
         toneEffective: toneKey,
 
         glowKey,

@@ -82,7 +82,8 @@
 
     display: flex;
     align-items: center;
-    gap: 0.55rem;
+    min-height: var(--ids-control-h, 36px);
+    gap: var(--ids-control-gap, 0.45rem);
 
     overflow: visible;
 
@@ -102,7 +103,7 @@
 
 /* ✅ Padding enabled (default behavior) */
 .intent-control-field.is-padded .intent-control-field-frame {
-    padding: 0.7rem 0.9rem;
+    padding: var(--ids-control-py, 0.65rem) var(--ids-control-px, 0.85rem);
 }
 
 /* Compact + padded */
@@ -263,4 +264,8 @@
 
 .intent-control-field-error {
     opacity: 0.9;
+}
+
+.intent-control-field-control .intent-control-select {
+    box-shadow: none;
 }

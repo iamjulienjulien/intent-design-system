@@ -7,6 +7,13 @@
 // - This component is "naked": it renders only the editable element + optional autosize logic
 // - Uses resolveIntent() to provide stable CSS vars + hooks when used standalone
 // - No dynamic Tailwind classes: only stable hooks
+//
+// ✅ Updated (0.2.4):
+// - Adds readOnly mode:
+//   - Uses native readOnly attribute on input/textarea
+//   - Adds aria-readonly + hook `is-readonly`
+//   - Does NOT set disabled (still focusable/selectable)
+//   - Prevents textarea autosize resizes only insofar as editing won't happen; still safe.
 
 import * as React from "react";
 
@@ -27,18 +34,7 @@ function cn(...classes: Array<string | false | null | undefined>) {
 type InputSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 function sizeClass(size: InputSize) {
-    switch (size) {
-        case "xs":
-            return "ids-input-xs";
-        case "sm":
-            return "ids-input-sm";
-        case "lg":
-            return "ids-input-lg";
-        case "xl":
-            return "ids-input-xl";
-        default:
-            return "ids-input-md";
-    }
+    return `ids-control-${size}`;
 }
 
 function setRef<T>(ref: React.Ref<T> | undefined, value: T) {
@@ -64,6 +60,7 @@ type BaseProps = IntentInput & {
 
     /** State */
     invalid?: boolean; // default false
+    readOnly?: boolean; // ✅ default false
 
     /**
      * When used inside IntentControlField, you generally want the field to own padding.
@@ -187,6 +184,17 @@ const INTENT_CONTROL_INPUT_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         fromSystem: false,
     },
     {
+        name: "readOnly",
+        description: {
+            fr: "Lecture seule: focusable mais non éditable (readOnly + aria-readonly + hook).",
+            en: "Read-only: focusable but not editable (readOnly + aria-readonly + hook).",
+        },
+        type: "boolean",
+        required: false,
+        default: "false",
+        fromSystem: false,
+    },
+    {
         name: "autoSize",
         description: {
             fr: "Textarea uniquement: ajuste la hauteur automatiquement au contenu.",
@@ -261,6 +269,7 @@ export const IntentControlInputIdentity: ComponentIdentity = {
         "intent-control-input-trailing",
         "is-invalid",
         "is-disabled",
+        "is-readonly",
         "ids-input-xs",
         "ids-input-sm",
         "ids-input-md",
@@ -287,6 +296,7 @@ export const IntentControlInput = React.forwardRef<
         trailing,
 
         invalid = false,
+        readOnly = false,
         insideField = false,
 
         // DS props (removed from DOM)
@@ -334,11 +344,22 @@ export const IntentControlInput = React.forwardRef<
        🧾 Textarea autosize (optional)
     ============================================================================ */
 
-    const autoSize =
-        as === "textarea" ? Boolean((nativeProps as IntentControlTextareaProps).autoSize) : false;
+    const textareaExtras =
+        as === "textarea"
+            ? (nativeProps as IntentControlTextareaProps)
+            : ({} as IntentControlTextareaProps);
 
-    const minRows = as === "textarea" ? ((nativeProps as any).minRows ?? 2) : 2;
-    const maxRows = as === "textarea" ? ((nativeProps as any).maxRows ?? 8) : 8;
+    const autoSize = as === "textarea" ? Boolean(textareaExtras.autoSize) : false;
+    const minRows = as === "textarea" ? (textareaExtras.minRows ?? 2) : 2;
+    const maxRows = as === "textarea" ? (textareaExtras.maxRows ?? 8) : 8;
+
+    // ✅ IMPORTANT: strip non-DOM props before spreading onto <textarea>
+    const {
+        autoSize: _autoSize,
+        minRows: _minRows,
+        maxRows: _maxRows,
+        ...textareaNativeProps
+    } = textareaExtras;
 
     function syncTextareaHeight() {
         if (as !== "textarea" || !autoSize) return;
@@ -364,7 +385,7 @@ export const IntentControlInput = React.forwardRef<
         if (!autoSize) return;
         syncTextareaHeight();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [autoSize, minRows, maxRows, (nativeProps as any).value]);
+    }, [autoSize, minRows, maxRows, (textareaNativeProps as any).value]);
 
     /* ============================================================================
        🧱 Class hooks (stable)
@@ -376,6 +397,7 @@ export const IntentControlInput = React.forwardRef<
         fullWidth && "w-full",
         invalid && "is-invalid",
         disabled && "is-disabled",
+        readOnly && "is-readonly",
         insideField ? "intent-control-input-naked" : "intent-control-input-standalone",
         className
     );
@@ -386,7 +408,8 @@ export const IntentControlInput = React.forwardRef<
         sizeClass(size),
         fullWidth && "w-full",
         invalid && "is-invalid",
-        disabled && "is-disabled"
+        disabled && "is-disabled",
+        readOnly && "is-readonly"
     );
 
     // When insideField: do not add frame visuals (field frame already has them)
@@ -395,10 +418,11 @@ export const IntentControlInput = React.forwardRef<
         const commonAria = {
             "aria-invalid": invalid || undefined,
             "aria-disabled": disabled || undefined,
+            "aria-readonly": readOnly || undefined,
         };
 
         if (as === "textarea") {
-            const tp = nativeProps as React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+            const tp = textareaNativeProps as React.TextareaHTMLAttributes<HTMLTextAreaElement>;
             return (
                 <textarea
                     {...tp}
@@ -409,6 +433,7 @@ export const IntentControlInput = React.forwardRef<
                     }}
                     className={cn(layoutProps.className, elCls)}
                     disabled={disabled}
+                    readOnly={readOnly}
                     onInput={(e) => {
                         tp.onInput?.(e);
                         if (!e.defaultPrevented) syncTextareaHeight();
@@ -429,6 +454,7 @@ export const IntentControlInput = React.forwardRef<
                 }}
                 className={cn(layoutProps.className, elCls)}
                 disabled={disabled}
+                readOnly={readOnly}
                 {...commonAria}
             />
         );
@@ -447,6 +473,7 @@ export const IntentControlInput = React.forwardRef<
     const commonAria = {
         "aria-invalid": invalid || undefined,
         "aria-disabled": disabled || undefined,
+        "aria-readonly": readOnly || undefined,
     };
 
     return (
@@ -459,13 +486,14 @@ export const IntentControlInput = React.forwardRef<
 
             {as === "textarea" ? (
                 <textarea
-                    {...(nativeProps as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
+                    {...(textareaNativeProps as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
                     ref={(n) => {
                         elRef.current = n;
                         setRef(forwardedRef as any, n as any);
                     }}
                     className={cn(elCls, "intent-control-input-el")}
                     disabled={disabled}
+                    readOnly={readOnly}
                     onInput={(e) => {
                         (nativeProps as any).onInput?.(e);
                         if (!e.defaultPrevented) syncTextareaHeight();
@@ -481,6 +509,7 @@ export const IntentControlInput = React.forwardRef<
                     }}
                     className={cn(elCls, "intent-control-input-el")}
                     disabled={disabled}
+                    readOnly={readOnly}
                     {...commonAria}
                 />
             )}
