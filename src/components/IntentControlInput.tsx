@@ -1,27 +1,31 @@
-"use client";
-
 // src/components/intent/IntentControlInput.tsx
 // IntentControlInput
 // - Intent-first Input / Textarea control (single component)
 // - Designed to be wrapped by IntentControlField (field owns the "frame" visuals)
-// - This component is "naked": it renders only the editable element + optional autosize logic
-// - Uses resolveIntent() to provide stable CSS vars + hooks when used standalone
+// - Supports standalone mode with control frame + glow layers
+// - Supports insideField mode (naked element, field owns the frame visuals)
+// - Uses resolveIntent() to provide stable CSS vars + hooks
 // - No dynamic Tailwind classes: only stable hooks
 //
-// ✅ Updated (0.2.4):
-// - Adds readOnly mode:
-//   - Uses native readOnly attribute on input/textarea
-//   - Adds aria-readonly + hook `is-readonly`
-//   - Does NOT set disabled (still focusable/selectable)
-//   - Prevents textarea autosize resizes only insofar as editing won't happen; still safe.
+// ✅ Updated:
+// - Restores full input/textarea implementation
+// - Keeps readOnly mode
+// - Keeps textarea autosize
+// - Adds glow layers in standalone mode
+// - Adds toneStep support
+// - Fixes CSS custom property typing for TS
+
+"use client";
 
 import * as React from "react";
 
-import type { IntentInput } from "../lib/intent/types";
-import { resolveIntent, getIntentLayoutProps, getIntentControlProps } from "../lib/intent/resolve";
-
-import type { DocsPropRow, ComponentIdentity } from "../lib/intent/types";
-import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
+import { resolveIntent, getIntentLayoutProps, getIntentControlProps } from "CORE";
+import {
+    SYSTEM_PROPS_TABLE,
+    type IntentInput,
+    type DocsPropRow,
+    type ComponentIdentity,
+} from "SYSTEM";
 
 /* ============================================================================
    🧰 HELPERS
@@ -40,7 +44,18 @@ function sizeClass(size: InputSize) {
 function setRef<T>(ref: React.Ref<T> | undefined, value: T) {
     if (!ref) return;
     if (typeof ref === "function") ref(value);
-    else (ref as any).current = value;
+    else (ref as React.MutableRefObject<T>).current = value;
+}
+
+type CssVars = React.CSSProperties & Record<`--${string}`, string | number | undefined>;
+
+function readOpacity(
+    style: CssVars | undefined,
+    key: "--intent-glow-fill-opacity" | "--intent-glow-border-opacity"
+) {
+    const raw = style?.[key] ?? "0";
+    const n = Number(raw?.toString?.() ?? "0");
+    return Number.isFinite(n) ? n : 0;
 }
 
 /* ============================================================================
@@ -60,7 +75,7 @@ type BaseProps = IntentInput & {
 
     /** State */
     invalid?: boolean; // default false
-    readOnly?: boolean; // ✅ default false
+    readOnly?: boolean; // default false
 
     /**
      * When used inside IntentControlField, you generally want the field to own padding.
@@ -255,6 +270,8 @@ export const IntentControlInputIdentity: ComponentIdentity = {
     docs: { route: "/playground/components/intent-control-input" },
     anatomy: {
         root: "<div> (standalone only)",
+        glowFillLayer: ".intent-glow-layer.intent-glow-fill",
+        glowBorderLayer: ".intent-glow-layer.intent-glow-border",
         input: "<input> | <textarea>",
         leading: ".intent-control-input-leading (standalone only)",
         trailing: ".intent-control-input-trailing (standalone only)",
@@ -267,14 +284,17 @@ export const IntentControlInputIdentity: ComponentIdentity = {
         "intent-control-input-el",
         "intent-control-input-leading",
         "intent-control-input-trailing",
+        "intent-glow-layer",
+        "intent-glow-fill",
+        "intent-glow-border",
         "is-invalid",
         "is-disabled",
         "is-readonly",
-        "ids-input-xs",
-        "ids-input-sm",
-        "ids-input-md",
-        "ids-input-lg",
-        "ids-input-xl",
+        "ids-control-xs",
+        "ids-control-sm",
+        "ids-control-md",
+        "ids-control-lg",
+        "ids-control-xl",
     ],
 };
 
@@ -306,12 +326,15 @@ export const IntentControlInput = React.forwardRef<
         glow,
         intensity,
         mode,
+        toneStep,
         disabled: disabledProp,
 
         as = "input",
 
         ...nativeProps
-    } = props as any;
+    } = props as IntentControlInputUnionProps & {
+        as?: "input" | "textarea";
+    };
 
     const disabled = Boolean(disabledProp);
 
@@ -322,22 +345,30 @@ export const IntentControlInput = React.forwardRef<
         ...(glow !== undefined ? { glow } : {}),
         ...(intensity !== undefined ? { intensity } : {}),
         ...(mode !== undefined ? { mode } : {}),
+        ...(toneStep !== undefined ? { toneStep } : {}),
         disabled,
     };
 
     const resolved = resolveIntent(intentInput);
+    const resolvedStyle = resolved.style as CssVars | undefined;
 
-    // Standalone:
-    // - root carries vars (layout) + visuals (control frame)
-    // InsideField:
-    // - element carries minimal hooks; field frame provides visuals via composeIntentControlClassName()
     const layoutProps = getIntentLayoutProps(resolved);
     const controlProps = getIntentControlProps(resolved);
+
+    const hasGlow = Boolean(resolved.glowBackground);
+    const v = resolved.variant;
+    const isGlowed = resolved.intent === "glowed";
+    const glowAllowed = !insideField && hasGlow && v !== "ghost";
+    const allowFillGlow = glowAllowed && (isGlowed || v === "flat" || v === "elevated");
+    const allowBorderGlow = glowAllowed && (v === "outlined" || v === "elevated");
+
+    const glowFillOpacity = readOpacity(resolvedStyle, "--intent-glow-fill-opacity");
+    const glowBorderOpacity = readOpacity(resolvedStyle, "--intent-glow-border-opacity");
 
     const elRef = React.useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
     React.useEffect(() => {
-        setRef(forwardedRef as any, elRef.current as any);
+        setRef(forwardedRef, elRef.current as HTMLInputElement & HTMLTextAreaElement);
     }, [forwardedRef]);
 
     /* ============================================================================
@@ -353,7 +384,6 @@ export const IntentControlInput = React.forwardRef<
     const minRows = as === "textarea" ? (textareaExtras.minRows ?? 2) : 2;
     const maxRows = as === "textarea" ? (textareaExtras.maxRows ?? 8) : 8;
 
-    // ✅ IMPORTANT: strip non-DOM props before spreading onto <textarea>
     const {
         autoSize: _autoSize,
         minRows: _minRows,
@@ -363,10 +393,10 @@ export const IntentControlInput = React.forwardRef<
 
     function syncTextareaHeight() {
         if (as !== "textarea" || !autoSize) return;
+
         const el = elRef.current as HTMLTextAreaElement | null;
         if (!el) return;
 
-        // Reset to measure scrollHeight properly
         el.style.height = "auto";
 
         const style = window.getComputedStyle(el);
@@ -385,7 +415,7 @@ export const IntentControlInput = React.forwardRef<
         if (!autoSize) return;
         syncTextareaHeight();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [autoSize, minRows, maxRows, (textareaNativeProps as any).value]);
+    }, [autoSize, minRows, maxRows, (textareaNativeProps as { value?: unknown }).value]);
 
     /* ============================================================================
        🧱 Class hooks (stable)
@@ -403,8 +433,10 @@ export const IntentControlInput = React.forwardRef<
     );
 
     const standaloneRootCls = cn(
-        "intent-control intent-control-input",
+        "intent-control",
+        "intent-control-input",
         "relative inline-flex items-stretch",
+        "intent-control-input-standalone",
         sizeClass(size),
         fullWidth && "w-full",
         invalid && "is-invalid",
@@ -412,26 +444,30 @@ export const IntentControlInput = React.forwardRef<
         readOnly && "is-readonly"
     );
 
-    // When insideField: do not add frame visuals (field frame already has them)
-    // When standalone: use control visuals on root, and render slots there
-    if (insideField) {
-        const commonAria = {
-            "aria-invalid": invalid || undefined,
-            "aria-disabled": disabled || undefined,
-            "aria-readonly": readOnly || undefined,
-        };
+    const commonAria = {
+        "aria-invalid": invalid || undefined,
+        "aria-disabled": disabled || undefined,
+        "aria-readonly": readOnly || undefined,
+    };
 
+    /* ============================================================================
+       InsideField mode
+    ============================================================================ */
+
+    if (insideField) {
         if (as === "textarea") {
             const tp = textareaNativeProps as React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+
             return (
                 <textarea
                     {...tp}
-                    {...layoutProps} // vars still useful (placeholder color etc.)
-                    ref={(n) => {
-                        elRef.current = n;
-                        setRef(forwardedRef as any, n as any);
+                    {...layoutProps}
+                    ref={(node) => {
+                        elRef.current = node;
+                        setRef(forwardedRef, node as HTMLInputElement & HTMLTextAreaElement);
                     }}
                     className={cn(layoutProps.className, elCls)}
+                    style={layoutProps.style}
                     disabled={disabled}
                     readOnly={readOnly}
                     onInput={(e) => {
@@ -444,15 +480,17 @@ export const IntentControlInput = React.forwardRef<
         }
 
         const ip = nativeProps as React.InputHTMLAttributes<HTMLInputElement>;
+
         return (
             <input
                 {...ip}
-                {...layoutProps} // vars still useful
-                ref={(n) => {
-                    elRef.current = n;
-                    setRef(forwardedRef as any, n as any);
+                {...layoutProps}
+                ref={(node) => {
+                    elRef.current = node;
+                    setRef(forwardedRef, node as HTMLInputElement & HTMLTextAreaElement);
                 }}
                 className={cn(layoutProps.className, elCls)}
+                style={layoutProps.style}
                 disabled={disabled}
                 readOnly={readOnly}
                 {...commonAria}
@@ -460,24 +498,43 @@ export const IntentControlInput = React.forwardRef<
         );
     }
 
-    // Standalone mode
+    /* ============================================================================
+       Standalone mode
+    ============================================================================ */
+
     const rootProps = {
-        ...layoutProps, // vars on root
+        ...layoutProps,
         className: cn(layoutProps.className, controlProps.className, standaloneRootCls),
+        style: layoutProps.style,
         "data-intent": resolved.intent,
         "data-variant": resolved.variant,
         "data-intensity": resolved.intensity,
         "data-mode": resolved.mode,
+        "data-tone-step": resolved.toneStep,
     } as const;
 
-    const commonAria = {
-        "aria-invalid": invalid || undefined,
-        "aria-disabled": disabled || undefined,
-        "aria-readonly": readOnly || undefined,
-    };
-
     return (
-        <div {...(rootProps as any)}>
+        <div {...rootProps}>
+            {glowAllowed ? (
+                <>
+                    {allowFillGlow ? (
+                        <div
+                            className="intent-glow-layer intent-glow-fill"
+                            style={{ opacity: glowFillOpacity }}
+                            aria-hidden="true"
+                        />
+                    ) : null}
+
+                    {allowBorderGlow ? (
+                        <div
+                            className="intent-glow-layer intent-glow-border"
+                            style={{ opacity: glowBorderOpacity, borderRadius: "inherit" }}
+                            aria-hidden="true"
+                        />
+                    ) : null}
+                </>
+            ) : null}
+
             {leading ? (
                 <span className="intent-control-input-leading" aria-hidden>
                     {leading}
@@ -487,15 +544,17 @@ export const IntentControlInput = React.forwardRef<
             {as === "textarea" ? (
                 <textarea
                     {...(textareaNativeProps as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
-                    ref={(n) => {
-                        elRef.current = n;
-                        setRef(forwardedRef as any, n as any);
+                    ref={(node) => {
+                        elRef.current = node;
+                        setRef(forwardedRef, node as HTMLInputElement & HTMLTextAreaElement);
                     }}
-                    className={cn(elCls, "intent-control-input-el")}
+                    className={elCls}
                     disabled={disabled}
                     readOnly={readOnly}
                     onInput={(e) => {
-                        (nativeProps as any).onInput?.(e);
+                        (
+                            textareaNativeProps as React.TextareaHTMLAttributes<HTMLTextAreaElement>
+                        ).onInput?.(e);
                         if (!e.defaultPrevented) syncTextareaHeight();
                     }}
                     {...commonAria}
@@ -503,11 +562,11 @@ export const IntentControlInput = React.forwardRef<
             ) : (
                 <input
                     {...(nativeProps as React.InputHTMLAttributes<HTMLInputElement>)}
-                    ref={(n) => {
-                        elRef.current = n;
-                        setRef(forwardedRef as any, n as any);
+                    ref={(node) => {
+                        elRef.current = node;
+                        setRef(forwardedRef, node as HTMLInputElement & HTMLTextAreaElement);
                     }}
-                    className={cn(elCls, "intent-control-input-el")}
+                    className={elCls}
                     disabled={disabled}
                     readOnly={readOnly}
                     {...commonAria}

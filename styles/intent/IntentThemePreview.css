@@ -1,0 +1,82 @@
+/* styles/intent/IntentThemePreview.css
+   IntentThemePreview
+============================================================================ */
+
+.intent-theme-preview {
+    display: block;
+}
+
+.intent-theme-preview .intent-theme-preview-header {
+    margin-bottom: 12px;
+}
+
+.intent-theme-preview .intent-theme-preview-title {
+    font-size: 14px;
+    line-height: 1.25;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+}
+
+.intent-theme-preview .intent-theme-preview-description {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.35;
+    opacity: 0.72;
+}
+
+.intent-theme-preview .intent-theme-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--ids-theme-preview-cols, 4), minmax(0, 1fr));
+    gap: var(--ids-theme-preview-gap, 12px);
+}
+
+.intent-theme-preview .intent-theme-preview-tile {
+    position: relative;
+    overflow: hidden;
+
+    border-radius: 18px;
+
+    padding: var(--ids-theme-preview-tile-py, 14px) var(--ids-theme-preview-tile-px, 14px);
+    min-height: var(--ids-theme-preview-tile-minh, 110px);
+}
+
+.intent-theme-preview .intent-theme-preview-swatch {
+    width: 100%;
+    height: 10px;
+    border-radius: 9999px;
+
+    background: color-mix(in oklab, var(--intent-ring, currentColor) 55%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--intent-ring, currentColor) 28%, transparent);
+
+    opacity: 0.95;
+    margin-bottom: 12px;
+}
+
+.intent-theme-preview .intent-theme-preview-tile-title {
+    font-size: 13px;
+    line-height: 1.2;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+}
+
+.intent-theme-preview .intent-theme-preview-tile-meta {
+    margin-top: 8px;
+    font-size: 11px;
+    line-height: 1.25;
+    opacity: 0.68;
+}
+
+/* Density hooks */
+.ids-theme-preview-compact {
+    --ids-theme-preview-gap: 10px;
+    --ids-theme-preview-tile-px: 12px;
+    --ids-theme-preview-tile-py: 12px;
+    --ids-theme-preview-tile-minh: 96px;
+}
+
+.ids-theme-preview-comfortable {
+    --ids-theme-preview-gap: 12px;
+    --ids-theme-preview-tile-px: 14px;
+    --ids-theme-preview-tile-py: 14px;
+    --ids-theme-preview-tile-minh: 110px;
+}

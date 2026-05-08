@@ -1,0 +1,169 @@
+/* ============================================================================
+   IntentControlButtonGroup.css
+   - Stable hooks only
+   - Built to style grouped IntentControlButton / IntentControlLink
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-control-button-group {
+    display: inline-flex;
+    min-width: 0;
+    gap: 0.5rem;
+}
+
+.intent-control-button-group.is-fullWidth {
+    width: 100%;
+}
+
+.intent-control-button-group.is-horizontal {
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.intent-control-button-group.is-vertical {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.intent-control-button-group.is-wrap.is-horizontal {
+    flex-wrap: wrap;
+}
+
+.intent-control-button-group.justify-start {
+    justify-content: flex-start;
+}
+
+.intent-control-button-group.justify-center {
+    justify-content: center;
+}
+
+.intent-control-button-group.justify-end {
+    justify-content: flex-end;
+}
+
+.intent-control-button-group.justify-stretch {
+    justify-content: stretch;
+}
+
+.intent-control-button-group.justify-stretch > .intent-control-button-group-item,
+.intent-control-button-group.is-equalWidth > .intent-control-button-group-item {
+    flex: 1 1 0%;
+    min-width: 0;
+}
+
+/* ============================================================================
+   Item wrapper
+============================================================================ */
+
+.intent-control-button-group-item {
+    min-width: 0;
+}
+
+.intent-control-button-group-item.is-equalWidth {
+    flex: 1 1 0%;
+}
+
+/* Ensure button/link fills item width when needed */
+.intent-control-button-group.justify-stretch .intent-control-button-group-item,
+.intent-control-button-group.is-equalWidth .intent-control-button-group-item {
+    width: 100%;
+}
+
+/* ============================================================================
+   Attached mode
+============================================================================ */
+
+.intent-control-button-group.is-attached {
+    gap: 0;
+}
+
+.intent-control-button-group.is-attached.is-horizontal > * + * {
+    margin-left: -1px;
+}
+
+.intent-control-button-group.is-attached.is-vertical > * + * {
+    margin-top: -1px;
+}
+
+/* Neutralize outer radii between siblings */
+.intent-control-button-group.is-attached.is-horizontal > :not(:first-child) {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+.intent-control-button-group.is-attached.is-horizontal > :not(:last-child) {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.intent-control-button-group.is-attached.is-vertical > :not(:first-child) {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+}
+
+.intent-control-button-group.is-attached.is-vertical > :not(:last-child) {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+/* Keep selected/hovered items above neighbors in attached mode */
+.intent-control-button-group.is-attached .intent-control-button,
+.intent-control-button-group.is-attached .intent-control-link {
+    position: relative;
+}
+
+.intent-control-button-group.is-attached .intent-control-button:hover,
+.intent-control-button-group.is-attached .intent-control-link:hover,
+.intent-control-button-group.is-attached .intent-control-button.is-pressed,
+.intent-control-button-group.is-attached .intent-control-link[aria-pressed="true"] {
+    z-index: 1;
+}
+
+/* ============================================================================
+   Disabled / readonly
+============================================================================ */
+
+.intent-control-button-group.is-disabled {
+    opacity: 0.82;
+}
+
+.intent-control-button-group.is-readonly .intent-control-button,
+.intent-control-button-group.is-readonly .intent-control-link {
+    cursor: default;
+}
+
+/* ============================================================================
+   Optional size hooks on group
+   - Mostly useful for future group-specific spacing tweaks
+============================================================================ */
+
+.intent-control-button-group.ids-btn-group-xs {
+    gap: 0.35rem;
+}
+
+.intent-control-button-group.ids-btn-group-sm {
+    gap: 0.4rem;
+}
+
+.intent-control-button-group.ids-btn-group-md {
+    gap: 0.5rem;
+}
+
+.intent-control-button-group.ids-btn-group-lg {
+    gap: 0.6rem;
+}
+
+.intent-control-button-group.ids-btn-group-xl {
+    gap: 0.7rem;
+}
+
+.intent-control-button-group.is-attached.ids-btn-group-xs,
+.intent-control-button-group.is-attached.ids-btn-group-sm,
+.intent-control-button-group.is-attached.ids-btn-group-md,
+.intent-control-button-group.is-attached.ids-btn-group-lg,
+.intent-control-button-group.is-attached.ids-btn-group-xl {
+    gap: 0;
+}

@@ -140,3 +140,11 @@ vite.config.ts.timestamp-*
 
 
 .vscode/
+
+# Fichiers parasites racine
+.DS_Store
+component-identities.txt
+identities.txt
+props-tables.ts
+props-tables.txt
+TREE..md

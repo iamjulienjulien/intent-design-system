@@ -9,15 +9,17 @@
 // - Intent-first, stable class hooks
 
 import * as React from "react";
-
-import type {
-    AestheticGlowName,
-    GlowName,
-    IntentInput,
-    DocsPropRow,
-    ComponentIdentity,
-} from "../lib/intent/types";
-import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
+import {
+    SYSTEM_PROPS_TABLE,
+    type ComponentIdentity,
+    type DocsPropRow,
+    type IntentInput,
+    type Glow,
+    GLOW,
+    type GlowMeta,
+    type GlowMeta2,
+    isAestheticGlow,
+} from "SYSTEM";
 
 import { IntentControlField } from "./IntentControlField";
 import { IntentControlToggle } from "./IntentControlToggle";
@@ -33,75 +35,22 @@ function cn(...classes: Array<string | false | null | undefined>) {
 
 export type GlowPickerMode = "toggle" | "select";
 
-export type GlowValue = boolean | GlowName | "true" | "false";
-
-const DEFAULT_AESTHETIC_GLOWS: AestheticGlowName[] = [
-    "aurora",
-    "ember",
-    "cosmic",
-    "mythic",
-    "royal",
-    "mono",
-];
-
-function isGlowName(v: unknown): v is AestheticGlowName {
-    return (
-        v === "aurora" ||
-        v === "ember" ||
-        v === "cosmic" ||
-        v === "mythic" ||
-        v === "royal" ||
-        v === "mono"
-    );
-}
+export type GlowValue = boolean | Glow | "true" | "false";
 
 function normalizeGlowValue(v: unknown): GlowValue {
     if (typeof v === "boolean") return v;
-    if (typeof v === "string" && isGlowName(v)) return v;
+    if (typeof v === "string" && isAestheticGlow(v)) return v;
     return false;
 }
 
-function glowLabel(glow: AestheticGlowName) {
-    switch (glow) {
-        case "aurora":
-            return "Aurora";
-        case "ember":
-            return "Ember";
-        case "cosmic":
-            return "Cosmic";
-        case "mythic":
-            return "Mythic";
-        case "royal":
-            return "Royal";
-        case "mono":
-            return "Mono";
-        default:
-            return String(glow);
-    }
-}
+function GlowSwatch({ glow }: { glow: GlowMeta2 }) {
+    const style: React.CSSProperties | undefined = glow.gradient.swatch
+        ? {
+              backgroundImage: glow.gradient.swatch,
+          }
+        : undefined;
 
-/**
- * Small swatch "best-effort" (fallback palette)
- * You can later map to real DS glow tokens if you have them.
- */
-function glowSwatchStyle(glow: AestheticGlowName): React.CSSProperties {
-    const map: Record<AestheticGlowName, string> = {
-        aurora: "linear-gradient(135deg, #34d399, #60a5fa, #a78bfa)",
-        ember: "linear-gradient(135deg, #fb7185, #f97316, #f59e0b)",
-        cosmic: "linear-gradient(135deg, #22d3ee, #60a5fa, #a78bfa)",
-        mythic: "linear-gradient(135deg, #a78bfa, #f472b6, #f59e0b)",
-        royal: "linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6)",
-        mono: "linear-gradient(135deg, #94a3b8, #e2e8f0, #64748b)",
-    };
-
-    return {
-        background: map[glow],
-        boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.14)",
-    };
-}
-
-function GlowSwatch({ glow }: { glow: AestheticGlowName }) {
-    return <span aria-hidden className="intent-picker-glow-swatch" style={glowSwatchStyle(glow)} />;
+    return <span aria-hidden className="intent-picker-glow-swatch" style={style} />;
 }
 
 /* ============================================================================
@@ -115,7 +64,7 @@ export type IntentPickerGlowProps = IntentInput &
         /**
          * Mode
          * - "toggle": true/false via IntentControlToggle
-         * - "select": GlowName via IntentControlSelect
+         * - "select": Glow via IntentControlSelect
          */
         pickerMode?: GlowPickerMode; // default: "toggle"
 
@@ -126,7 +75,7 @@ export type IntentPickerGlowProps = IntentInput &
         onChange: (value: GlowValue) => void;
 
         /** Aesthetic glow options (select mode) */
-        options?: AestheticGlowName[]; // default: DEFAULT_AESTHETIC_GLOWS
+        options?: GlowMeta2[]; // default: DEFAULT_AESTHETIC_GLOWS
 
         /** Label row */
         label?: React.ReactNode; // default: "Glow"
@@ -179,17 +128,17 @@ const INTENT_PICKER_GLOW_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "value",
         description: {
-            fr: "Valeur: boolean (toggle) ou GlowName (select).",
-            en: "Value: boolean (toggle) or GlowName (select).",
+            fr: "Valeur: boolean (toggle) ou Glow (select).",
+            en: "Value: boolean (toggle) or Glow (select).",
         },
-        type: "boolean | GlowName",
+        type: "boolean | Glow",
         required: true,
         fromSystem: false,
     },
     {
         name: "onChange",
         description: { fr: "Callback de changement.", en: "Change callback." },
-        type: "(value: boolean | GlowName) => void",
+        type: "(value: boolean | Glow) => void",
         required: true,
         fromSystem: false,
     },
@@ -199,7 +148,7 @@ const INTENT_PICKER_GLOW_LOCAL_PROPS_TABLE: DocsPropRow[] = [
             fr: "Liste des glows esthétiques (mode select).",
             en: "Aesthetic glow options (select mode).",
         },
-        type: "GlowName[]",
+        type: "Glow[]",
         required: false,
         default: "DEFAULT_AESTHETIC_GLOWS",
         fromSystem: false,
@@ -345,21 +294,21 @@ export function IntentPickerGlow(props: IntentPickerGlowProps) {
     const fieldId = labelFor ?? React.useId();
 
     const optionsResolved = React.useMemo(() => {
-        const base = options ?? DEFAULT_AESTHETIC_GLOWS;
+        const base = options ?? GLOW.filter((g) => g.category === "aesthetic");
         // unique + stable order
-        return Array.from(new Set(base));
+        return base;
     }, [options]);
 
     // Select options with a swatch + label
     const selectOptions: IntentControlSelectOption[] = React.useMemo(
         () =>
             optionsResolved.map((g) => ({
-                value: g,
-                searchText: glowLabel(g),
+                value: g.value,
+                searchText: g.value,
                 label: (
                     <span className="intent-picker-glow-option">
                         <GlowSwatch glow={g} />
-                        <span className="intent-picker-glow-optionText">{glowLabel(g)}</span>
+                        <span className="intent-picker-glow-optionText">{g.label}</span>
                     </span>
                 ),
             })),
@@ -403,6 +352,7 @@ export function IntentPickerGlow(props: IntentPickerGlowProps) {
             padded={padded}
             leading={leading}
             trailing={trailing}
+            optionalLabel=""
         >
             <div className="w-full min-w-0">
                 {pickerMode === "toggle" ? (
@@ -439,6 +389,8 @@ export function IntentPickerGlow(props: IntentPickerGlowProps) {
                         fullWidth={fullWidth}
                         clearable={clearable}
                         disabled={disabled}
+                        portal
+                        // insideField
                         {...dsInput}
                     />
                 )}

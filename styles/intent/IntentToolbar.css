@@ -1,0 +1,149 @@
+/* ============================================================================
+   styles/intent/IntentToolbar.css
+   IntentToolbar
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-toolbar {
+    display: block;
+
+    padding: var(--ids-toolbar-py, 12px) var(--ids-toolbar-px, 14px);
+
+    /* getIntentSurfaceProps() should already apply intent hooks:
+       - intent-bg, intent-border, intent-ink (via classes/vars)
+       This component focuses on layout + stable hooks.
+    */
+}
+
+/* Sticky */
+.intent-toolbar.is-sticky {
+    position: sticky;
+    top: var(--ids-toolbar-sticky-offset, 0px);
+    z-index: var(--ids-toolbar-sticky-z, 40);
+    backdrop-filter: blur(var(--ids-toolbar-sticky-blur, 10px));
+}
+
+/* Row (3 zones) */
+.intent-toolbar .intent-toolbar-row {
+    display: flex;
+    width: 100%;
+    gap: var(--ids-toolbar-gap, 12px);
+}
+
+/* Zones */
+.intent-toolbar .intent-toolbar-left,
+.intent-toolbar .intent-toolbar-center,
+.intent-toolbar .intent-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--ids-toolbar-zone-gap, 10px);
+    min-width: 0;
+}
+
+.intent-toolbar .intent-toolbar-left {
+    flex: 1 1 auto;
+    justify-content: flex-start;
+}
+
+.intent-toolbar .intent-toolbar-center {
+    flex: 0 1 auto;
+    justify-content: center;
+}
+
+.intent-toolbar .intent-toolbar-right {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+}
+
+.intent-toolbar.ids-toolbar-justify-between .intent-toolbar-left,
+.intent-toolbar.ids-toolbar-justify-between .intent-toolbar-center,
+.intent-toolbar.ids-toolbar-justify-between .intent-toolbar-right {
+    flex: auto;
+}
+
+/* Wrapping behavior */
+.intent-toolbar.ids-toolbar-wrap .intent-toolbar-row {
+    flex-wrap: wrap;
+}
+.intent-toolbar.ids-toolbar-nowrap .intent-toolbar-row {
+    flex-wrap: nowrap;
+}
+
+/* Vertical alignment */
+.intent-toolbar.ids-toolbar-align-start .intent-toolbar-row {
+    align-items: flex-start;
+}
+.intent-toolbar.ids-toolbar-align-center .intent-toolbar-row {
+    align-items: center;
+}
+.intent-toolbar.ids-toolbar-align-end .intent-toolbar-row {
+    align-items: flex-end;
+}
+
+/* Horizontal distribution (overall) */
+.intent-toolbar.ids-toolbar-justify-between .intent-toolbar-row {
+    justify-content: space-between;
+}
+.intent-toolbar.ids-toolbar-justify-start .intent-toolbar-row {
+    justify-content: flex-start;
+}
+.intent-toolbar.ids-toolbar-justify-center .intent-toolbar-row {
+    justify-content: center;
+}
+.intent-toolbar.ids-toolbar-justify-end .intent-toolbar-row {
+    justify-content: flex-end;
+}
+
+/* Divider */
+.intent-toolbar .intent-toolbar-divider {
+    margin-top: var(--ids-toolbar-divider-mt, 10px);
+    height: 1px;
+    width: 100%;
+    opacity: var(--ids-toolbar-divider-opacity, 0.35);
+    background: color-mix(in oklab, currentColor 18%, transparent);
+}
+
+/* Disabled */
+.intent-toolbar.is-disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* ============================================================================
+   Size hooks (tokens)
+============================================================================ */
+
+.ids-toolbar-xs {
+    --ids-toolbar-px: 12px;
+    --ids-toolbar-py: 10px;
+    --ids-toolbar-gap: 10px;
+    --ids-toolbar-zone-gap: 8px;
+    --ids-toolbar-divider-mt: 8px;
+}
+
+.ids-toolbar-sm {
+    --ids-toolbar-px: 14px;
+    --ids-toolbar-py: 11px;
+    --ids-toolbar-gap: 12px;
+    --ids-toolbar-zone-gap: 10px;
+    --ids-toolbar-divider-mt: 9px;
+}
+
+.ids-toolbar-md {
+    --ids-toolbar-px: 16px;
+    --ids-toolbar-py: 12px;
+    --ids-toolbar-gap: 12px;
+    --ids-toolbar-zone-gap: 10px;
+    --ids-toolbar-divider-mt: 10px;
+}
+
+.ids-toolbar-lg {
+    --ids-toolbar-px: 18px;
+    --ids-toolbar-py: 14px;
+    --ids-toolbar-gap: 14px;
+    --ids-toolbar-zone-gap: 12px;
+    --ids-toolbar-divider-mt: 12px;
+}

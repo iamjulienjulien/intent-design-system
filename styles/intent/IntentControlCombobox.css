@@ -1,0 +1,315 @@
+/* src/components/intent/intent-control-combobox.css */
+/* IntentControlCombobox
+   - Stable hooks only
+   - Two modes:
+     - standalone: root is a full control "frame"
+     - naked (insideField): Field owns the frame; input element is naked
+   - Dropdown works in both modes
+*/
+
+.intent-control.intent-control-combobox {
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+    min-width: 0;
+    position: relative; /* anchors the menu */
+    display: inline-flex;
+    align-items: stretch;
+    overflow: visible;
+}
+
+/* Standalone slots (scoped for safety) */
+.intent-control.intent-control-combobox.intent-control-combobox-standalone
+    .intent-control-combobox-leading,
+.intent-control.intent-control-combobox.intent-control-combobox-standalone
+    .intent-control-combobox-trailing {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 calc(var(--ids-control-px, 0.85rem) * 0.6);
+    opacity: 0.8;
+    user-select: none;
+}
+
+/* In naked mode, prefer Field slots */
+.intent-control.intent-control-combobox.intent-control-combobox-naked
+    .intent-control-combobox-leading,
+.intent-control.intent-control-combobox.intent-control-combobox-naked
+    .intent-control-combobox-trailing {
+    padding: 0;
+    opacity: 1;
+}
+
+/* Element base (mirrors intent-control-input-el) */
+.intent-control-combobox-input {
+    width: 100%;
+    min-width: 0;
+
+    font-size: var(--ids-control-fs, 0.875rem);
+    line-height: 1.2;
+
+    color: var(--intent-ink);
+    caret-color: var(--intent-ink);
+
+    background: transparent;
+
+    outline: none;
+    border: 0 !important;
+    box-shadow: none !important;
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    margin: 0;
+}
+
+/* Standalone: internal spacing */
+.intent-control-combobox-input-standalone.intent-control-combobox-input {
+    height: var(--ids-control-h, 36px);
+    padding: 0 var(--ids-control-px, 0.85rem);
+}
+
+/* If leading exists, tighten left padding */
+.intent-control-combobox-standalone
+    .intent-control-combobox-leading
+    + .intent-control-combobox-input-standalone.intent-control-combobox-input {
+    padding-left: calc(var(--ids-control-px, 0.85rem) * 0.35);
+}
+
+/* If trailing exists, tighten right padding */
+.intent-control-combobox-standalone
+    .intent-control-combobox-input-standalone.intent-control-combobox-input
+    + .intent-control-combobox-trailing {
+    /* slot already padded */
+}
+
+/* Naked (insideField): no padding, let Field frame manage spacing */
+.intent-control-combobox-input-naked.intent-control-combobox-input {
+    padding: 0;
+    height: auto;
+}
+
+/* Placeholder */
+.intent-control-combobox-input::placeholder {
+    color: color-mix(in oklab, var(--intent-ink) 95%, transparent);
+    opacity: 0.55;
+}
+
+/* Disabled / readonly cues (same contract as Input) */
+.intent-control-combobox-input.is-disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+.intent-control-combobox-input.is-readonly {
+    cursor: default;
+}
+
+/* Invalid placeholder hook */
+.intent-control-combobox-input.is-invalid::placeholder {
+    color: color-mix(in oklab, var(--intent-ink) 70%, transparent);
+}
+
+/* ============================================================================
+   Dropdown menu
+============================================================================ */
+
+.intent-control-combobox-menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + var(--ids-combobox-offset, 8px));
+    width: 100%;
+    z-index: 60;
+
+    transform-origin: top;
+    transform: translateY(-2px) scale(0.99);
+    opacity: 0;
+    pointer-events: none;
+
+    transition:
+        transform 140ms ease,
+        opacity 140ms ease;
+}
+
+.intent-control-combobox-menu.is-portal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: auto;
+    width: auto;
+    z-index: 70;
+}
+
+.intent-control-combobox.is-open .intent-control-combobox-menu,
+.intent-control-combobox-menu.is-open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.intent-control-combobox-menu::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+
+    /* Dark mode default */
+    background-color: color-mix(in oklab, white 88%, var(--intent-bg, white) 12%);
+    backdrop-filter: saturate(1.05);
+}
+
+.intent-control-combobox-menu > * {
+    position: relative;
+    z-index: 1;
+}
+
+.intent-control-combobox.is-open .intent-control-combobox-menu,
+.intent-control-combobox-menu.is-open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Listbox surface */
+.intent-control-combobox-list {
+    background: color-mix(in oklab, var(--intent-bg) 92%, var(--intent-ink) 8%);
+    border: 1px solid color-mix(in oklab, var(--intent-ring) 85%, transparent);
+    border-radius: 0.9rem;
+
+    box-shadow:
+        0 14px 34px color-mix(in oklab, #000 22%, transparent),
+        0 2px 6px color-mix(in oklab, #000 14%, transparent);
+
+    overflow: auto;
+    max-height: 16rem;
+    padding: 0.35rem;
+
+    scrollbar-gutter: stable both-edges;
+}
+
+/* Invalid list border hint */
+.intent-control-combobox.is-invalid .intent-control-combobox-list {
+    border-color: color-mix(in oklab, var(--intent-ink) 25%, transparent);
+}
+
+/* Items */
+.intent-control-combobox-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+
+    border: 0;
+    background: transparent;
+    color: var(--intent-ink);
+    text-align: left;
+
+    border-radius: 0.7rem;
+    padding: 0.55rem 0.65rem;
+
+    cursor: pointer;
+    user-select: none;
+
+    transition:
+        background-color 120ms ease,
+        transform 120ms ease,
+        box-shadow 120ms ease;
+}
+
+.intent-control-combobox-item:hover {
+    background: color-mix(in oklab, var(--intent-ink) 8%, transparent);
+}
+
+.intent-control-combobox-item.is-active,
+.intent-control-combobox-item[data-active="true"] {
+    background: color-mix(in oklab, var(--intent-ink) 10%, transparent);
+}
+
+.intent-control-combobox-item.is-selected {
+    background: color-mix(in oklab, var(--intent-ink) 12%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-ink) 18%, transparent);
+}
+
+.intent-control-combobox-item:active {
+    transform: translateY(0.5px);
+}
+
+.intent-control-combobox-itemLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    font-weight: 600;
+    line-height: 1.15;
+    min-width: 0;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intent-control-combobox-itemSub {
+    flex: 0 0 auto;
+    font-size: 0.85em;
+    opacity: 0.75;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+/* Empty / Loading */
+.intent-control-combobox-empty,
+.intent-control-combobox-loading {
+    padding: 0.65rem 0.7rem;
+    border-radius: 0.7rem;
+
+    color: color-mix(in oklab, var(--intent-ink) 75%, transparent);
+    background: color-mix(in oklab, var(--intent-ink) 6%, transparent);
+
+    font-size: 0.95em;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .intent-control-combobox-menu {
+        transition: none;
+        transform: none;
+    }
+    .intent-control-combobox-item {
+        transition: none;
+    }
+}
+
+.intent-control-combobox-naked .intent-control-combobox-input {
+    border: 0 !important;
+    box-shadow: none !important;
+    outline: none;
+}
+
+/* .intent-control-combobox-menu {
+    outline: 2px solid red;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+} */
+
+.intent-control-combobox-menu {
+    position: absolute;
+    top: calc(100% + var(--ids-combobox-offset, 8px));
+    left: 0;
+    width: 100%;
+    z-index: 30;
+}
+
+.intent-control-combobox-menu.is-portal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: auto;
+    z-index: 70;
+}
+
+.intent-control-combobox-list {
+    max-height: 280px;
+    overflow: auto;
+}

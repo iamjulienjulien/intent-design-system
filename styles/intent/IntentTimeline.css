@@ -1,0 +1,514 @@
+/* styles/intent/IntentTimeline.css
+   IntentTimeline
+   - Intent-first timeline for events
+   - Stable hooks only
+   - Uses resolver vars via control recipe on cards
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-timeline {
+    position: relative;
+    min-width: 0;
+    color: var(--intent-ink);
+}
+
+.intent-timeline-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    min-width: 0;
+}
+
+/* Orientation */
+.intent-timeline.is-vertical .intent-timeline-list {
+    flex-direction: column;
+    gap: var(--ids-timeline-gap, 0.7rem);
+}
+
+.intent-timeline.is-horizontal .intent-timeline-list {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--ids-timeline-gap, 0.9rem);
+    flex-wrap: wrap;
+}
+
+/* Density */
+.intent-timeline.ids-density-tight {
+    --ids-timeline-gap: 0.55rem;
+    --ids-timeline-row-gap: 0.55rem;
+}
+.intent-timeline.ids-density-normal {
+    --ids-timeline-gap: 0.7rem;
+    --ids-timeline-row-gap: 0.65rem;
+}
+.intent-timeline.ids-density-airy {
+    --ids-timeline-gap: 0.95rem;
+    --ids-timeline-row-gap: 0.8rem;
+}
+
+/* ============================================================================
+   Sizes
+============================================================================ */
+
+.intent-timeline.ids-timeline-xs {
+    --ids-timeline-time-w: 7.25rem;
+    --ids-timeline-marker: 1.25rem;
+    --ids-timeline-rail-w: 2px;
+
+    --ids-timeline-card-px: 0.75rem;
+    --ids-timeline-card-py: 0.6rem;
+
+    --ids-timeline-title: 0.9rem;
+    --ids-timeline-subtitle: 0.8rem;
+    --ids-timeline-desc: 0.78rem;
+}
+
+.intent-timeline.ids-timeline-sm {
+    --ids-timeline-time-w: 7.75rem;
+    --ids-timeline-marker: 1.35rem;
+    --ids-timeline-rail-w: 2px;
+
+    --ids-timeline-card-px: 0.85rem;
+    --ids-timeline-card-py: 0.65rem;
+
+    --ids-timeline-title: 0.95rem;
+    --ids-timeline-subtitle: 0.83rem;
+    --ids-timeline-desc: 0.8rem;
+}
+
+.intent-timeline.ids-timeline-md {
+    --ids-timeline-time-w: 8.25rem;
+    --ids-timeline-marker: 1.5rem;
+    --ids-timeline-rail-w: 2px;
+
+    --ids-timeline-card-px: 0.95rem;
+    --ids-timeline-card-py: 0.75rem;
+
+    --ids-timeline-title: 1rem;
+    --ids-timeline-subtitle: 0.875rem;
+    --ids-timeline-desc: 0.84rem;
+}
+
+.intent-timeline.ids-timeline-lg {
+    --ids-timeline-time-w: 9rem;
+    --ids-timeline-marker: 1.65rem;
+    --ids-timeline-rail-w: 3px;
+
+    --ids-timeline-card-px: 1.05rem;
+    --ids-timeline-card-py: 0.85rem;
+
+    --ids-timeline-title: 1.05rem;
+    --ids-timeline-subtitle: 0.92rem;
+    --ids-timeline-desc: 0.88rem;
+}
+
+/* ============================================================================
+   Group header
+============================================================================ */
+
+.intent-timeline-groupHeader {
+    padding: 0.15rem 0;
+}
+
+.intent-timeline-groupHeaderInner {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.8rem;
+
+    padding-left: calc(var(--ids-timeline-time-w, 8.25rem) + var(--ids-timeline-row-gap, 0.65rem));
+}
+
+.intent-timeline-groupLeft {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.65rem;
+    min-width: 0;
+}
+
+.intent-timeline-groupText {
+    min-width: 0;
+}
+
+.intent-timeline-groupLabel {
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    opacity: 0.95;
+}
+
+.intent-timeline-groupHint {
+    margin-top: 0.1rem;
+    font-size: 0.85rem;
+    opacity: 0.62;
+}
+
+.intent-timeline-groupRight {
+    opacity: 0.75;
+}
+
+/* ============================================================================
+   Row
+============================================================================ */
+
+.intent-timeline-itemRow {
+    min-width: 0;
+}
+
+.intent-timeline-rowButton,
+.intent-timeline-rowLink {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+
+    text-align: left;
+    width: 100%;
+
+    display: grid;
+    align-items: start;
+    gap: var(--ids-timeline-row-gap, 0.65rem);
+}
+
+.intent-timeline.is-vertical .intent-timeline-rowButton,
+.intent-timeline.is-vertical .intent-timeline-rowLink {
+    grid-template-columns: var(--ids-timeline-time-w, 8.25rem) var(
+            --ids-timeline-marker,
+            1.5rem
+        ) 1fr;
+}
+
+.intent-timeline.is-horizontal .intent-timeline-rowButton,
+.intent-timeline.is-horizontal .intent-timeline-rowLink {
+    /* In horizontal mode we compact the gutter */
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+}
+
+.intent-timeline-rowLink {
+    color: inherit;
+    text-decoration: none;
+}
+
+.intent-timeline-rowLink:hover {
+    text-decoration: none;
+}
+
+.intent-timeline-rowButton.is-disabled,
+.intent-timeline-rowLink.is-disabled {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+/* ============================================================================
+   Gutter (time)
+============================================================================ */
+
+.intent-timeline-gutter {
+    min-width: 0;
+}
+
+.intent-timeline-time {
+    font-size: 0.85rem;
+    line-height: 1.2;
+    opacity: 0.6;
+
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    padding-top: 0.25rem;
+}
+
+.intent-timeline.is-horizontal .intent-timeline-gutter {
+    display: none;
+}
+
+/* ============================================================================
+   Rail + marker
+============================================================================ */
+
+.intent-timeline-railWrap {
+    position: relative;
+    width: var(--ids-timeline-marker, 1.5rem);
+    height: 100%;
+    display: grid;
+    place-items: start center;
+}
+
+.intent-timeline-rail {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: var(--ids-timeline-rail-w, 2px);
+    border-radius: 999px;
+
+    background: color-mix(
+        in oklab,
+        var(--intent-border, rgba(255, 255, 255, 0.18)) 55%,
+        transparent
+    );
+    opacity: 0.75;
+}
+
+.intent-timeline.is-connector-dashed .intent-timeline-rail {
+    background: none;
+    border-left: var(--ids-timeline-rail-w, 2px) dashed
+        color-mix(in oklab, var(--intent-border, rgba(255, 255, 255, 0.18)) 55%, transparent);
+    width: 0;
+    opacity: 0.7;
+}
+
+.intent-timeline-rail.has-startCap::before,
+.intent-timeline-rail.has-endCap::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    transform: translateX(-50%);
+
+    background: color-mix(
+        in oklab,
+        var(--intent-border, rgba(255, 255, 255, 0.18)) 55%,
+        transparent
+    );
+    opacity: 0.65;
+}
+
+.intent-timeline-rail.has-startCap::before {
+    top: -0.15rem;
+}
+.intent-timeline-rail.has-endCap::after {
+    bottom: -0.15rem;
+}
+
+.intent-timeline-marker {
+    position: relative;
+    width: var(--ids-timeline-marker, 1.5rem);
+    height: var(--ids-timeline-marker, 1.5rem);
+    border-radius: 999px;
+
+    display: grid;
+    place-items: center;
+
+    background: color-mix(in oklab, var(--intent-bg, currentColor) 10%, transparent);
+    box-shadow: inset 0 0 0 1px
+        color-mix(in oklab, var(--intent-border, currentColor) 22%, transparent);
+}
+
+.intent-timeline-marker.is-active {
+    background: color-mix(in oklab, var(--intent-bg, currentColor) 14%, transparent);
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--intent-ring, currentColor) 30%, transparent),
+        0 10px 26px rgb(0 0 0 / 0.18);
+}
+
+.intent-timeline-markerDot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--intent-ink, currentColor) 70%, transparent);
+    opacity: 0.85;
+}
+
+.intent-timeline-markerIcon {
+    opacity: 0.9;
+    line-height: 1;
+}
+
+.intent-timeline-markerIndex {
+    font-size: 0.85rem;
+    font-weight: 700;
+    opacity: 0.9;
+    line-height: 1;
+}
+
+.intent-timeline-markerPill {
+    font-size: 0.75rem;
+    line-height: 1;
+    padding: 0.25rem 0.45rem;
+    border-radius: 999px;
+
+    background: color-mix(in oklab, var(--intent-bg, currentColor) 14%, transparent);
+    box-shadow: inset 0 0 0 1px
+        color-mix(in oklab, var(--intent-border, currentColor) 22%, transparent);
+    opacity: 0.9;
+}
+
+.intent-timeline-markerAvatar {
+    width: calc(var(--ids-timeline-marker, 1.5rem) - 0.15rem);
+    height: calc(var(--ids-timeline-marker, 1.5rem) - 0.15rem);
+    border-radius: 999px;
+    object-fit: cover;
+    display: block;
+}
+
+/* Light mode rail tweak */
+.intent-timeline[data-mode="light"] .intent-timeline-rail {
+    background: color-mix(in oklab, var(--intent-border, rgba(0, 0, 0, 0.18)) 65%, transparent);
+}
+
+/* ============================================================================
+   Card
+============================================================================ */
+
+.intent-timeline-card {
+    min-width: 0;
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+    padding: var(--ids-timeline-card-py, 0.75rem) var(--ids-timeline-card-px, 0.95rem);
+}
+
+.intent-timeline-cardInner {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+}
+
+.intent-timeline-main {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.intent-timeline-titleRow {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    min-width: 0;
+}
+
+.intent-timeline-title {
+    font-size: var(--ids-timeline-title, 1rem);
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+    font-weight: 650;
+    opacity: 0.96;
+
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intent-timeline-meta {
+    margin-left: auto;
+    flex: 0 0 auto;
+    opacity: 0.75;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.intent-timeline-subtitle {
+    margin-top: 0.2rem;
+    font-size: var(--ids-timeline-subtitle, 0.875rem);
+    line-height: 1.2;
+    opacity: 0.72;
+
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intent-timeline-description {
+    margin-top: 0.4rem;
+    font-size: var(--ids-timeline-desc, 0.84rem);
+    line-height: 1.35;
+    opacity: 0.62;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.intent-timeline-media {
+    margin-top: 0.6rem;
+    min-width: 0;
+}
+
+.intent-timeline-body {
+    margin-top: 0.65rem;
+    opacity: 0.92;
+}
+
+.intent-timeline-trailing {
+    flex: 0 0 auto;
+    opacity: 0.8;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.intent-timeline-expandHint {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    opacity: 0.5;
+    text-align: right;
+}
+
+/* Compact behavior */
+.intent-timeline.is-compact .intent-timeline-card {
+    padding: calc(var(--ids-timeline-card-py, 0.75rem) * 0.85)
+        calc(var(--ids-timeline-card-px, 0.95rem) * 0.9);
+}
+
+.intent-timeline.is-compact .intent-timeline-description {
+    -webkit-line-clamp: 1;
+}
+
+.intent-timeline.is-compact .intent-timeline-media {
+    display: none;
+}
+
+/* ============================================================================
+   Alternate layout (vertical)
+============================================================================ */
+
+.intent-timeline.ids-layout-alternate .intent-timeline-itemRow .intent-timeline-rowButton,
+.intent-timeline.ids-layout-alternate .intent-timeline-itemRow .intent-timeline-rowLink {
+    /* base grid */
+    grid-template-columns: var(--ids-timeline-time-w, 8.25rem) var(
+            --ids-timeline-marker,
+            1.5rem
+        ) 1fr;
+}
+
+.intent-timeline.ids-layout-alternate .intent-timeline-card.is-alternate-left {
+    justify-self: start;
+    max-width: min(42rem, 100%);
+}
+.intent-timeline.ids-layout-alternate .intent-timeline-card.is-alternate-right {
+    justify-self: end;
+    max-width: min(42rem, 100%);
+}
+
+/* ============================================================================
+   Focus polish
+============================================================================ */
+
+.intent-timeline-rowButton:focus {
+    outline: none;
+}
+.intent-timeline-rowButton:focus-visible .intent-timeline-card,
+.intent-timeline-rowLink:focus-visible .intent-timeline-card {
+    box-shadow:
+        0 0 0 2px color-mix(in oklab, var(--intent-ring, currentColor) 32%, transparent),
+        0 0 0 6px color-mix(in oklab, var(--intent-ring, currentColor) 14%, transparent),
+        var(--intent-elev-shadow, none);
+}
+
+/* Hover polish */
+.intent-timeline.is-clickable:not(.is-disabled) .intent-timeline-card:hover {
+    transform: translateY(0.5px);
+}
+.intent-timeline.is-clickable:not(.is-disabled) .intent-timeline-card:active {
+    transform: translateY(1px);
+}

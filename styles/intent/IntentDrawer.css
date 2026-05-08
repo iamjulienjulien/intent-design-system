@@ -9,22 +9,17 @@
 ============================================================================ */
 
 .intent-drawer {
-    /* Layout vars (safe defaults) */
     --intent-drawer-z: 60;
     --intent-drawer-overlay-opacity: 0.55;
-
-    /* Inset */
     --intent-drawer-inset: 16px;
-
-    /* Panel radius & spacing */
     --intent-drawer-radius: 18px;
-
-    /* Motion */
     --intent-drawer-duration: 180ms;
     --intent-drawer-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-
-    /* Fallback size if you don’t set sizePx / width/height inline */
     --intent-drawer-size: 420px;
+
+    /* NEW */
+    --intent-drawer-opaque-backdrop-dark: rgba(10, 10, 12, 0.92);
+    --intent-drawer-opaque-backdrop-light: rgba(255, 255, 255, 0.92);
 }
 
 .intent-drawer[aria-hidden="true"] {
@@ -37,8 +32,6 @@
     z-index: var(--intent-drawer-z);
 
     display: flex;
-
-    /* Hidden by default (when not open we don’t render it anyway, but safe) */
     opacity: 0;
 }
 
@@ -51,34 +44,34 @@
 }
 
 /* ============================================================================
-   Opaque backdrop (underlay behind the panel)
-   - Solves "see-through" when panel surface is translucent/blurred
+   Opaque backdrop
+   - Only behind the drawer panel
+   - No longer covers the whole viewport
 ============================================================================ */
 
-.intent-drawer.has-opaqueBackdrop .intent-drawer-overlay {
-    position: fixed;
+.intent-drawer.has-opaqueBackdrop .intent-drawer-panel {
+    position: relative;
+    isolation: isolate;
 }
 
-/* Underlay sits above the page, below the panel */
-.intent-drawer.has-opaqueBackdrop .intent-drawer-overlay::before {
+.intent-drawer.has-opaqueBackdrop .intent-drawer-panel::before {
     content: "";
     position: absolute;
     inset: 0;
     z-index: 0;
-
-    /* Default: use a solid base that works with both modes */
-    background: rgba(10, 10, 12, 0.92);
+    border-radius: inherit;
+    background: var(--intent-drawer-opaque-backdrop-dark);
+    pointer-events: none;
 }
 
-/* Ensure panel is above underlay */
-.intent-drawer.has-opaqueBackdrop .intent-drawer-panel {
+/* Ensure drawer content stays above the opaque layer */
+.intent-drawer.has-opaqueBackdrop .intent-drawer-panel > * {
     position: relative;
     z-index: 1;
 }
 
-/* Light mode tweak */
-[data-mode="light"] .intent-drawer.has-opaqueBackdrop .intent-drawer-overlay::before {
-    background: rgba(255, 255, 255, 0.92);
+[data-mode="light"] .intent-drawer.has-opaqueBackdrop .intent-drawer-panel::before {
+    background: var(--intent-drawer-opaque-backdrop-light);
 }
 
 /* ============================================================================
@@ -110,13 +103,11 @@
 ============================================================================ */
 
 .intent-drawer-panel {
-    /* The panel is an IntentSurface (intent-surface) in TS, so bg/ring/shadow come from DS */
     position: relative;
 
     display: flex;
     flex-direction: column;
 
-    /* Default size (overridden by inline style width/height in TS if sizePx or preset) */
     width: var(--intent-drawer-size);
     height: 100%;
 
@@ -131,11 +122,9 @@
         opacity var(--intent-drawer-duration) var(--intent-drawer-ease);
     opacity: 1;
 
-    /* Make sure focus outline never gets clipped in weird ways */
     outline: none;
 }
 
-/* Full-bleed default (when not inset), but keep radius */
 .intent-drawer.pos-right .intent-drawer-panel,
 .intent-drawer.pos-left .intent-drawer-panel {
     height: 100%;
@@ -148,7 +137,6 @@
     border-bottom-left-radius: 0;
 }
 
-/* Top/bottom drawers are horizontal bars */
 .intent-drawer.pos-top .intent-drawer-panel,
 .intent-drawer.pos-bottom .intent-drawer-panel {
     width: 100%;
@@ -165,7 +153,7 @@
 }
 
 /* ============================================================================
-   Inset mode (panel floats with margins)
+   Inset mode
 ============================================================================ */
 
 .intent-drawer.is-inset .intent-drawer-panel {
@@ -177,17 +165,15 @@
 .intent-drawer.is-inset.pos-left .intent-drawer-panel,
 .intent-drawer.is-inset.pos-top .intent-drawer-panel,
 .intent-drawer.is-inset.pos-bottom .intent-drawer-panel {
-    /* Restore rounded corners on all sides */
     border-radius: var(--intent-drawer-radius);
 }
 
 /* ============================================================================
    Open/close transitions
-   We animate from an off-screen translate to 0
 ============================================================================ */
 
 .intent-drawer.pos-right .intent-drawer-panel {
-    transform: translate3d(12px, 0, 0); /* slight settle */
+    transform: translate3d(12px, 0, 0);
 }
 .intent-drawer.pos-left .intent-drawer-panel {
     transform: translate3d(-12px, 0, 0);
@@ -199,7 +185,6 @@
     transform: translate3d(0, 12px, 0);
 }
 
-/* Initial entry: slide from outside viewport */
 .intent-drawer.is-open.pos-right .intent-drawer-panel {
     animation: intent-drawer-in-right var(--intent-drawer-duration) var(--intent-drawer-ease) both;
 }
@@ -254,7 +239,6 @@
     }
 }
 
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
     .intent-drawer-panel {
         transition: none;
@@ -264,8 +248,7 @@
 }
 
 /* ============================================================================
-   Sizes (preset) as CSS fallback
-   (TS also sets width/height inline when sizePx or map applies)
+   Sizes
 ============================================================================ */
 
 .intent-drawer.size-xs {
@@ -284,7 +267,6 @@
     --intent-drawer-size: 640px;
 }
 
-/* When top/bottom, these sizes act as height */
 .intent-drawer.pos-top.size-xs,
 .intent-drawer.pos-bottom.size-xs {
     --intent-drawer-size: 220px;
@@ -318,8 +300,6 @@
     width: 100%;
 
     padding: 14px 14px 10px 14px;
-
-    /* subtle divider using currentColor-ish */
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -386,8 +366,6 @@
 .intent-drawer-body {
     padding: 14px;
     overflow: auto;
-
-    /* Keeps footer visible even with long content */
     min-height: 0;
     flex: 1 1 auto;
 }
@@ -398,8 +376,7 @@
 }
 
 /* ============================================================================
-   Dark/light friendliness
-   (If you have mode hooks, you can override these in your global theme)
+   Light mode tweaks
 ============================================================================ */
 
 [data-mode="light"] .intent-drawer-overlay.has-overlay {

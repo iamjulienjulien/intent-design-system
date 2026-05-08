@@ -1,0 +1,296 @@
+/* src/styles/intent/IntentDialog.css
+   IntentDialog
+   - Intent-first modal (overlay + centered panel)
+   - Stable hooks only
+   - Uses DS vars (intent ink/bg/border/ring/shadow)
+*/
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-dialog {
+    --intent-dialog-z: 70;
+    --intent-dialog-overlay-opacity: 0.55;
+
+    --intent-dialog-padding: 16px;
+    --intent-dialog-radius: var(--ids-radius-2xl, 1.25rem);
+    --intent-dialog-maxw: 560px;
+
+    --intent-dialog-gap: 12px;
+    --intent-dialog-header-padding: 14px 14px 10px 14px;
+    --intent-dialog-body-padding: 14px;
+    --intent-dialog-footer-padding: 12px 14px;
+
+    --intent-dialog-motion: 160ms;
+    --intent-dialog-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    position: fixed;
+    inset: 0;
+    z-index: var(--intent-dialog-z);
+
+    pointer-events: auto;
+}
+
+.intent-dialog.is-disabled {
+    pointer-events: none;
+}
+
+/* ============================================================================
+   Overlay
+============================================================================ */
+
+.intent-dialog-overlay {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    justify-content: center;
+
+    padding: var(--intent-dialog-padding);
+    overflow: auto;
+
+    background: transparent;
+}
+
+.intent-dialog.has-overlay .intent-dialog-overlay {
+    background: rgba(0, 0, 0, var(--intent-dialog-overlay-opacity));
+}
+
+.intent-dialog.is-centered .intent-dialog-overlay {
+    align-items: center;
+}
+
+.intent-dialog.is-top .intent-dialog-overlay {
+    align-items: flex-start;
+    padding-top: calc(var(--intent-dialog-padding) * 1.5);
+}
+
+/* ============================================================================
+   Optional opaque underlay (BEHIND PANEL ONLY)
+============================================================================ */
+
+.intent-dialog-panel .intent-dialog-underlay {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    /* Solid base that kills see-through when surface uses blur/translucency */
+    background: rgba(10, 10, 12, 0.92);
+}
+
+.intent-dialog[data-mode="light"] .intent-dialog-panel .intent-dialog-underlay {
+    background: rgba(255, 255, 255, 0.92);
+}
+
+/* ============================================================================
+   Panel
+============================================================================ */
+
+.intent-dialog-panel {
+    position: relative;
+
+    width: min(var(--intent-dialog-maxw), calc(100vw - (var(--intent-dialog-padding) * 2)));
+    max-width: 100%;
+
+    border-radius: var(--intent-dialog-radius);
+
+    /* Glow/backdrop layers */
+    overflow: clip;
+    isolation: isolate;
+
+    /* Motion */
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+    animation: intent-dialog-in var(--intent-dialog-motion) var(--intent-dialog-ease) forwards;
+
+    /* If DS surface is translucent, keep it pretty */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+@keyframes intent-dialog-in {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .intent-dialog-panel {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* Size presets (affect max width via CSS variable) */
+.intent-dialog.size-xs {
+    --intent-dialog-maxw: 360px;
+}
+.intent-dialog.size-sm {
+    --intent-dialog-maxw: 440px;
+}
+.intent-dialog.size-md {
+    --intent-dialog-maxw: 560px;
+}
+.intent-dialog.size-lg {
+    --intent-dialog-maxw: 720px;
+}
+.intent-dialog.size-xl {
+    --intent-dialog-maxw: 900px;
+}
+
+/* ============================================================================
+   Glow layers inside panel
+============================================================================ */
+
+.intent-dialog-panel .intent-glow-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.intent-dialog-panel .intent-glow-layer.intent-glow-fill {
+    z-index: 1;
+}
+.intent-dialog-panel .intent-glow-layer.intent-glow-border {
+    z-index: 2;
+}
+
+/* Content sits above glow */
+.intent-dialog-inner {
+    position: relative;
+    z-index: 5;
+
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
+}
+
+/* ============================================================================
+   Header / body / footer
+============================================================================ */
+
+.intent-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--intent-dialog-gap);
+
+    padding: var(--intent-dialog-header-padding);
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.intent-dialog[data-mode="light"] .intent-dialog-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.intent-dialog-headerMain {
+    min-width: 0;
+}
+
+.intent-dialog-title {
+    font-size: 0.95rem;
+    line-height: 1.25rem;
+    font-weight: 650;
+    letter-spacing: 0.002em;
+}
+
+.intent-dialog-description {
+    margin-top: 6px;
+    font-size: 0.82rem;
+    line-height: 1.2rem;
+    opacity: 0.75;
+}
+
+.intent-dialog-close {
+    flex: 0 0 auto;
+
+    width: 34px;
+    height: 34px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 0.95rem;
+
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    color: inherit;
+    opacity: 0.75;
+
+    cursor: pointer;
+
+    transition:
+        opacity 140ms ease,
+        transform 120ms ease,
+        background 140ms ease,
+        border-color 140ms ease;
+}
+
+.intent-dialog-close:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.intent-dialog[data-mode="light"] .intent-dialog-close {
+    border-color: rgba(0, 0, 0, 0.1);
+}
+.intent-dialog[data-mode="light"] .intent-dialog-close:hover {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.14);
+}
+
+.intent-dialog-close:active {
+    transform: translateY(0);
+}
+
+.intent-dialog-close:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.intent-dialog-close:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 2px color-mix(in oklab, var(--intent-ring) 20%, transparent),
+        0 0 0 6px color-mix(in oklab, var(--intent-ring) 10%, transparent);
+}
+
+.intent-dialog.is-padded .intent-dialog-body {
+    padding: var(--intent-dialog-body-padding);
+}
+
+.intent-dialog-body {
+    min-height: 0;
+}
+
+/* Scroll behavior */
+.intent-dialog.is-scroll-inside .intent-dialog-body {
+    max-height: min(72vh, calc(100vh - 160px));
+    overflow: auto;
+}
+
+.intent-dialog.is-scroll-body .intent-dialog-body {
+    overflow: visible;
+}
+
+/* Footer */
+.intent-dialog-footer {
+    padding: var(--intent-dialog-footer-padding);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.intent-dialog[data-mode="light"] .intent-dialog-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}

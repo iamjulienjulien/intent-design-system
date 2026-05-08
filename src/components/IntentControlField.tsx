@@ -1,22 +1,21 @@
-"use client";
-
 // src/components/intent/IntentControlField.tsx
 // IntentControlField
 // - Wrapper intent-first for form controls (label + hint + error + slots)
-// - Root = layout + CSS vars only (no surface fill)
-// - Visual field = inner "frame" (bg/ring/focus-within), contains leading/control/trailing
+// - Root = layout + CSS vars only
+// - Visual frame = glow layers + field look + focus-within
+// - Supports naked mode to disable IDS field visuals entirely
+
+"use client";
 
 import * as React from "react";
 
-import type { IntentInput } from "../lib/intent/types";
+import { resolveIntent, getIntentLayoutProps, composeIntentControlClassName } from "CORE";
 import {
-    resolveIntent,
-    getIntentLayoutProps,
-    composeIntentControlClassName,
-} from "../lib/intent/resolve";
-
-import type { DocsPropRow, ComponentIdentity } from "../lib/intent/types";
-import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
+    SYSTEM_PROPS_TABLE,
+    type IntentInput,
+    type DocsPropRow,
+    type ComponentIdentity,
+} from "SYSTEM";
 
 /* ============================================================================
    🧰 HELPERS
@@ -24,6 +23,17 @@ import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
 
 function cn(...classes: Array<string | false | null | undefined>) {
     return classes.filter(Boolean).join(" ");
+}
+
+type CssVars = React.CSSProperties & Record<`--${string}`, string | number | undefined>;
+
+function readOpacity(
+    style: CssVars | undefined,
+    key: "--intent-glow-fill-opacity" | "--intent-glow-border-opacity"
+) {
+    const raw = style?.[key] ?? "0";
+    const n = Number(raw?.toString?.() ?? "0");
+    return Number.isFinite(n) ? n : 0;
 }
 
 /* ============================================================================
@@ -35,30 +45,25 @@ export type IntentControlFieldProps = IntentInput &
         className?: string;
         children?: React.ReactNode;
 
-        /** Label row */
         label?: React.ReactNode;
         labelFor?: string;
-        required?: boolean; // default false
-        optionalLabel?: string; // default "Optional"
-        showOptional?: boolean; // ✅ new: show "Optional" even when label exists (default true)
+        required?: boolean;
+        optionalLabel?: string;
+        showOptional?: boolean;
 
-        /** Supporting text */
         hint?: React.ReactNode;
         error?: React.ReactNode;
 
-        /** State */
-        invalid?: boolean; // default false
+        invalid?: boolean;
         disabled?: boolean;
 
-        /** Layout */
-        compact?: boolean; // default false
-        padded?: boolean; // ✅ new: controls frame padding (default true)
-        direction?: "vertical" | "horizontal"; // default "vertical"
+        compact?: boolean;
+        padded?: boolean;
+        naked?: boolean;
+        direction?: "vertical" | "horizontal";
 
-        /** Size rhythm (matches Input/Tags/Select) */
-        size?: "xs" | "sm" | "md" | "lg" | "xl"; // default "md"
+        size?: "xs" | "sm" | "md" | "lg" | "xl";
 
-        /** Slots */
         leading?: React.ReactNode;
         trailing?: React.ReactNode;
     };
@@ -124,18 +129,18 @@ const INTENT_CONTROL_FIELD_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         },
         type: "string",
         required: false,
-        default: "Optional",
+        default: "Optionnel",
         fromSystem: false,
     },
     {
         name: "showOptional",
         description: {
-            fr: "Affiche le label Optional quand required=false.",
-            en: "Shows Optional label when required=false.",
+            fr: "Affiche le label Optionnel quand required=false.",
+            en: "Shows Optionnel label when required=false.",
         },
         type: "boolean",
         required: false,
-        default: "true",
+        default: "false",
         fromSystem: false,
     },
     {
@@ -180,12 +185,23 @@ const INTENT_CONTROL_FIELD_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "padded",
         description: {
-            fr: "Active le padding interne du frame. Permet un field “dense/nu”.",
+            fr: "Active le padding interne du frame. Permet un field dense/nu.",
             en: "Enables inner frame padding. Allows a dense/bare field.",
         },
         type: "boolean",
         required: false,
         default: "true",
+        fromSystem: false,
+    },
+    {
+        name: "naked",
+        description: {
+            fr: "Désactive le styling IDS du field et garde seulement la structure.",
+            en: "Disables IDS field styling and keeps only the structure.",
+        },
+        type: "boolean",
+        required: false,
+        default: "false",
         fromSystem: false,
     },
     {
@@ -240,8 +256,8 @@ export const IntentControlFieldIdentity: ComponentIdentity = {
     name: "IntentControlField",
     kind: "control",
     description: {
-        fr: "Wrapper de champ: label + hint/error + slots. Root = layout + vars. Frame interne = look champ + focus-within.",
-        en: "Field wrapper: label + hint/error + slots. Root = layout + vars. Inner frame = field look + focus-within.",
+        fr: "Wrapper de champ: label + hint/error + slots. Root = layout + vars. Frame interne = glow + look champ + focus-within.",
+        en: "Field wrapper: label + hint/error + slots. Root = layout + vars. Inner frame = glow + field look + focus-within.",
     },
     since: "0.2.0",
     docs: { route: "/playground/components/intent-control-field" },
@@ -251,6 +267,8 @@ export const IntentControlFieldIdentity: ComponentIdentity = {
         label: ".intent-control-field-label",
         meta: ".intent-control-field-meta",
         frame: ".intent-control-field-frame",
+        glowFillLayer: ".intent-glow-layer.intent-glow-fill",
+        glowBorderLayer: ".intent-glow-layer.intent-glow-border",
         leading: ".intent-control-field-leading",
         control: ".intent-control-field-control",
         trailing: ".intent-control-field-trailing",
@@ -260,11 +278,15 @@ export const IntentControlFieldIdentity: ComponentIdentity = {
     classHooks: [
         "intent-control-field",
         "intent-control-field-frame",
+        "intent-glow-layer",
+        "intent-glow-fill",
+        "intent-glow-border",
         "is-disabled",
         "is-invalid",
         "is-compact",
         "is-padded",
         "is-horizontal",
+        "is-naked",
         "has-leading",
         "has-trailing",
     ],
@@ -282,8 +304,8 @@ export function IntentControlField(props: IntentControlFieldProps) {
         label,
         labelFor,
         required = false,
-        optionalLabel = "Optional",
-        showOptional = true,
+        optionalLabel = "Optionnel",
+        showOptional = false,
 
         hint,
         error,
@@ -293,6 +315,7 @@ export function IntentControlField(props: IntentControlFieldProps) {
 
         compact = false,
         padded = true,
+        naked = false,
         direction = "vertical",
 
         size = "md",
@@ -300,13 +323,13 @@ export function IntentControlField(props: IntentControlFieldProps) {
         leading,
         trailing,
 
-        // DS props (removed from DOM)
         intent,
         variant,
         tone,
         glow,
         intensity,
         mode,
+        toneStep,
         disabled: dsDisabled,
 
         ...divProps
@@ -314,6 +337,8 @@ export function IntentControlField(props: IntentControlFieldProps) {
 
     const disabled = Boolean(disabledProp ?? dsDisabled);
     const showError = Boolean(error) || invalid;
+    const showMeta = required || showOptional;
+    const showHeader = Boolean(label) || showMeta;
 
     const intentInput: IntentInput = {
         ...(intent !== undefined ? { intent } : {}),
@@ -322,16 +347,25 @@ export function IntentControlField(props: IntentControlFieldProps) {
         ...(glow !== undefined ? { glow } : {}),
         ...(intensity !== undefined ? { intensity } : {}),
         ...(mode !== undefined ? { mode } : {}),
+        ...(toneStep !== undefined ? { toneStep } : {}),
         disabled,
     };
 
     const resolved = resolveIntent(intentInput);
+    const resolvedStyle = resolved.style as CssVars | undefined;
 
-    // ✅ Root: vars only (no bg/ring fill on the whole block)
     const layoutProps = getIntentLayoutProps(resolved, className);
-
-    // ✅ Frame: use the usual control recipe (bg/ring/shadow), vars come from root
     const frameClassName = composeIntentControlClassName(resolved);
+
+    const hasGlow = Boolean(resolved.glowBackground);
+    const v = resolved.variant;
+    const isGlowed = resolved.intent === "glowed";
+    const glowAllowed = !naked && hasGlow && v !== "ghost";
+    const allowFillGlow = glowAllowed && (isGlowed || v === "flat" || v === "elevated");
+    const allowBorderGlow = glowAllowed && (v === "outlined" || v === "elevated");
+
+    const glowFillOpacity = readOpacity(resolvedStyle, "--intent-glow-fill-opacity");
+    const glowBorderOpacity = readOpacity(resolvedStyle, "--intent-glow-border-opacity");
 
     const describedById = React.useId();
     const errorId = React.useId();
@@ -340,15 +374,14 @@ export function IntentControlField(props: IntentControlFieldProps) {
         "intent-control-field",
         `ids-control-${size}`,
         compact && "is-compact",
-        padded && "is-padded",
+        padded && !naked && "is-padded",
         direction === "horizontal" && "is-horizontal",
         disabled && "is-disabled",
         showError && "is-invalid",
+        naked && "is-naked",
         Boolean(leading) && "has-leading",
         Boolean(trailing) && "has-trailing"
     );
-
-    const showHeader = Boolean(label) || (showOptional && !required);
 
     return (
         <div
@@ -368,30 +401,53 @@ export function IntentControlField(props: IntentControlFieldProps) {
                                 {label}
                             </label>
                         ) : (
-                            <div />
+                            <div className="intent-control-field-labelSpacer" aria-hidden="true" />
                         )}
 
-                        {showOptional ? (
+                        {showMeta ? (
                             <div className="intent-control-field-meta">
                                 {required ? (
                                     <span className="intent-control-field-required">*</span>
-                                ) : (
+                                ) : showOptional ? (
                                     <span className="intent-control-field-optional">
                                         {optionalLabel}
                                     </span>
-                                )}
+                                ) : null}
                             </div>
                         ) : null}
                     </div>
                 </div>
             ) : null}
 
-            {/* ✅ Visual field frame */}
-            <div className={cn("intent-control intent-control-field-frame", frameClassName)}>
+            <div
+                className={cn(
+                    "intent-control intent-control-field-frame",
+                    !naked && frameClassName
+                )}
+            >
+                {glowAllowed ? (
+                    <>
+                        {allowFillGlow ? (
+                            <div
+                                className="intent-glow-layer intent-glow-fill"
+                                style={{ opacity: glowFillOpacity }}
+                                aria-hidden="true"
+                            />
+                        ) : null}
+
+                        {allowBorderGlow ? (
+                            <div
+                                className="intent-glow-layer intent-glow-border"
+                                style={{ opacity: glowBorderOpacity, borderRadius: "inherit" }}
+                                aria-hidden="true"
+                            />
+                        ) : null}
+                    </>
+                ) : null}
+
                 {leading ? <div className="intent-control-field-leading">{leading}</div> : null}
 
                 <div className="intent-control-field-control">
-                    {/* Provide ids for consumers (they can read data-field-describedby / data-field-error) */}
                     <div data-field-describedby={describedById} data-field-error={errorId}>
                         {children}
                     </div>

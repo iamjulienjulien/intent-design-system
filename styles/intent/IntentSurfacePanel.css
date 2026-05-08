@@ -1,0 +1,216 @@
+/* src/components/intent/intent-surface-panel.css */
+/* IntentSurfacePanel
+   - Section container surface
+   - Stable hooks only
+   - Header/body/footer structure with optional dividers
+   - Padding scale + bleed mode
+*/
+
+.intent-surface-panel {
+    position: relative;
+    min-width: 0;
+
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+
+    /* keeps glow layers clipped nicely */
+    overflow: visible !important;
+
+    align-items: start !important;
+}
+
+/* Optional full width helper */
+.intent-surface-panel.is-fullwidth {
+    width: 100%;
+}
+
+/* Content wrapper sits above glow layers */
+.intent-surface-panel-content {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Padding scale (applies to header/body/footer inner wrappers)
+--------------------------------------------------------------------------- */
+
+.intent-surface-panel--padded-none .intent-surface-panel-header,
+.intent-surface-panel--padded-none .intent-surface-panel-body,
+.intent-surface-panel--padded-none .intent-surface-panel-footer {
+    padding: 0;
+}
+
+.intent-surface-panel--padded-sm .intent-surface-panel-header,
+.intent-surface-panel--padded-sm .intent-surface-panel-body,
+.intent-surface-panel--padded-sm .intent-surface-panel-footer {
+    padding: 0.75rem 0.9rem;
+}
+
+.intent-surface-panel--padded-md .intent-surface-panel-header,
+.intent-surface-panel--padded-md .intent-surface-panel-body,
+.intent-surface-panel--padded-md .intent-surface-panel-footer {
+    padding: 1rem 1.1rem;
+}
+
+.intent-surface-panel--padded-lg .intent-surface-panel-header,
+.intent-surface-panel--padded-lg .intent-surface-panel-body,
+.intent-surface-panel--padded-lg .intent-surface-panel-footer {
+    padding: 1.25rem 1.35rem;
+}
+
+/* Bleed: removes body inner padding without killing header/footer rhythm */
+.intent-surface-panel--bleed .intent-surface-panel-body {
+    padding: 0;
+}
+
+.intent-surface-panel-content .intent-surface-panel-header + .intent-surface-panel-body {
+    padding-top: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Header
+--------------------------------------------------------------------------- */
+
+.intent-surface-panel-header {
+    min-width: 0;
+}
+
+.intent-surface-panel-headerInner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    min-width: 0;
+}
+
+.intent-surface-panel-headerMain {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.intent-surface-panel-eyebrow {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+
+    opacity: 0.6;
+    margin-bottom: 0.35rem;
+}
+
+.intent-surface-panel-titleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+
+    min-width: 0;
+}
+
+.intent-surface-panel-title {
+    font-size: 1.05rem;
+    line-height: 1.25rem;
+    font-weight: 650;
+
+    letter-spacing: -0.01em;
+
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intent-surface-panel-badges {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    opacity: 0.95;
+}
+
+.intent-surface-panel-subtitle {
+    margin-top: 0.35rem;
+
+    font-size: 0.9rem;
+    line-height: 1.25rem;
+    opacity: 0.72;
+
+    min-width: 0;
+}
+
+.intent-surface-panel-actions {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Divider
+--------------------------------------------------------------------------- */
+
+.intent-surface-panel-divider {
+    height: 1px;
+    width: 100%;
+    background: color-mix(in oklab, var(--intent-border) 55%, transparent);
+    opacity: 0.55;
+}
+
+/* If padded, divider should align with padding edges */
+.intent-surface-panel--padded-sm .intent-surface-panel-divider,
+.intent-surface-panel--padded-md .intent-surface-panel-divider,
+.intent-surface-panel--padded-lg .intent-surface-panel-divider {
+    margin-left: 1.1rem;
+    margin-right: 1.1rem;
+}
+
+/* Match each padding scale precisely */
+.intent-surface-panel--padded-sm .intent-surface-panel-divider {
+    margin-left: 0.9rem;
+    margin-right: 0.9rem;
+}
+.intent-surface-panel--padded-md .intent-surface-panel-divider {
+    margin-left: 1.1rem;
+    margin-right: 1.1rem;
+}
+.intent-surface-panel--padded-lg .intent-surface-panel-divider {
+    margin-left: 1.35rem;
+    margin-right: 1.35rem;
+}
+
+/* Bleed: divider spans full width */
+.intent-surface-panel--bleed .intent-surface-panel-divider {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Body / Footer
+--------------------------------------------------------------------------- */
+
+.intent-surface-panel-body,
+.intent-surface-panel-footer {
+    min-width: 0;
+}
+
+.intent-surface-panel-bodyInner,
+.intent-surface-panel-footerInner {
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Variant polish (optional, stable)
+   - Ghost should remain airy
+--------------------------------------------------------------------------- */
+
+.intent-surface-panel[data-variant="ghost"] .intent-surface-panel-divider {
+    background: color-mix(in oklab, var(--intent-ink) 12%, transparent);
+    opacity: 0.45;
+}
+
+.intent-surface-panel > .intent-glow-layer {
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+}

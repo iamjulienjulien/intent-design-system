@@ -4,28 +4,25 @@
 // IntentControlSelect
 // - Intent-first Select (custom, not native <select>)
 // - Trigger is a button with role="combobox"
-// - Popover contains a listbox (ul/li) with keyboard navigation
+// - Dropdown uses IntentSurface for visual styling
+// - Supports optional portal rendering
+// - Supports single + multiple selection
+// - Supports search input, grouped options, custom option rendering
 // - Uses resolveIntent() to compute stable class hooks + CSS vars
-// - Supports glow layers like IntentSurface / IntentControlButton
 // - No dynamic Tailwind classes: only stable hooks
-//
-// ✅ Updated (0.2.2):
-// - Adds IntentControlField-related props: insideField, invalid, leading, trailing
-// - insideField=true => root is "naked" (no frame visuals); intended to be wrapped by IntentControlField
-// - Standalone => renders frame visuals on trigger + slots
-//
-// ✅ Updated (0.2.4):
-// - Adds readOnly mode (prevents opening/changing; still focusable for UX)
-// - readOnly implies aria-readonly + hook; does NOT set disabled
-// - When readOnly: click/keys won't open, options won't commit, clear won't work
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 
-import type { IntentInput } from "../lib/intent/types";
-import { resolveIntent, getIntentControlProps, getIntentLayoutProps } from "../lib/intent/resolve";
-
-import type { DocsPropRow, ComponentIdentity } from "../lib/intent/types";
-import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
+import { resolveIntent, getIntentControlProps, getIntentLayoutProps } from "CORE";
+import { IntentSurface } from "./IntentSurface";
+import {
+    SYSTEM_PROPS_TABLE,
+    type IntentInput,
+    type DocsPropRow,
+    type ComponentIdentity,
+    type Variant,
+} from "SYSTEM";
 
 /* ============================================================================
    🧰 HELPERS
@@ -46,22 +43,85 @@ function isPrintableChar(e: React.KeyboardEvent) {
     return e.key.length === 1;
 }
 
+function clamp(n: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, n));
+}
+
+function safeString(v: unknown): string {
+    if (v === null || v === undefined) return "";
+    if (typeof v === "string") return v;
+    if (typeof v === "number" || typeof v === "boolean") return String(v);
+    return "";
+}
+
+function optionSearchText(opt: IntentControlSelectOption): string {
+    if (opt.searchText) return opt.searchText;
+    if (typeof opt.label === "string") return opt.label;
+    return String(opt.value);
+}
+
+function useComposedRef<T>(...refs: Array<React.Ref<T> | undefined>) {
+    return React.useCallback(
+        (node: T) => {
+            refs.forEach((ref) => {
+                if (!ref) return;
+                if (typeof ref === "function") ref(node);
+                else {
+                    try {
+                        (ref as React.MutableRefObject<T>).current = node;
+                    } catch {
+                        // noop
+                    }
+                }
+            });
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        refs
+    );
+}
+
+type CssVars = React.CSSProperties & Record<`--${string}`, string | number | undefined>;
+
+function readOpacity(
+    style: CssVars | undefined,
+    key: "--intent-glow-fill-opacity" | "--intent-glow-border-opacity"
+) {
+    const raw = style?.[key] ?? "0";
+    const n = Number(raw?.toString?.() ?? "0");
+    return Number.isFinite(n) ? n : 0;
+}
+
 /* ============================================================================
    🧩 TYPES
 ============================================================================ */
 
+export type IntentControlSelectOptionValue = string | number;
+
 export type IntentControlSelectOption = {
-    value: string;
-
-    /** Display label (can be rich: icon, swatch, etc.) */
+    value: IntentControlSelectOptionValue;
     label: React.ReactNode;
-
-    /** Optional plain text used for typeahead (recommended when label is not a string) */
     searchText?: string;
-
     description?: string;
+    emoji?: string;
+    tone?: string;
     disabled?: boolean;
+    group?: string | null;
 };
+
+export type IntentControlSelectRenderState = {
+    selected: boolean;
+    highlighted: boolean;
+    disabled: boolean;
+    multiple: boolean;
+};
+
+export type IntentControlSelectGroup = {
+    key: string;
+    label: string | null;
+    options: IntentControlSelectOption[];
+};
+
+export type IntentControlSelectValue = any | any[] | null;
 
 export type IntentControlSelectProps = IntentInput &
     Omit<
@@ -69,45 +129,48 @@ export type IntentControlSelectProps = IntentInput &
         "className" | "children" | "value" | "defaultValue" | "onChange"
     > & {
         className?: string;
-
-        /** Options rendered in the listbox */
         options: IntentControlSelectOption[];
+        value?: IntentControlSelectValue;
+        defaultValue?: IntentControlSelectValue;
+        onValueChange?: (
+            value: IntentControlSelectValue,
+            option?: IntentControlSelectOption
+        ) => void;
 
-        /** Controlled value */
-        value?: string | null;
-
-        /** Uncontrolled initial value */
-        defaultValue?: string | null;
-
-        /** Called when an option is selected */
-        onValueChange?: (value: string | null, option?: IntentControlSelectOption) => void;
-
-        /** UI */
-        placeholder?: string; // default: "Select…"
-        size?: SelectSize; // default: "md"
+        placeholder?: string;
+        size?: SelectSize;
         fullWidth?: boolean;
 
-        /** Slots (standalone only, like Input/Tags) */
         leading?: React.ReactNode;
         trailing?: React.ReactNode;
 
-        /**
-         * When used inside IntentControlField, you generally want the field to own padding.
-         * - insideField=true => no frame visuals on trigger/popover; minimal "naked" hooks
-         * - standalone => frame visuals + padding
-         */
-        insideField?: boolean; // default: false
+        insideField?: boolean;
 
-        /** State */
-        invalid?: boolean; // default false
+        invalid?: boolean;
+        readOnly?: boolean;
 
-        /** ✅ ReadOnly: focusable but not interactive */
-        readOnly?: boolean; // default false
+        clearable?: boolean;
+        closeOnSelect?: boolean;
+        align?: "start" | "end";
+        forceOpen?: boolean;
 
-        /** Behavior */
-        clearable?: boolean; // default: false (allows selecting "null" via a clear row)
-        closeOnSelect?: boolean; // default: true
-        align?: "start" | "end"; // default: "start" (popover alignment)
+        portal?: boolean;
+        portalAllowContentWidth?: boolean;
+
+        multiple?: boolean;
+
+        searchable?: boolean;
+        searchPlaceholder?: string;
+
+        groupBy?: (option: IntentControlSelectOption) => string | null | undefined;
+
+        renderOption?: (
+            option: IntentControlSelectOption,
+            state: IntentControlSelectRenderState
+        ) => React.ReactNode;
+
+        /** Optional override for the dropdown menu variant */
+        menuVariant?: Variant;
     };
 
 /* ============================================================================
@@ -118,8 +181,8 @@ const INTENT_CONTROL_SELECT_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "className",
         description: {
-            fr: "Classes CSS additionnelles appliquées au trigger (standalone ou insideField).",
-            en: "Additional CSS classes applied to the trigger (standalone or insideField).",
+            fr: "Classes CSS additionnelles appliquées au trigger.",
+            en: "Additional CSS classes applied to the trigger.",
         },
         type: "string",
         required: false,
@@ -128,8 +191,8 @@ const INTENT_CONTROL_SELECT_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "options",
         description: {
-            fr: "Liste des options (value/label, description optionnelle, disabled).",
-            en: "Options list (value/label, optional description, disabled).",
+            fr: "Liste des options.",
+            en: "Options list.",
         },
         type: "IntentControlSelectOption[]",
         required: true,
@@ -138,10 +201,10 @@ const INTENT_CONTROL_SELECT_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "value",
         description: {
-            fr: "Valeur contrôlée (null = aucune sélection).",
-            en: "Controlled value (null = no selection).",
+            fr: "Valeur contrôlée (string | string[] | null).",
+            en: "Controlled value (string | string[] | null).",
         },
-        type: "string | null",
+        type: "string | string[] | null",
         required: false,
         fromSystem: false,
     },
@@ -151,47 +214,25 @@ const INTENT_CONTROL_SELECT_LOCAL_PROPS_TABLE: DocsPropRow[] = [
             fr: "Valeur initiale non contrôlée.",
             en: "Initial uncontrolled value.",
         },
-        type: "string | null",
+        type: "string | string[] | null",
         required: false,
         fromSystem: false,
     },
     {
         name: "onValueChange",
         description: {
-            fr: "Callback quand l’utilisateur sélectionne une option (ou clear).",
-            en: "Callback when user selects an option (or clears).",
+            fr: "Callback quand la sélection change.",
+            en: "Callback when selection changes.",
         },
-        type: "(value: string | null, option?: IntentControlSelectOption) => void",
+        type: "(value, option?) => void",
         required: false,
         fromSystem: false,
     },
     {
-        name: "placeholder",
+        name: "multiple",
         description: {
-            fr: "Texte affiché quand aucune option n’est sélectionnée.",
-            en: "Displayed when no option is selected.",
-        },
-        type: "string",
-        required: false,
-        default: "Select…",
-        fromSystem: false,
-    },
-    {
-        name: "size",
-        description: {
-            fr: "Taille (hauteur, padding, typo).",
-            en: "Size (height, padding, typography).",
-        },
-        type: `"xs" | "sm" | "md" | "lg" | "xl"`,
-        required: false,
-        default: "md",
-        fromSystem: false,
-    },
-    {
-        name: "fullWidth",
-        description: {
-            fr: "Étire le select sur toute la largeur disponible.",
-            en: "Stretches the select to full available width.",
+            fr: "Active le mode multi-sélection.",
+            en: "Enables multi-select mode.",
         },
         type: "boolean",
         required: false,
@@ -199,30 +240,10 @@ const INTENT_CONTROL_SELECT_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         fromSystem: false,
     },
     {
-        name: "leading",
+        name: "portal",
         description: {
-            fr: "Slot à gauche (icône, badge). En mode insideField, préfère plutôt utiliser le leading du Field.",
-            en: "Leading slot (icon, badge). In insideField mode, prefer Field leading slot.",
-        },
-        type: "React.ReactNode",
-        required: false,
-        fromSystem: false,
-    },
-    {
-        name: "trailing",
-        description: {
-            fr: "Slot à droite (action, compteur). En mode insideField, préfère plutôt utiliser le trailing du Field.",
-            en: "Trailing slot (action, counter). In insideField mode, prefer Field trailing slot.",
-        },
-        type: "React.ReactNode",
-        required: false,
-        fromSystem: false,
-    },
-    {
-        name: "insideField",
-        description: {
-            fr: "Mode “naked” pour être wrappé par IntentControlField (le frame appartient au Field).",
-            en: "“Naked” mode intended to be wrapped by IntentControlField (frame owned by Field).",
+            fr: "Rend le menu dans un portal pour éviter les soucis de z-index / overflow.",
+            en: "Renders the menu in a portal to avoid z-index / overflow issues.",
         },
         type: "boolean",
         required: false,
@@ -230,10 +251,10 @@ const INTENT_CONTROL_SELECT_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         fromSystem: false,
     },
     {
-        name: "invalid",
+        name: "portalAllowContentWidth",
         description: {
-            fr: "Force l’état invalide (aria-invalid + hook).",
-            en: "Forces invalid state (aria-invalid + hook).",
+            fr: "En mode portal, permet au menu de dépasser la largeur du trigger.",
+            en: "In portal mode, allows the menu to grow wider than the trigger.",
         },
         type: "boolean",
         required: false,
@@ -241,21 +262,62 @@ const INTENT_CONTROL_SELECT_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         fromSystem: false,
     },
     {
-        name: "readOnly",
+        name: "forceOpen",
         description: {
-            fr: "Empêche l’ouverture et la sélection tout en restant focusable (aria-readonly + hook).",
-            en: "Prevents opening/selection while remaining focusable (aria-readonly + hook).",
+            fr: "Force l’ouverture du popover quelle que soit la logique interne.",
+            en: "Forces the popover to stay open regardless of internal logic.",
         },
         type: "boolean",
         required: false,
         default: "false",
+        fromSystem: false,
+    },
+    {
+        name: "menuVariant",
+        description: {
+            fr: "Override optionnel du variant du menu popover.",
+            en: "Optional override for the popover menu variant.",
+        },
+        type: `"flat" | "outlined" | "elevated" | "ghost"`,
+        required: false,
+        fromSystem: false,
+    },
+    {
+        name: "searchable",
+        description: {
+            fr: "Ajoute un input de recherche en haut du menu.",
+            en: "Adds a search input at the top of the menu.",
+        },
+        type: "boolean",
+        required: false,
+        default: "false",
+        fromSystem: false,
+    },
+    {
+        name: "groupBy",
+        description: {
+            fr: "Fonction optionnelle pour grouper les options.",
+            en: "Optional function used to group options.",
+        },
+        type: "(option) => string | null",
+        required: false,
+        fromSystem: false,
+    },
+    {
+        name: "renderOption",
+        description: {
+            fr: "Rendu personnalisé d’une option.",
+            en: "Custom option rendering.",
+        },
+        type: "(option, state) => React.ReactNode",
+        required: false,
         fromSystem: false,
     },
     {
         name: "clearable",
         description: {
-            fr: "Affiche une ligne “Clear” (valeur null).",
-            en: "Shows a “Clear” row (null value).",
+            fr: "Affiche une croix de clear dans le trigger.",
+            en: "Shows a clear button inside the trigger.",
         },
         type: "boolean",
         required: false,
@@ -263,35 +325,14 @@ const INTENT_CONTROL_SELECT_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         fromSystem: false,
     },
     {
-        name: "closeOnSelect",
+        name: "insideField",
         description: {
-            fr: "Ferme le popover après sélection.",
-            en: "Closes the popover after selecting an option.",
+            fr: "Mode naked pour wrapper dans IntentControlField.",
+            en: "Naked mode for IntentControlField wrapper.",
         },
         type: "boolean",
         required: false,
-        default: "true",
-        fromSystem: false,
-    },
-    {
-        name: "align",
-        description: {
-            fr: "Alignement horizontal du popover par rapport au trigger.",
-            en: "Popover horizontal alignment relative to the trigger.",
-        },
-        type: `"start" | "end"`,
-        required: false,
-        default: "start",
-        fromSystem: false,
-    },
-    {
-        name: "(native props)",
-        description: {
-            fr: "Props natives du button trigger (aria-*, data-*, onKeyDown...).",
-            en: "Native trigger button props (aria-*, data-*, onKeyDown...).",
-        },
-        type: "Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'children' | 'value' | 'defaultValue' | 'onChange'>",
-        required: false,
+        default: "false",
         fromSystem: false,
     },
 ];
@@ -305,22 +346,24 @@ export const IntentControlSelectIdentity: ComponentIdentity = {
     name: "IntentControlSelect",
     kind: "control",
     description: {
-        fr: "Select intent-first (custom) : combobox + listbox, hooks CSS stables + variables via resolveIntent().",
-        en: "Intent-first custom select: combobox + listbox, stable CSS hooks + resolved vars via resolveIntent().",
+        fr: "Select intent-first avec recherche, multi-sélection, groupes, rendu custom et menu stylisé par IntentSurface.",
+        en: "Intent-first select with search, multi-select, grouping, custom rendering, and an IntentSurface menu.",
     },
-    since: "0.2.0",
+    since: "0.2.12",
     docs: { route: "/playground/components/intent-control-select" },
     anatomy: {
         root: "<div>",
         trigger: "<button role='combobox'>",
-        glowFillLayer: ".intent-glow-layer.intent-glow-fill",
-        glowBorderLayer: ".intent-glow-layer.intent-glow-border",
-        leading: ".intent-control-select-leading (standalone only)",
-        trailing: ".intent-control-select-trailing (standalone only)",
+        leading: ".intent-control-select-leading",
+        trailing: ".intent-control-select-trailing",
+        clear: ".intent-control-select-clear",
         value: ".intent-control-value",
         chevron: ".intent-control-chevron",
         popover: ".intent-control-popover",
+        panel: ".intent-control-select-panel",
+        search: ".intent-control-select-search",
         listbox: "<ul role='listbox'>",
+        groupLabel: ".intent-control-select-group-label",
         option: "<li role='option'>",
     },
     classHooks: [
@@ -331,9 +374,18 @@ export const IntentControlSelectIdentity: ComponentIdentity = {
         "intent-control-select-trigger",
         "intent-control-select-leading",
         "intent-control-select-trailing",
-        "intent-bg",
-        "intent-ink",
-        "intent-border",
+        "intent-control-select-clear",
+        "intent-control-select-valueWrap",
+        "intent-control-select-tags",
+        "intent-control-select-tag",
+        "intent-control-popover",
+        "intent-control-select-panel",
+        "intent-control-select-search",
+        "intent-control-select-group-label",
+        "intent-control-option",
+        "intent-control-option-main",
+        "intent-control-option-meta",
+        "intent-control-option-check",
         "intent-glow-layer",
         "intent-glow-fill",
         "intent-glow-border",
@@ -342,13 +394,8 @@ export const IntentControlSelectIdentity: ComponentIdentity = {
         "is-readonly",
         "is-empty",
         "is-invalid",
-        "ids-select-xs",
-        "ids-select-sm",
-        "ids-select-md",
-        "ids-select-lg",
-        "ids-select-xl",
-        "intent-control-popover",
-        "intent-control-option",
+        "is-multiple",
+        "is-searchable",
         "is-selected",
         "is-highlighted",
         "is-option-disabled",
@@ -380,6 +427,16 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
         clearable = false,
         closeOnSelect = true,
         align = "start",
+        forceOpen = false,
+
+        portal = false,
+        portalAllowContentWidth = false,
+        multiple = false,
+        searchable = false,
+        searchPlaceholder = "Search…",
+        groupBy,
+        renderOption,
+        menuVariant,
 
         intent,
         variant,
@@ -387,29 +444,54 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
         glow,
         intensity,
         mode,
+        toneStep,
         disabled: disabledProp,
 
         ...triggerProps
     } = props;
 
+    const disabled = Boolean(disabledProp);
     const isControlled = valueProp !== undefined;
-    const [uncontrolledValue, setUncontrolledValue] = React.useState<string | null>(defaultValue);
-    const value = (isControlled ? valueProp : uncontrolledValue) ?? null;
+
+    const normalizedDefaultValue = React.useMemo<IntentControlSelectValue>(() => {
+        if (multiple) return Array.isArray(defaultValue) ? defaultValue : [];
+        return Array.isArray(defaultValue) ? (defaultValue[0] ?? null) : defaultValue;
+    }, [defaultValue, multiple]);
+
+    const [uncontrolledValue, setUncontrolledValue] =
+        React.useState<IntentControlSelectValue>(normalizedDefaultValue);
+
+    const rawValue = isControlled ? valueProp : uncontrolledValue;
+
+    const valueArray = React.useMemo<Array<string | number>>(() => {
+        if (!multiple) return [];
+        return Array.isArray(rawValue) ? rawValue.filter(Boolean) : [];
+    }, [rawValue, multiple]);
+
+    const singleValue = React.useMemo<string | number | null>(() => {
+        if (multiple) return null;
+        if (Array.isArray(rawValue)) return rawValue[0] ?? null;
+        return rawValue ?? null;
+    }, [rawValue, multiple]);
 
     const [open, setOpen] = React.useState(false);
+    const isOpen = forceOpen || open;
+
     const [highlightedIndex, setHighlightedIndex] = React.useState<number>(-1);
+    const [query, setQuery] = React.useState("");
 
     const rootRef = React.useRef<HTMLDivElement | null>(null);
     const triggerRef = React.useRef<HTMLButtonElement | null>(null);
+    const popoverRef = React.useRef<HTMLDivElement | null>(null);
     const listRef = React.useRef<HTMLUListElement | null>(null);
+    const searchInputRef = React.useRef<HTMLInputElement | null>(null);
 
     const listboxId = React.useId();
-    const disabled = Boolean(disabledProp);
 
-    // ✅ if readOnly flips true while open, close it
     React.useEffect(() => {
+        if (forceOpen) return;
         if (readOnly && open) setOpen(false);
-    }, [readOnly, open]);
+    }, [readOnly, open, forceOpen]);
 
     const intentInput: IntentInput = {
         ...(intent !== undefined ? { intent } : {}),
@@ -418,49 +500,101 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
         ...(glow !== undefined ? { glow } : {}),
         ...(intensity !== undefined ? { intensity } : {}),
         ...(mode !== undefined ? { mode } : {}),
+        ...(toneStep !== undefined ? { toneStep } : {}),
         disabled,
     };
 
     const resolved = resolveIntent(intentInput);
+    const resolvedStyle = resolved.style as CssVars | undefined;
 
-    // Vars cascade to popover -> apply vars on ROOT
-    // Standalone: trigger/popover get visual variant classes (controlProps)
-    // InsideField: field provides visuals; we keep hooks + vars only
     const layoutProps = getIntentLayoutProps(resolved);
     const controlProps = getIntentControlProps(resolved);
 
-    const selectedOption = React.useMemo(
-        () => options.find((o) => o.value === value) ?? undefined,
-        [options, value]
-    );
-
-    const isEmpty = !selectedOption;
-
     const hasGlow = Boolean(resolved.glowBackground);
-    const v = resolved.variant;
-
-    const glowAllowed = hasGlow && v !== "ghost";
+    const resolvedVariant = resolved.variant;
     const isGlowed = resolved.intent === "glowed";
+    const glowAllowed = !insideField && hasGlow && resolvedVariant !== "ghost";
+    const allowFillGlow =
+        glowAllowed && (isGlowed || resolvedVariant === "flat" || resolvedVariant === "elevated");
+    const allowBorderGlow =
+        glowAllowed && (resolvedVariant === "outlined" || resolvedVariant === "elevated");
 
-    const allowFillGlow = glowAllowed && (isGlowed || v === "flat" || v === "elevated");
-    const allowBorderGlow = glowAllowed && (v === "outlined" || v === "elevated");
+    const glowFillOpacity = readOpacity(resolvedStyle, "--intent-glow-fill-opacity");
+    const glowBorderOpacity = readOpacity(resolvedStyle, "--intent-glow-border-opacity");
 
-    const readOpacity = (key: "--intent-glow-fill-opacity" | "--intent-glow-border-opacity") => {
-        const raw = resolved.style?.[key] ?? "0";
-        const n = Number(raw.toString());
-        return Number.isFinite(n) ? n : 0;
-    };
+    const selectedOptions = React.useMemo(() => {
+        if (multiple) {
+            const set = new Set(valueArray);
+            return options.filter((o) => set.has(o.value));
+        }
+        return singleValue !== null ? options.filter((o) => o.value === singleValue) : [];
+    }, [multiple, valueArray, singleValue, options]);
 
-    // ✅ size hook ON ROOT (matches CSS selectors)
+    const selectedOption = multiple ? undefined : selectedOptions[0];
+    const isEmpty = multiple ? selectedOptions.length === 0 : !selectedOption;
+
+    const filteredOptions = React.useMemo(() => {
+        if (!searchable || !query.trim()) return options;
+        const q = query.trim().toLowerCase();
+
+        return options.filter((opt) => {
+            const text = optionSearchText(opt).toLowerCase();
+            const description = safeString(opt.description).toLowerCase();
+            const group = safeString(groupBy?.(opt) ?? opt.group).toLowerCase();
+            return text.includes(q) || description.includes(q) || group.includes(q);
+        });
+    }, [options, searchable, query, groupBy]);
+
+    const optionRecords = React.useMemo(() => {
+        return filteredOptions.map((opt) => ({
+            option: opt,
+            group: groupBy?.(opt) ?? opt.group ?? null,
+        }));
+    }, [filteredOptions, groupBy]);
+
+    const groups = React.useMemo<IntentControlSelectGroup[]>(() => {
+        const map = new Map<string, IntentControlSelectGroup>();
+
+        for (const rec of optionRecords) {
+            const key = rec.group ?? "";
+            if (!map.has(key)) {
+                map.set(key, {
+                    key,
+                    label: rec.group ?? null,
+                    options: [],
+                });
+            }
+            map.get(key)!.options.push(rec.option);
+        }
+
+        return Array.from(map.values());
+    }, [optionRecords]);
+
+    const flatVisibleOptions = React.useMemo(() => {
+        return groups.flatMap((g) => g.options);
+    }, [groups]);
+
+    const optionIndexByValue = React.useMemo(() => {
+        const map = new Map<string | number, number>();
+        flatVisibleOptions.forEach((opt, idx) => {
+            map.set(opt.value, idx);
+        });
+        return map;
+    }, [flatVisibleOptions]);
+
+    const selectedSet = React.useMemo(() => new Set(valueArray), [valueArray]);
+
     const rootCls = cn(
         "intent-control intent-control-select",
         sizeClass(size),
         fullWidth && "w-full",
-        open && "is-open",
+        isOpen && "is-open",
         disabled && "is-disabled",
         readOnly && "is-readonly",
         isEmpty && "is-empty",
         invalid && "is-invalid",
+        multiple && "is-multiple",
+        searchable && "is-searchable",
         insideField ? "intent-control-select-naked" : "intent-control-select-standalone",
         align === "end" ? "ids-popover-align-end" : "ids-popover-align-start",
         "relative inline-flex"
@@ -469,24 +603,202 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
     const triggerCls = cn(
         "intent-control-select-trigger",
         "relative inline-flex items-center justify-between",
-        "select-none",
-        "rounded-ids-2xl",
-        "transition",
-        "min-w-0",
+        "select-none rounded-ids-2xl transition min-w-0",
         fullWidth && "w-full"
     );
 
-    /* ---------------------------
-       Outside click + open focus
-    --------------------------- */
+    const rootClassName = cn(layoutProps.className, rootCls);
+    const triggerClassName = cn(insideField ? "" : controlProps.className, triggerCls, className);
+
+    const syncUncontrolledValue = React.useCallback(
+        (next: IntentControlSelectValue) => {
+            if (!isControlled) setUncontrolledValue(next);
+        },
+        [isControlled]
+    );
+
+    const closeAndRestoreFocus = React.useCallback(() => {
+        if (forceOpen) return;
+        setOpen(false);
+        window.setTimeout(() => triggerRef.current?.focus(), 0);
+    }, [forceOpen]);
+
+    const commitSingleValue = React.useCallback(
+        (next: string | number | null) => {
+            if (disabled || readOnly) return;
+
+            syncUncontrolledValue(next);
+            const opt = next !== null ? options.find((o) => o.value === next) : undefined;
+            onValueChange?.(next, opt);
+
+            if (closeOnSelect) closeAndRestoreFocus();
+        },
+        [
+            disabled,
+            readOnly,
+            syncUncontrolledValue,
+            options,
+            onValueChange,
+            closeOnSelect,
+            closeAndRestoreFocus,
+        ]
+    );
+
+    const commitMultiValue = React.useCallback(
+        (next: string | number) => {
+            if (disabled || readOnly) return;
+
+            const current = Array.isArray(rawValue)
+                ? rawValue.filter(Boolean)
+                : Array.isArray(uncontrolledValue)
+                  ? uncontrolledValue.filter(Boolean)
+                  : valueArray;
+
+            const set = new Set(current);
+
+            if (set.has(next)) set.delete(next);
+            else set.add(next);
+
+            const result = Array.from(set);
+
+            syncUncontrolledValue(result);
+            const opt = options.find((o) => o.value === next);
+            onValueChange?.(result, opt);
+
+            if (closeOnSelect) closeAndRestoreFocus();
+        },
+        [
+            disabled,
+            readOnly,
+            rawValue,
+            uncontrolledValue,
+            valueArray,
+            syncUncontrolledValue,
+            options,
+            onValueChange,
+            closeOnSelect,
+            closeAndRestoreFocus,
+        ]
+    );
+
+    const clearValue = React.useCallback(() => {
+        if (disabled || readOnly || !clearable) return;
+
+        if (multiple) {
+            syncUncontrolledValue([]);
+            onValueChange?.([], undefined);
+            return;
+        }
+
+        commitSingleValue(null);
+    }, [
+        disabled,
+        readOnly,
+        clearable,
+        multiple,
+        syncUncontrolledValue,
+        onValueChange,
+        commitSingleValue,
+    ]);
+
+    const hasClearValue = multiple ? valueArray.length > 0 : singleValue !== null;
+
+    const [portalStyle, setPortalStyle] = React.useState<React.CSSProperties | undefined>(
+        undefined
+    );
+
+    const updatePortalPosition = React.useCallback(() => {
+        if (!portal) return;
+
+        const triggerEl = triggerRef.current;
+        const popoverEl = popoverRef.current;
+        if (!triggerEl) return;
+
+        const rect = triggerEl.getBoundingClientRect();
+        const triggerWidth = !insideField
+            ? Math.max(140, Math.round(rect.width))
+            : Math.max(140, Math.round(rect.width) + 27);
+
+        const viewportWidth = window.innerWidth;
+        const viewportPadding = 12;
+
+        let computedWidth = triggerWidth;
+        let computedMinWidth = triggerWidth;
+
+        if (portalAllowContentWidth && popoverEl) {
+            const previousWidth = popoverEl.style.width;
+            const previousMinWidth = popoverEl.style.minWidth;
+            const previousMaxWidth = popoverEl.style.maxWidth;
+
+            popoverEl.style.width = "max-content";
+            popoverEl.style.minWidth = `${triggerWidth}px`;
+            popoverEl.style.maxWidth = `${Math.max(160, viewportWidth - viewportPadding * 2)}px`;
+
+            const measuredWidth = Math.ceil(popoverEl.scrollWidth);
+
+            popoverEl.style.width = previousWidth;
+            popoverEl.style.minWidth = previousMinWidth;
+            popoverEl.style.maxWidth = previousMaxWidth;
+
+            computedWidth = Math.max(triggerWidth, measuredWidth);
+        }
+
+        const finalWidth = Math.min(
+            computedWidth,
+            Math.max(160, viewportWidth - viewportPadding * 2)
+        );
+
+        let left = align === "end" ? Math.round(rect.right - finalWidth) : Math.round(rect.left);
+        left = clamp(left, viewportPadding, viewportWidth - finalWidth - viewportPadding);
+
+        setPortalStyle({
+            position: "fixed",
+            left: `${!insideField ? left : left - 14}px`,
+            top: `${Math.round(rect.bottom + (!insideField ? 8 : 12))}px`,
+            minWidth: `${computedMinWidth}px`,
+            width: `${finalWidth}px`,
+            maxWidth: `${Math.max(160, viewportWidth - viewportPadding * 2)}px`,
+            zIndex: 120,
+        });
+    }, [portal, align, portalAllowContentWidth]);
+
+    React.useLayoutEffect(() => {
+        if (!isOpen || !portal) return;
+        updatePortalPosition();
+    }, [
+        isOpen,
+        portal,
+        updatePortalPosition,
+        size,
+        multiple,
+        searchable,
+        query,
+        portalAllowContentWidth,
+    ]);
 
     React.useEffect(() => {
-        if (!open) return;
+        if (!isOpen || !portal) return;
+
+        const onWin = () => updatePortalPosition();
+        window.addEventListener("resize", onWin);
+        window.addEventListener("scroll", onWin, true);
+
+        return () => {
+            window.removeEventListener("resize", onWin);
+            window.removeEventListener("scroll", onWin, true);
+        };
+    }, [isOpen, portal, updatePortalPosition]);
+
+    React.useEffect(() => {
+        if (!isOpen || forceOpen) return;
 
         function onDocDown(e: MouseEvent | TouchEvent) {
-            const t = e.target as Node | null;
-            if (!t) return;
-            if (rootRef.current?.contains(t)) return;
+            const target = e.target as Node | null;
+            if (!target) return;
+
+            if (rootRef.current?.contains(target)) return;
+            if (popoverRef.current?.contains(target)) return;
+
             setOpen(false);
         }
 
@@ -497,34 +809,32 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
             document.removeEventListener("mousedown", onDocDown);
             document.removeEventListener("touchstart", onDocDown);
         };
-    }, [open]);
+    }, [isOpen, forceOpen]);
 
     React.useEffect(() => {
-        if (!open) return;
-        const idx = value ? options.findIndex((o) => o.value === value) : -1;
-        setHighlightedIndex(idx);
-        window.setTimeout(() => listRef.current?.focus(), 0);
-    }, [open, options, value]);
+        if (!isOpen) return;
 
-    function commitValue(next: string | null) {
-        if (disabled || readOnly) return;
+        const nextIndex = multiple
+            ? flatVisibleOptions.findIndex((o) => selectedSet.has(o.value))
+            : singleValue !== null
+              ? flatVisibleOptions.findIndex((o) => o.value === singleValue)
+              : -1;
 
-        if (!isControlled) setUncontrolledValue(next);
-        const opt = next ? options.find((o) => o.value === next) : undefined;
-        onValueChange?.(next, opt);
+        setHighlightedIndex(nextIndex);
 
-        if (closeOnSelect) {
-            setOpen(false);
-            window.setTimeout(() => triggerRef.current?.focus(), 0);
-        }
-    }
+        window.setTimeout(() => {
+            if (searchable) searchInputRef.current?.focus();
+            else listRef.current?.focus();
+        }, 0);
+    }, [isOpen, searchable, flatVisibleOptions, multiple, selectedSet, singleValue]);
 
-    /* ============================================================================
-       ⌨️ Keyboard
-    ============================================================================ */
+    React.useEffect(() => {
+        if (forceOpen) return;
+        if (!open) setQuery("");
+    }, [open, forceOpen]);
 
     function moveHighlight(nextIndex: number) {
-        const clamped = Math.max(-1, Math.min(nextIndex, options.length - 1));
+        const clamped = Math.max(-1, Math.min(nextIndex, flatVisibleOptions.length - 1));
         setHighlightedIndex(clamped);
 
         const el = listRef.current?.querySelector<HTMLElement>(`[data-idx="${clamped}"]`);
@@ -532,18 +842,17 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
     }
 
     function nextEnabledIndex(from: number, dir: 1 | -1) {
-        const len = options.length;
+        const len = flatVisibleOptions.length;
         if (len === 0) return -1;
 
         let i = from;
 
         for (let step = 0; step < len; step++) {
             i += dir;
-
             if (i < 0) i = len - 1;
             if (i >= len) i = 0;
 
-            const opt = options[i];
+            const opt = flatVisibleOptions[i];
             if (opt && !opt.disabled) return i;
         }
 
@@ -552,61 +861,66 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
 
     const typeaheadRef = React.useRef<{ buf: string; t: number }>({ buf: "", t: 0 });
 
+    function selectHighlighted() {
+        const opt = flatVisibleOptions[highlightedIndex];
+        if (!opt || opt.disabled) return;
+        if (multiple) commitMultiValue(opt.value);
+        else commitSingleValue(opt.value);
+    }
+
     function handleListKeyDown(e: React.KeyboardEvent) {
         if (readOnly || disabled) {
             if (e.key === "Escape") {
                 e.preventDefault();
-                setOpen(false);
-                window.setTimeout(() => triggerRef.current?.focus(), 0);
+                closeAndRestoreFocus();
             }
             return;
         }
 
         if (e.key === "Escape") {
             e.preventDefault();
-            setOpen(false);
-            window.setTimeout(() => triggerRef.current?.focus(), 0);
+            closeAndRestoreFocus();
             return;
         }
 
         if (e.key === "ArrowDown") {
             e.preventDefault();
             const start = highlightedIndex >= 0 ? highlightedIndex : -1;
-            const idx = nextEnabledIndex(start, 1);
-            moveHighlight(idx);
+            moveHighlight(nextEnabledIndex(start, 1));
             return;
         }
 
         if (e.key === "ArrowUp") {
             e.preventDefault();
             const start = highlightedIndex >= 0 ? highlightedIndex : 0;
-            const idx = nextEnabledIndex(start, -1);
-            moveHighlight(idx);
+            moveHighlight(nextEnabledIndex(start, -1));
             return;
         }
 
         if (e.key === "Home") {
             e.preventDefault();
-            const idx = nextEnabledIndex(-1, 1);
-            moveHighlight(idx);
+            moveHighlight(nextEnabledIndex(-1, 1));
             return;
         }
 
         if (e.key === "End") {
             e.preventDefault();
-            const idx = nextEnabledIndex(0, -1);
-            moveHighlight(idx);
+            moveHighlight(nextEnabledIndex(0, -1));
             return;
         }
 
         if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            const opt = options[highlightedIndex];
-            if (opt && !opt.disabled) commitValue(opt.value);
+            selectHighlighted();
             return;
         }
 
-        // typeahead
+        if (searchable && e.key === "/") {
+            e.preventDefault();
+            searchInputRef.current?.focus();
+            return;
+        }
+
         if (isPrintableChar(e)) {
             const now = Date.now();
             const ref = typeaheadRef.current;
@@ -616,18 +930,12 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
             const q = ref.buf.toLowerCase();
             const start = highlightedIndex >= 0 ? highlightedIndex : -1;
 
-            const optionText = (opt: IntentControlSelectOption) => {
-                if (opt.searchText) return opt.searchText;
-                if (typeof opt.label === "string") return opt.label;
-                return opt.value;
-            };
-
-            for (let step = 0; step < options.length; step++) {
-                const idx = (start + 1 + step) % options.length;
-                const opt = options[idx];
+            for (let step = 0; step < flatVisibleOptions.length; step++) {
+                const idx = (start + 1 + step) % flatVisibleOptions.length;
+                const opt = flatVisibleOptions[idx];
                 if (!opt || opt.disabled) continue;
 
-                const text = optionText(opt).toLowerCase();
+                const text = optionSearchText(opt).toLowerCase();
                 if (text.startsWith(q)) {
                     moveHighlight(idx);
                     break;
@@ -636,25 +944,241 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
         }
     }
 
+    function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            const start = highlightedIndex >= 0 ? highlightedIndex : -1;
+            moveHighlight(nextEnabledIndex(start, 1));
+            listRef.current?.focus();
+            return;
+        }
+
+        if (e.key === "ArrowUp") {
+            e.preventDefault();
+            const start = highlightedIndex >= 0 ? highlightedIndex : 0;
+            moveHighlight(nextEnabledIndex(start, -1));
+            listRef.current?.focus();
+            return;
+        }
+
+        if (e.key === "Escape") {
+            e.preventDefault();
+            closeAndRestoreFocus();
+        }
+    }
+
     function handleTriggerKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
         triggerProps.onKeyDown?.(e);
         if (e.defaultPrevented) return;
-
         if (disabled || readOnly) return;
 
         if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            setOpen(true);
+            if (!forceOpen) setOpen(true);
         }
     }
 
-    const rootClassName = cn(layoutProps.className, rootCls);
+    function renderDefaultOption(
+        opt: IntentControlSelectOption,
+        state: IntentControlSelectRenderState
+    ) {
+        return (
+            <>
+                <span className="intent-control-option-main">
+                    <span className="intent-control-option-label">
+                        {opt.emoji ? (
+                            <span className="intent-control-option-emoji">{opt.emoji}</span>
+                        ) : null}
+                        {opt.label}
+                    </span>
 
-    const triggerClassName = cn(
-        insideField ? "" : controlProps.className, // ✅ only standalone gets visuals
-        triggerCls,
-        className // ✅ user className on trigger (as documented)
+                    {opt.description ? (
+                        <span className="intent-control-option-description">{opt.description}</span>
+                    ) : null}
+                </span>
+
+                <span className="intent-control-option-meta">
+                    {state.selected ? (
+                        <span className="intent-control-option-check" aria-hidden>
+                            ✓
+                        </span>
+                    ) : null}
+                </span>
+            </>
+        );
+    }
+
+    function renderValueContent() {
+        if (multiple) {
+            if (!selectedOptions.length) return placeholder;
+
+            return (
+                <span className="intent-control-select-tags">
+                    {selectedOptions.map((opt) => (
+                        <span key={opt.value} className="intent-control-select-tag">
+                            {opt.emoji ? (
+                                <span className="intent-control-option-emoji">{opt.emoji}</span>
+                            ) : null}
+                            {opt.label}
+                        </span>
+                    ))}
+                </span>
+            );
+        }
+
+        if (!selectedOption) return placeholder;
+
+        return (
+            <>
+                {selectedOption.emoji ? (
+                    <span className="intent-control-option-emoji">{selectedOption.emoji}</span>
+                ) : null}
+                {selectedOption.label}
+            </>
+        );
+    }
+
+    const triggerRefComposed = useComposedRef<HTMLButtonElement>(
+        triggerRef,
+        (triggerProps as { ref?: React.Ref<HTMLButtonElement> }).ref
     );
+
+    const popoverHostStyle: React.CSSProperties = {
+        ...(portal ? (portalStyle ?? {}) : {}),
+    };
+
+    const popoverHostClassName = cn(
+        "intent-control-popover",
+        "intent-control-select-popoverHost",
+        sizeClass(size),
+        portal && "is-portal",
+        portal && portalAllowContentWidth && "is-portal-content-width"
+    );
+
+    const resolvedMenuVariant =
+        menuVariant ?? (resolved.variant === "ghost" ? "elevated" : resolved.variant);
+
+    const menuSurfaceProps: IntentInput = {
+        intent: resolved.intent,
+        variant: resolvedMenuVariant,
+        intensity: resolved.intensity,
+        mode: resolved.mode,
+        ...(resolved.toneStep !== undefined ? { toneStep: resolved.toneStep } : {}),
+        ...(tone !== undefined ? { tone } : {}),
+        ...(glow !== undefined ? { glow } : {}),
+        disabled,
+    };
+
+    const popoverNode = isOpen ? (
+        <div
+            ref={popoverRef}
+            className={popoverHostClassName}
+            style={popoverHostStyle}
+            data-intent={resolved.intent}
+            data-variant={resolved.variant}
+            data-intensity={resolved.intensity}
+            data-mode={resolved.mode}
+        >
+            <IntentSurface
+                {...menuSurfaceProps}
+                className={cn(
+                    "intent-control-select-panel w-full rounded-ids-2xl_popover",
+                    sizeClass(size),
+                    portal && portalAllowContentWidth && "is-portal-content-width"
+                )}
+            >
+                {searchable ? (
+                    <div className="intent-control-select-search">
+                        <input
+                            ref={searchInputRef}
+                            value={query}
+                            onChange={(e) => {
+                                setQuery(e.target.value);
+                                setHighlightedIndex(-1);
+                            }}
+                            onKeyDown={handleSearchKeyDown}
+                            placeholder={searchPlaceholder}
+                            className="intent-control-select-searchInput"
+                        />
+                    </div>
+                ) : null}
+
+                <ul
+                    id={listboxId}
+                    ref={listRef}
+                    tabIndex={0}
+                    role="listbox"
+                    aria-label="Select options"
+                    aria-multiselectable={multiple || undefined}
+                    className="intent-control-listbox"
+                    onKeyDown={handleListKeyDown}
+                >
+                    {groups.length === 0 ? (
+                        <li
+                            className="intent-control-option is-option-disabled"
+                            aria-disabled="true"
+                        >
+                            <span className="intent-control-option-label">No results</span>
+                        </li>
+                    ) : (
+                        groups.map((group) => (
+                            <React.Fragment key={group.key || "ungrouped"}>
+                                {group.label ? (
+                                    <li
+                                        className="intent-control-select-group-label"
+                                        aria-hidden="true"
+                                    >
+                                        {group.label}
+                                    </li>
+                                ) : null}
+
+                                {group.options.map((opt) => {
+                                    const idx = optionIndexByValue.get(opt.value) ?? -1;
+                                    const selected = multiple
+                                        ? selectedSet.has(opt.value)
+                                        : singleValue === opt.value;
+                                    const highlighted = idx === highlightedIndex;
+
+                                    const state: IntentControlSelectRenderState = {
+                                        selected,
+                                        highlighted,
+                                        disabled: Boolean(opt.disabled),
+                                        multiple,
+                                    };
+
+                                    return (
+                                        <li
+                                            key={opt.value}
+                                            data-idx={idx}
+                                            role="option"
+                                            aria-selected={selected}
+                                            aria-disabled={opt.disabled || undefined}
+                                            className={cn(
+                                                "intent-control-option",
+                                                selected && "is-selected",
+                                                highlighted && "is-highlighted",
+                                                opt.disabled && "is-option-disabled"
+                                            )}
+                                            onMouseEnter={() => setHighlightedIndex(idx)}
+                                            onClick={() => {
+                                                if (opt.disabled) return;
+                                                if (multiple) commitMultiValue(opt.value);
+                                                else commitSingleValue(opt.value);
+                                            }}
+                                        >
+                                            {renderOption
+                                                ? renderOption(opt, state)
+                                                : renderDefaultOption(opt, state)}
+                                        </li>
+                                    );
+                                })}
+                            </React.Fragment>
+                        ))
+                    )}
+                </ul>
+            </IntentSurface>
+        </div>
+    ) : null;
 
     return (
         <div
@@ -674,12 +1198,12 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
 
             <button
                 {...triggerProps}
-                ref={triggerRef}
+                ref={triggerRefComposed}
                 type={triggerProps.type ?? "button"}
                 className={triggerClassName}
                 disabled={disabled}
                 role="combobox"
-                aria-expanded={open}
+                aria-expanded={isOpen}
                 aria-controls={listboxId}
                 aria-haspopup="listbox"
                 aria-disabled={disabled || undefined}
@@ -688,42 +1212,57 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
                 onClick={(e) => {
                     triggerProps.onClick?.(e);
                     if (e.defaultPrevented) return;
-                    if (disabled || readOnly) return;
-                    setOpen((v2) => !v2);
+                    if (disabled || readOnly || forceOpen) return;
+                    setOpen((prev) => !prev);
                 }}
                 onKeyDown={handleTriggerKeyDown}
             >
-                {/* Glow layers (under content) - standalone only */}
-                {!insideField && glowAllowed ? (
+                {glowAllowed ? (
                     <>
                         {allowFillGlow ? (
-                            <span
-                                aria-hidden
+                            <div
                                 className="intent-glow-layer intent-glow-fill"
-                                style={{ opacity: readOpacity("--intent-glow-fill-opacity") }}
+                                style={{ opacity: glowFillOpacity }}
+                                aria-hidden="true"
                             />
                         ) : null}
 
                         {allowBorderGlow ? (
-                            <span
-                                aria-hidden
+                            <div
                                 className="intent-glow-layer intent-glow-border"
-                                style={{
-                                    opacity: readOpacity("--intent-glow-border-opacity"),
-                                    borderRadius: "inherit",
-                                }}
+                                style={{ opacity: glowBorderOpacity, borderRadius: "inherit" }}
+                                aria-hidden="true"
                             />
                         ) : null}
                     </>
                 ) : null}
 
-                <span className="relative z-10 min-w-0 flex-1 flex items-center gap-2">
-                    <span className={cn("intent-control-value", "truncate")}>
-                        {selectedOption ? selectedOption.label : placeholder}
+                <span className="intent-control-select-valueWrap relative z-10 min-w-0 flex-1 flex items-center gap-2">
+                    {clearable && hasClearValue && !readOnly && !disabled ? (
+                        <span
+                            className="intent-control-select-clear"
+                            role="button"
+                            tabIndex={-1}
+                            aria-label="Clear selection"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                clearValue();
+                            }}
+                        >
+                            ✕
+                        </span>
+                    ) : null}
+
+                    <span className={cn("intent-control-value", multiple ? "" : "truncate")}>
+                        {renderValueContent()}
                     </span>
-                    <span aria-hidden className={cn("intent-control-chevron", "shrink-0")}>
-                        ▾
-                    </span>
+
+                    {!readOnly ? (
+                        <span aria-hidden className={cn("intent-control-chevron", "shrink-0")}>
+                            ▾
+                        </span>
+                    ) : null}
                 </span>
             </button>
 
@@ -733,96 +1272,11 @@ export function IntentControlSelect(props: IntentControlSelectProps) {
                 </span>
             ) : null}
 
-            {open ? (
-                <div
-                    className={cn(
-                        "intent-control-popover",
-                        insideField ? "" : controlProps.className // ✅ visuals only standalone
-                    )}
-                >
-                    {/* Glow layers (under content) - standalone only */}
-                    {!insideField && glowAllowed ? (
-                        <>
-                            {allowFillGlow ? (
-                                <span
-                                    aria-hidden
-                                    className="intent-glow-layer intent-glow-fill"
-                                    style={{ opacity: readOpacity("--intent-glow-fill-opacity") }}
-                                />
-                            ) : null}
-
-                            {allowBorderGlow ? (
-                                <span
-                                    aria-hidden
-                                    className="intent-glow-layer intent-glow-border"
-                                    style={{
-                                        opacity: readOpacity("--intent-glow-border-opacity"),
-                                        borderRadius: "inherit",
-                                    }}
-                                />
-                            ) : null}
-                        </>
-                    ) : null}
-
-                    <ul
-                        id={listboxId}
-                        ref={listRef}
-                        tabIndex={0}
-                        role="listbox"
-                        aria-label="Select options"
-                        className="intent-control-listbox"
-                        onKeyDown={handleListKeyDown}
-                    >
-                        {clearable ? (
-                            <li
-                                role="option"
-                                aria-selected={value === null}
-                                className={cn(
-                                    "intent-control-option",
-                                    value === null && "is-selected"
-                                )}
-                                onMouseEnter={() => setHighlightedIndex(-1)}
-                                onClick={() => commitValue(null)}
-                            >
-                                <span className="intent-control-option-label">Clear</span>
-                            </li>
-                        ) : null}
-
-                        {options.map((opt, idx) => {
-                            const selected = value === opt.value;
-                            const highlighted = idx === highlightedIndex;
-
-                            return (
-                                <li
-                                    key={opt.value}
-                                    data-idx={idx}
-                                    role="option"
-                                    aria-selected={selected}
-                                    aria-disabled={opt.disabled || undefined}
-                                    className={cn(
-                                        "intent-control-option",
-                                        selected && "is-selected",
-                                        highlighted && "is-highlighted",
-                                        opt.disabled && "is-option-disabled"
-                                    )}
-                                    onMouseEnter={() => setHighlightedIndex(idx)}
-                                    onClick={() => {
-                                        if (opt.disabled) return;
-                                        commitValue(opt.value);
-                                    }}
-                                >
-                                    <span className="intent-control-option-label">{opt.label}</span>
-                                    {opt.description ? (
-                                        <span className="intent-control-option-description">
-                                            {opt.description}
-                                        </span>
-                                    ) : null}
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </div>
-            ) : null}
+            {isOpen
+                ? portal && typeof document !== "undefined"
+                    ? createPortal(popoverNode, document.body)
+                    : popoverNode
+                : null}
         </div>
     );
 }

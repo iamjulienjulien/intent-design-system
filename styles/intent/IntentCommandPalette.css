@@ -154,6 +154,7 @@
     overflow: auto;
     overscroll-behavior: contain;
     max-width: 100%;
+    width: 100%;
 }
 
 /* Group */

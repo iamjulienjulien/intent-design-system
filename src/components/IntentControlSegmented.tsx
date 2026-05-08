@@ -4,17 +4,21 @@
 // IntentControlSegmented
 // - Segmented control (button-group) with intent-first visuals
 // - Single-select (default) or multi-select (toggle group)
-// - Uses resolveIntent() once for group vars + per-segment visuals via getIntentControlProps()
-// - Adds an animated "pill" indicator (single only)
-// - No dynamic Tailwind classes: only stable hooks + CSS does the heavy lifting
+// - Uses resolveIntent() for group vars + per-segment visuals via getIntentControlProps()
+// - Adds a sliding pill indicator (single only)
+// - Glow layers now work like IntentControlButton
+// - Sizes aligned with other control components
+// - No dynamic Tailwind classes: only stable hooks + CSS tokens
 
 import * as React from "react";
 
-import type { IntentInput } from "../lib/intent/types";
-import { resolveIntent, getIntentControlProps, getIntentLayoutProps } from "../lib/intent/resolve";
-
-import type { DocsPropRow, ComponentIdentity } from "../lib/intent/types";
-import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
+import { resolveIntent, getIntentControlProps, getIntentLayoutProps } from "CORE";
+import {
+    SYSTEM_PROPS_TABLE,
+    type IntentInput,
+    type DocsPropRow,
+    type ComponentIdentity,
+} from "SYSTEM";
 
 /* ============================================================================
    🧰 HELPERS
@@ -41,11 +45,6 @@ function segHookClass(size: SegmentedSize) {
     }
 }
 
-// ✅ canonical control tokens (shared with Input/Select/Tabs)
-function controlSizeClass(size: SegmentedSize) {
-    return `ids-control-${size}`;
-}
-
 function asArray(v: string | string[] | null | undefined): string[] {
     if (!v) return [];
     return Array.isArray(v) ? v : [v];
@@ -62,10 +61,7 @@ function uniq(arr: string[]) {
 export type IntentControlSegmentedOption = {
     value: string;
     label: React.ReactNode;
-
     disabled?: boolean;
-
-    /** Optional: plain text used for a11y labels / tooltips / typeahead later */
     text?: string;
 };
 
@@ -73,53 +69,39 @@ export type IntentControlSegmentedProps = IntentInput &
     Omit<React.HTMLAttributes<HTMLDivElement>, "className" | "children" | "onChange"> & {
         className?: string;
 
-        /** Options rendered as segments */
         options: IntentControlSegmentedOption[];
 
-        /**
-         * Selection value.
-         * - single mode: string | null
-         * - multiple mode: string[]
-         */
         value?: string | null | string[];
-
-        /**
-         * Uncontrolled initial value.
-         * - single mode: string | null
-         * - multiple mode: string[]
-         */
         defaultValue?: string | null | string[];
 
-        /**
-         * Change callback.
-         * - single mode: (value: string | null) => void
-         * - multiple mode: (value: string[]) => void
-         */
         onValueChange?: (
             value: string | null | string[],
             meta?: { option?: IntentControlSegmentedOption }
         ) => void;
 
-        /** Behavior */
-        multiple?: boolean; // default: false
-        allowEmpty?: boolean; // default: true (single only)
+        multiple?: boolean; // default false
+        allowEmpty?: boolean; // default true (single only)
 
-        /** UI */
-        size?: SegmentedSize; // default: "md"
-        fullWidth?: boolean; // default: false
+        size?: SegmentedSize; // default md
+        fullWidth?: boolean; // default false
+        equal?: boolean; // default false
 
-        /**
-         * Per-segment variant strategy:
-         * - inactiveVariant: visual for non-selected segments
-         * - activeVariant: visual for selected segments
-         *
-         * Defaults are conservative and readable.
-         */
-        inactiveVariant?: "ghost" | "outlined" | "flat" | "elevated"; // default: "ghost"
-        activeVariant?: "ghost" | "outlined" | "flat" | "elevated"; // default: "elevated"
+        inactiveVariant?: "ghost" | "outlined" | "flat" | "elevated"; // default ghost
+        activeVariant?: "ghost" | "outlined" | "flat" | "elevated"; // default elevated
 
-        /** A11y */
-        ariaLabel?: string; // default: "Segmented control"
+        inactiveIntent?: IntentInput["intent"];
+        activeIntent?: IntentInput["intent"];
+
+        inactiveTone?: IntentInput["tone"];
+        activeTone?: IntentInput["tone"];
+
+        inactiveGlow?: IntentInput["glow"];
+        activeGlow?: IntentInput["glow"];
+
+        inactiveIntensity?: IntentInput["intensity"];
+        activeIntensity?: IntentInput["intensity"];
+
+        ariaLabel?: string; // default "Segmented control"
     };
 
 /* ============================================================================
@@ -212,6 +194,17 @@ const INTENT_CONTROL_SEGMENTED_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         fromSystem: false,
     },
     {
+        name: "equal",
+        description: {
+            fr: "Force tous les segments à avoir la même largeur.",
+            en: "Forces all segments to have the same width.",
+        },
+        type: "boolean",
+        required: false,
+        default: "false",
+        fromSystem: false,
+    },
+    {
         name: "inactiveVariant",
         description: {
             fr: "Variant des segments inactifs.",
@@ -231,6 +224,86 @@ const INTENT_CONTROL_SEGMENTED_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         type: `"ghost" | "outlined" | "flat" | "elevated"`,
         required: false,
         default: "elevated",
+        fromSystem: false,
+    },
+    {
+        name: "inactiveIntent",
+        description: {
+            fr: "Intent des segments inactifs. Fallback sur l’intent du groupe.",
+            en: "Intent for inactive segments. Falls back to group intent.",
+        },
+        type: "IntentName",
+        required: false,
+        fromSystem: false,
+    },
+    {
+        name: "activeIntent",
+        description: {
+            fr: "Intent des segments actifs. Fallback sur l’intent du groupe.",
+            en: "Intent for active segments. Falls back to group intent.",
+        },
+        type: "IntentName",
+        required: false,
+        fromSystem: false,
+    },
+    {
+        name: "inactiveTone",
+        description: {
+            fr: "Tone des segments inactifs. Fallback sur le tone du groupe.",
+            en: "Tone for inactive segments. Falls back to group tone.",
+        },
+        type: "ToneName",
+        required: false,
+        fromSystem: false,
+    },
+    {
+        name: "activeTone",
+        description: {
+            fr: "Tone des segments actifs. Fallback sur le tone du groupe.",
+            en: "Tone for active segments. Falls back to group tone.",
+        },
+        type: "ToneName",
+        required: false,
+        fromSystem: false,
+    },
+    {
+        name: "inactiveGlow",
+        description: {
+            fr: "Glow des segments inactifs. Fallback sur le glow du groupe.",
+            en: "Glow for inactive segments. Falls back to group glow.",
+        },
+        type: "GlowName | boolean",
+        required: false,
+        fromSystem: false,
+    },
+    {
+        name: "activeGlow",
+        description: {
+            fr: "Glow des segments actifs. Fallback sur le glow du groupe.",
+            en: "Glow for active segments. Falls back to group glow.",
+        },
+        type: "GlowName | boolean",
+        required: false,
+        fromSystem: false,
+    },
+    {
+        name: "inactiveIntensity",
+        description: {
+            fr: "Intensity des segments inactifs. Fallback sur l’intensity du groupe.",
+            en: "Intensity for inactive segments. Falls back to group intensity.",
+        },
+        type: "Intensity",
+        required: false,
+        fromSystem: false,
+    },
+    {
+        name: "activeIntensity",
+        description: {
+            fr: "Intensity des segments actifs. Fallback sur l’intensity du groupe.",
+            en: "Intensity for active segments. Falls back to group intensity.",
+        },
+        type: "Intensity",
+        required: false,
         fromSystem: false,
     },
     {
@@ -274,6 +347,7 @@ export const IntentControlSegmentedIdentity: ComponentIdentity = {
         root: "<div role='group'>",
         segment: "<button>",
         segmentLabel: ".intent-seg-label",
+        pill: ".intent-seg-pill",
         glowFillLayer: ".intent-glow-layer.intent-glow-fill",
         glowBorderLayer: ".intent-glow-layer.intent-glow-border",
     },
@@ -283,10 +357,12 @@ export const IntentControlSegmentedIdentity: ComponentIdentity = {
         "intent-seg",
         "intent-seg-btn",
         "intent-seg-label",
+        "intent-seg-pill",
         "is-multiple",
         "is-disabled",
         "is-selected",
         "is-option-disabled",
+        "is-equal",
         "ids-seg-xs",
         "ids-seg-sm",
         "ids-seg-md",
@@ -314,22 +390,33 @@ export function IntentControlSegmented(props: IntentControlSegmentedProps) {
 
         size = "md",
         fullWidth = false,
+        equal = false,
 
         inactiveVariant = "ghost",
         activeVariant = "elevated",
 
+        inactiveIntent,
+        activeIntent,
+
+        inactiveTone,
+        activeTone,
+
+        inactiveGlow,
+        activeGlow,
+
+        inactiveIntensity,
+        activeIntensity,
+
         ariaLabel = "Segmented control",
 
-        // ✅ Pull DS props OUT so they never reach the DOM
         intent,
-        variant, // ✅ applies to container frame
+        variant,
         tone,
         glow,
         intensity,
         mode,
         disabled: disabledProp,
 
-        // ✅ Only real DOM props remain here
         ...divProps
     } = props;
 
@@ -348,9 +435,9 @@ export function IntentControlSegmented(props: IntentControlSegmentedProps) {
     const value = (isControlled ? valueProp : uncontrolled) ?? (multiple ? [] : null);
     const selected = multiple ? uniq(asArray(value as any)) : (value as string | null);
 
-    const intentInput: IntentInput = {
+    const groupIntentInput: IntentInput = {
         ...(intent !== undefined ? { intent } : {}),
-        ...(variant !== undefined ? { variant } : {}), // ✅ container variant now matters
+        ...(variant !== undefined ? { variant } : {}),
         ...(tone !== undefined ? { tone } : {}),
         ...(glow !== undefined ? { glow } : {}),
         ...(intensity !== undefined ? { intensity } : {}),
@@ -358,21 +445,30 @@ export function IntentControlSegmented(props: IntentControlSegmentedProps) {
         disabled,
     };
 
-    const resolved = resolveIntent(intentInput);
+    const resolvedGroup = resolveIntent(groupIntentInput);
+    const layoutProps = getIntentLayoutProps(resolvedGroup);
+    const controlProps = getIntentControlProps(resolvedGroup, className);
 
-    // ✅ Vars on ROOT
-    const layoutProps = getIntentLayoutProps(resolved, className);
+    const hasGroupGlow = Boolean(resolvedGroup.glowBackground);
+    const groupVariant = resolvedGroup.variant;
 
-    const rootCls = cn(
-        "intent-control intent-control-segmented",
-        "intent-seg",
-        segHookClass(size), // ✅ keep existing hooks
-        controlSizeClass(size),
-        "relative inline-flex",
-        fullWidth && "w-full",
-        multiple && "is-multiple",
-        disabled && "is-disabled"
-    );
+    const groupGlowAllowed = hasGroupGlow && groupVariant !== "ghost";
+    const isGroupGlowed = resolvedGroup.intent === "glowed";
+
+    const allowGroupFillGlow =
+        groupGlowAllowed &&
+        (isGroupGlowed || groupVariant === "flat" || groupVariant === "elevated");
+
+    const allowGroupBorderGlow =
+        groupGlowAllowed && (groupVariant === "outlined" || groupVariant === "elevated");
+
+    const readGroupOpacity = (
+        key: "--intent-glow-fill-opacity" | "--intent-glow-border-opacity"
+    ) => {
+        const raw = resolvedGroup.style?.[key] ?? "0";
+        const n = Number(raw.toString());
+        return Number.isFinite(n) ? n : 0;
+    };
 
     function emit(
         next: string | null | string[],
@@ -414,9 +510,7 @@ export function IntentControlSegmented(props: IntentControlSegmentedProps) {
         if (!btn) return;
 
         const all = Array.from(
-            (e.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>(
-                "button[data-ids-seg]"
-            )
+            e.currentTarget.querySelectorAll<HTMLButtonElement>("button[data-ids-seg]")
         );
 
         const enabled = all.filter((b) => !b.disabled);
@@ -458,9 +552,7 @@ export function IntentControlSegmented(props: IntentControlSegmentedProps) {
         }
 
         const root = rootRef.current;
-        if (!root) return;
-
-        if (!selectedKey) {
+        if (!root || !selectedKey) {
             setPill((p) => ({ ...p, visible: false }));
             return;
         }
@@ -477,53 +569,102 @@ export function IntentControlSegmented(props: IntentControlSegmentedProps) {
         const r = root.getBoundingClientRect();
         const b = btn.getBoundingClientRect();
 
-        // coords relative to root padding box
-        const x = b.left - r.left;
-        const w = b.width;
-
-        setPill({ x, w, visible: true });
+        setPill({
+            x: b.left - r.left,
+            w: b.width,
+            visible: true,
+        });
     }, [multiple, selectedKey]);
 
     React.useLayoutEffect(() => {
         measurePill();
-    }, [measurePill, options, size, fullWidth, inactiveVariant, activeVariant]);
+    }, [
+        measurePill,
+        options,
+        size,
+        fullWidth,
+        equal,
+        inactiveVariant,
+        activeVariant,
+        inactiveIntent,
+        activeIntent,
+        inactiveTone,
+        activeTone,
+        inactiveGlow,
+        activeGlow,
+        inactiveIntensity,
+        activeIntensity,
+    ]);
 
     React.useEffect(() => {
         const root = rootRef.current;
         if (!root) return;
 
-        // keep pill aligned on resize / font load / container changes
         const ro = new ResizeObserver(() => measurePill());
         ro.observe(root);
 
         return () => ro.disconnect();
     }, [measurePill]);
 
+    const rootCls = cn(
+        "intent-control intent-control-segmented",
+        "intent-seg",
+        segHookClass(size),
+        "relative inline-flex",
+        fullWidth && "w-full",
+        multiple && "is-multiple",
+        disabled && "is-disabled",
+        equal && "is-equal"
+    );
+
     return (
         <div
             {...divProps}
             ref={(node) => {
                 rootRef.current = node;
-                const ref = (divProps as any).ref;
-                if (typeof ref === "function") ref(node);
-                else if (ref && typeof ref === "object") ref.current = node;
+                const maybeRef = (divProps as any).ref;
+                if (typeof maybeRef === "function") maybeRef(node);
+                else if (maybeRef && typeof maybeRef === "object") maybeRef.current = node;
             }}
             {...layoutProps}
-            className={cn(layoutProps.className, rootCls)}
+            {...controlProps}
+            className={cn(layoutProps.className, controlProps.className, rootCls)}
             role="group"
             aria-label={ariaLabel}
             aria-disabled={disabled || undefined}
-            data-intent={resolved.intent}
-            data-variant={resolved.variant}
-            data-intensity={resolved.intensity}
-            data-mode={resolved.mode}
+            data-intent={resolvedGroup.intent}
+            data-variant={resolvedGroup.variant}
+            data-intensity={resolvedGroup.intensity}
+            data-mode={resolvedGroup.mode}
             onKeyDown={(e) => {
                 (divProps as any).onKeyDown?.(e);
                 if (e.defaultPrevented) return;
                 onKeyDown(e);
             }}
         >
-            {/* Sliding pill (single only) */}
+            {groupGlowAllowed ? (
+                <>
+                    {allowGroupFillGlow ? (
+                        <span
+                            aria-hidden
+                            className="intent-glow-layer intent-glow-fill"
+                            style={{ opacity: readGroupOpacity("--intent-glow-fill-opacity") }}
+                        />
+                    ) : null}
+
+                    {allowGroupBorderGlow ? (
+                        <span
+                            aria-hidden
+                            className="intent-glow-layer intent-glow-border"
+                            style={{
+                                opacity: readGroupOpacity("--intent-glow-border-opacity"),
+                                borderRadius: "inherit",
+                            }}
+                        />
+                    ) : null}
+                </>
+            ) : null}
+
             {!multiple ? (
                 <span
                     aria-hidden
@@ -542,20 +683,50 @@ export function IntentControlSegmented(props: IntentControlSegmentedProps) {
 
                 const segDisabled = disabled || Boolean(opt.disabled);
 
+                const segIntent = isSelected
+                    ? (activeIntent ?? intent)
+                    : (inactiveIntent ?? intent);
+                const segTone = isSelected ? (activeTone ?? tone) : (inactiveTone ?? tone);
+                const segGlow = isSelected ? (activeGlow ?? glow) : (inactiveGlow ?? glow);
+                const segIntensity = isSelected
+                    ? (activeIntensity ?? intensity)
+                    : (inactiveIntensity ?? intensity);
+
                 const segResolved = resolveIntent({
-                    ...intentInput,
-                    variant: isSelected ? (activeVariant as any) : (inactiveVariant as any),
+                    ...(segIntent !== undefined ? { intent: segIntent } : {}),
+                    ...(segTone !== undefined ? { tone: segTone } : {}),
+                    ...(segGlow !== undefined ? { glow: segGlow } : {}),
+                    ...(segIntensity !== undefined ? { intensity: segIntensity } : {}),
+                    ...(mode !== undefined ? { mode } : {}),
+                    variant: isSelected ? activeVariant : inactiveVariant,
                     disabled: segDisabled,
                 });
 
                 const segProps = getIntentControlProps(segResolved);
 
+                const hasGlow = Boolean(segResolved.glowBackground);
+                const segVariant = segResolved.variant;
+                const glowAllowed = hasGlow && segVariant !== "ghost";
+                const isGlowed = segResolved.intent === "glowed";
+                const allowFillGlow =
+                    glowAllowed && (isGlowed || segVariant === "flat" || segVariant === "elevated");
+                const allowBorderGlow =
+                    glowAllowed && (segVariant === "outlined" || segVariant === "elevated");
+
+                const readOpacity = (
+                    key: "--intent-glow-fill-opacity" | "--intent-glow-border-opacity"
+                ) => {
+                    const raw = segResolved.style?.[key] ?? "0";
+                    const n = Number(raw.toString());
+                    return Number.isFinite(n) ? n : 0;
+                };
+
                 const btnCls = cn(
                     "intent-seg-btn",
                     "relative inline-flex items-center justify-center",
-                    "select-none whitespace-nowrap",
-                    "transition",
+                    "select-none whitespace-nowrap transition",
                     fullWidth && "flex-1",
+                    equal && "is-equal",
                     isSelected && "is-selected",
                     segDisabled && "is-option-disabled"
                 );
@@ -576,6 +747,31 @@ export function IntentControlSegmented(props: IntentControlSegmentedProps) {
                         role={multiple ? "button" : "radio"}
                         onClick={() => toggleOption(opt)}
                     >
+                        {glowAllowed ? (
+                            <>
+                                {allowFillGlow ? (
+                                    <span
+                                        aria-hidden
+                                        className="intent-glow-layer intent-glow-fill"
+                                        style={{
+                                            opacity: readOpacity("--intent-glow-fill-opacity"),
+                                        }}
+                                    />
+                                ) : null}
+
+                                {allowBorderGlow ? (
+                                    <span
+                                        aria-hidden
+                                        className="intent-glow-layer intent-glow-border"
+                                        style={{
+                                            opacity: readOpacity("--intent-glow-border-opacity"),
+                                            borderRadius: "inherit",
+                                        }}
+                                    />
+                                ) : null}
+                            </>
+                        ) : null}
+
                         <span className="relative z-10 intent-seg-label">{opt.label}</span>
                     </button>
                 );

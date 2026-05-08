@@ -1,0 +1,127 @@
+/* styles/intent/IntentControlDate.css
+   IntentControlDate
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-control.intent-control-date {
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+    min-width: 0;
+}
+
+/* Standalone slots */
+.intent-control.intent-control-date .intent-control-date-leading,
+.intent-control.intent-control-date .intent-control-date-trailing {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 calc(var(--ids-control-px, 0.85rem) * 0.6);
+    opacity: 0.8;
+    user-select: none;
+}
+
+/* ============================================================================
+   Inputs
+============================================================================ */
+
+.intent-control-date-el {
+    width: 100%;
+    min-width: 0;
+    font-size: var(--ids-control-fs, 0.875rem);
+    line-height: 1.2;
+    color: var(--intent-ink);
+    caret-color: var(--intent-ink);
+    background: transparent;
+    outline: none;
+    border: 0;
+}
+
+/* Standalone: internal spacing */
+.intent-control-date-standalone.intent-control-date-el {
+    height: var(--ids-control-h, 36px);
+    padding: 0 var(--ids-control-px, 0.85rem);
+}
+
+/* Naked (insideField): no padding, let Field frame manage spacing */
+.intent-control-date-naked.intent-control-date-el {
+    padding: 0;
+    height: auto;
+}
+
+/* Placeholder */
+.intent-control-date-el::placeholder {
+    color: color-mix(in oklab, var(--intent-ink) 95%, transparent);
+    opacity: 0.55;
+}
+
+/* Disabled/readonly hooks */
+.intent-control-date-el.is-disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.intent-control-date-el.is-readonly {
+    opacity: 0.9;
+}
+
+/* ============================================================================
+   Split layout
+============================================================================ */
+
+.intent-control-date-split {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+/* The actual inputs inside split */
+.intent-control-date-part {
+    width: auto;
+    min-width: 0;
+}
+
+/* Day / month are compact, year is larger */
+.intent-control-date-part[aria-label="Jour"],
+.intent-control-date-part[aria-label="Mois"] {
+    width: 3.2ch;
+    text-align: center;
+}
+
+.intent-control-date-part[aria-label="Année"] {
+    width: 5.2ch;
+    text-align: center;
+}
+
+.intent-control-date-sep {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.55;
+    user-select: none;
+}
+
+/* If standalone, make split occupy remaining space nicely */
+.intent-control.intent-control-date .intent-control-date-split {
+    flex: 1 1 auto;
+}
+
+.intent-control-date-split.split-part,
+.intent-control-date-split.split-part .intent-control-date-el {
+    width: 100%;
+}
+
+/* ============================================================================
+   Mode hooks
+============================================================================ */
+
+.intent-control.intent-control-date.is-split {
+    /* reserved hook */
+}
+
+.intent-control.intent-control-date.is-single {
+    /* reserved hook */
+}

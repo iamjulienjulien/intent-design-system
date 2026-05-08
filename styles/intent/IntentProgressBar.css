@@ -1,0 +1,434 @@
+/* ============================================================================
+   styles/intent/IntentProgressBar.css
+   IntentProgressBar
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-progress {
+    --ids-progress-track-size: 10px;
+    --ids-progress-radius: 999px;
+    --ids-progress-gap: 10px;
+    --ids-progress-label-size: 13px;
+    --ids-progress-caption-size: 12px;
+    --ids-progress-value-size: 12px;
+    --ids-progress-icon-size: 16px;
+    --ids-progress-fill-size: 0%;
+    --ids-progress-marker-position: 50%;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--ids-progress-gap);
+    min-width: 0;
+    color: inherit;
+}
+
+.intent-progress.is-framed {
+    padding: 12px;
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 40%, transparent);
+}
+
+.intent-progress.is-disabled {
+    opacity: 0.62;
+    pointer-events: none;
+}
+
+.intent-progress .intent-progress-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ids-progress-gap);
+    min-width: 0;
+}
+
+/* ============================================================================
+   Header
+============================================================================ */
+
+.intent-progress .intent-progress-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+}
+
+.intent-progress .intent-progress-copy {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.intent-progress .intent-progress-copyText {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.intent-progress .intent-progress-icon {
+    width: var(--ids-progress-icon-size);
+    height: var(--ids-progress-icon-size);
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.9;
+}
+
+.intent-progress .intent-progress-label {
+    font-size: var(--ids-progress-label-size);
+    line-height: 1.2;
+    font-weight: 600;
+    min-width: 0;
+}
+
+.intent-progress .intent-progress-caption {
+    font-size: var(--ids-progress-caption-size);
+    line-height: 1.25;
+    opacity: 0.72;
+    min-width: 0;
+}
+
+.intent-progress .intent-progress-value {
+    flex: 0 0 auto;
+    font-size: var(--ids-progress-value-size);
+    line-height: 1.2;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.88;
+}
+
+.intent-progress .intent-progress-valueInside {
+    position: absolute;
+    inset: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    color: color-mix(in oklab, white 88%, currentColor);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.24);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* ============================================================================
+   Main / track / fill
+============================================================================ */
+
+.intent-progress .intent-progress-main {
+    min-width: 0;
+    display: flex;
+}
+
+.intent-progress .intent-progress-track {
+    position: relative;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: clip;
+    isolation: isolate;
+    border-radius: var(--ids-progress-radius);
+
+    background: linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--intent-bg) 90%, transparent),
+        color-mix(in oklab, var(--intent-bg) 72%, transparent)
+    );
+
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 45%, transparent),
+        inset 0 1px 2px color-mix(in oklab, black 16%, transparent);
+}
+
+.intent-progress .intent-progress-fill {
+    position: relative;
+    display: block;
+    border-radius: inherit;
+    overflow: hidden;
+
+    background: linear-gradient(
+        90deg,
+        color-mix(in oklab, var(--intent-accent, currentColor) 82%, white 18%),
+        color-mix(in oklab, var(--intent-accent, currentColor) 100%, transparent)
+    );
+
+    box-shadow:
+        inset 0 -1px 1px color-mix(in oklab, black 12%, transparent),
+        0 0 18px color-mix(in oklab, var(--intent-accent, currentColor) 28%, transparent);
+
+    transition:
+        width 220ms ease,
+        height 220ms ease,
+        transform 180ms ease,
+        opacity 180ms ease;
+}
+
+/* ============================================================================
+   Horizontal
+============================================================================ */
+
+.ids-progress-horizontal .intent-progress-track {
+    width: 100%;
+    height: var(--ids-progress-track-size);
+}
+
+.ids-progress-horizontal .intent-progress-fill {
+    width: var(--ids-progress-fill-size);
+    height: 100%;
+}
+
+.ids-progress-horizontal.is-indeterminate .intent-progress-fill {
+    width: 38%;
+    min-width: 24px;
+    animation: ids-progress-indeterminate-x 1.25s ease-in-out infinite;
+}
+
+.ids-progress-horizontal .intent-progress-marker {
+    position: absolute;
+    top: 50%;
+    left: var(--ids-progress-marker-position);
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: calc(100% + 6px);
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--intent-ink) 78%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklab, white 16%, transparent);
+    opacity: 0.9;
+    z-index: 2;
+}
+
+/* ============================================================================
+   Vertical
+============================================================================ */
+
+.ids-progress-vertical {
+    align-items: flex-start;
+}
+
+.ids-progress-vertical .intent-progress-main {
+    align-items: stretch;
+}
+
+.ids-progress-vertical .intent-progress-track {
+    width: var(--ids-progress-track-size);
+    height: 160px;
+}
+
+.ids-progress-vertical .intent-progress-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--ids-progress-fill-size);
+}
+
+.ids-progress-vertical.is-indeterminate .intent-progress-fill {
+    width: 100%;
+    height: 34%;
+    min-height: 20px;
+    animation: ids-progress-indeterminate-y 1.25s ease-in-out infinite;
+}
+
+.ids-progress-vertical .intent-progress-marker {
+    position: absolute;
+    left: 50%;
+    bottom: var(--ids-progress-marker-position);
+    transform: translate(-50%, 50%);
+    width: calc(100% + 6px);
+    height: 2px;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--intent-ink) 78%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklab, white 16%, transparent);
+    opacity: 0.9;
+    z-index: 2;
+}
+
+/* ============================================================================
+   Stripes / pulse
+============================================================================ */
+
+.intent-progress.is-striped .intent-progress-fill::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+        135deg,
+        color-mix(in oklab, white 20%, transparent) 25%,
+        transparent 25%,
+        transparent 50%,
+        color-mix(in oklab, white 20%, transparent) 50%,
+        color-mix(in oklab, white 20%, transparent) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 18px 18px;
+    opacity: 0.42;
+    pointer-events: none;
+}
+
+.intent-progress.is-striped.is-animated .intent-progress-fill::before {
+    animation: ids-progress-stripes 0.9s linear infinite;
+}
+
+.intent-progress.is-pulse .intent-progress-fill {
+    animation: ids-progress-pulse 1.8s ease-in-out infinite;
+}
+
+.intent-progress.is-indeterminate.is-pulse .intent-progress-fill {
+    animation:
+        ids-progress-indeterminate-x 1.25s ease-in-out infinite,
+        ids-progress-pulse 1.8s ease-in-out infinite;
+}
+
+.ids-progress-vertical.is-indeterminate.is-pulse .intent-progress-fill {
+    animation:
+        ids-progress-indeterminate-y 1.25s ease-in-out infinite,
+        ids-progress-pulse 1.8s ease-in-out infinite;
+}
+
+/* ============================================================================
+   Radius hooks
+============================================================================ */
+
+.ids-progress-radius-sm {
+    --ids-progress-radius: 8px;
+}
+
+.ids-progress-radius-md {
+    --ids-progress-radius: 12px;
+}
+
+.ids-progress-radius-lg {
+    --ids-progress-radius: 16px;
+}
+
+.ids-progress-radius-full {
+    --ids-progress-radius: 999px;
+}
+
+/* ============================================================================
+   Value position hooks
+============================================================================ */
+
+.ids-progress-value-none .intent-progress-valueText {
+    display: none;
+}
+
+/* ============================================================================
+   Size hooks
+============================================================================ */
+
+.ids-progress-xs {
+    --ids-progress-track-size: 6px;
+    --ids-progress-gap: 8px;
+    --ids-progress-label-size: 11px;
+    --ids-progress-caption-size: 10px;
+    --ids-progress-value-size: 10px;
+    --ids-progress-icon-size: 12px;
+}
+
+.ids-progress-sm {
+    --ids-progress-track-size: 8px;
+    --ids-progress-gap: 8px;
+    --ids-progress-label-size: 12px;
+    --ids-progress-caption-size: 11px;
+    --ids-progress-value-size: 11px;
+    --ids-progress-icon-size: 14px;
+}
+
+.ids-progress-md {
+    --ids-progress-track-size: 10px;
+    --ids-progress-gap: 10px;
+    --ids-progress-label-size: 13px;
+    --ids-progress-caption-size: 12px;
+    --ids-progress-value-size: 12px;
+    --ids-progress-icon-size: 16px;
+}
+
+.ids-progress-lg {
+    --ids-progress-track-size: 14px;
+    --ids-progress-gap: 12px;
+    --ids-progress-label-size: 14px;
+    --ids-progress-caption-size: 12px;
+    --ids-progress-value-size: 12px;
+    --ids-progress-icon-size: 18px;
+}
+
+.ids-progress-xl {
+    --ids-progress-track-size: 18px;
+    --ids-progress-gap: 14px;
+    --ids-progress-label-size: 15px;
+    --ids-progress-caption-size: 13px;
+    --ids-progress-value-size: 13px;
+    --ids-progress-icon-size: 20px;
+}
+
+/* ============================================================================
+   Animations
+============================================================================ */
+
+@keyframes ids-progress-indeterminate-x {
+    0% {
+        transform: translateX(-110%);
+    }
+    50% {
+        transform: translateX(80%);
+    }
+    100% {
+        transform: translateX(260%);
+    }
+}
+
+@keyframes ids-progress-indeterminate-y {
+    0% {
+        transform: translateY(110%);
+    }
+    50% {
+        transform: translateY(-20%);
+    }
+    100% {
+        transform: translateY(-240%);
+    }
+}
+
+@keyframes ids-progress-stripes {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 18px 0;
+    }
+}
+
+@keyframes ids-progress-pulse {
+    0%,
+    100% {
+        filter: brightness(1);
+        box-shadow:
+            inset 0 -1px 1px color-mix(in oklab, black 12%, transparent),
+            0 0 14px color-mix(in oklab, var(--intent-accent, currentColor) 18%, transparent);
+    }
+    50% {
+        filter: brightness(1.06);
+        box-shadow:
+            inset 0 -1px 1px color-mix(in oklab, black 12%, transparent),
+            0 0 22px color-mix(in oklab, var(--intent-accent, currentColor) 30%, transparent);
+    }
+}
+
+/* ============================================================================
+   Reduced motion
+============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .intent-progress .intent-progress-fill,
+    .intent-progress .intent-progress-fill::before {
+        animation: none !important;
+        transition: none;
+    }
+}

@@ -1,16 +1,28 @@
-// src/lib/colors/colorHelpers.ts
-// Color helpers
-// - Conversions: hex <-> rgb, hsl <-> rgb, css -> rgb
-// - Utils: clamp, mix, withAlpha, luminance, contrast, readableText, toCss()
-// - No dependencies
+/* ============================================================================
+   src/helpers/colors.ts
+   Intent Design System – Color helpers
+   - Conversions: hex <-> rgb, hsl <-> rgb, css -> rgb
+   - Utils: mix, withAlpha, luminance, contrast, readable text
+   - Depends only on ./core
+============================================================================ */
+
+import {
+    clamp,
+    clamp01,
+    parseNumberOrPercent,
+    round,
+    splitCssArgs,
+    isFiniteNumber,
+    clamp255,
+} from "./core";
 
 /* ============================================================================
-   TYPES
+   Types
 ============================================================================ */
 
 export type Rgb = { r: number; g: number; b: number };
 export type Rgba = { r: number; g: number; b: number; a: number };
-export type Hsl = { h: number; s: number; l: number }; // h: 0..360, s/l: 0..100
+export type Hsl = { h: number; s: number; l: number };
 export type Hsla = { h: number; s: number; l: number; a: number };
 
 export type ParsedColor =
@@ -19,27 +31,6 @@ export type ParsedColor =
     | { kind: "hsl"; value: Hsl }
     | { kind: "hsla"; value: Hsla }
     | { kind: "hex"; value: string };
-
-/* ============================================================================
-   CORE HELPERS
-============================================================================ */
-
-export function clamp(n: number, min: number, max: number) {
-    return Math.max(min, Math.min(max, n));
-}
-
-export function clamp01(n: number) {
-    return clamp(n, 0, 1);
-}
-
-export function round(n: number, digits = 3) {
-    const p = 10 ** digits;
-    return Math.round(n * p) / p;
-}
-
-export function isFiniteNumber(n: unknown): n is number {
-    return typeof n === "number" && Number.isFinite(n);
-}
 
 /* ============================================================================
    HEX
@@ -59,10 +50,7 @@ export function normalizeHex(hex: string): string | null {
         const b0 = raw.charAt(2);
         if (!r0 || !g0 || !b0) return null;
 
-        const r = r0 + r0;
-        const g = g0 + g0;
-        const b = b0 + b0;
-        return `#${r}${g}${b}`.toLowerCase();
+        return `#${r0}${r0}${g0}${g0}${b0}${b0}`.toLowerCase();
     }
 
     if (raw.length === 4) {
@@ -72,11 +60,7 @@ export function normalizeHex(hex: string): string | null {
         const a0 = raw.charAt(3);
         if (!r0 || !g0 || !b0 || !a0) return null;
 
-        const r = r0 + r0;
-        const g = g0 + g0;
-        const b = b0 + b0;
-        const a = a0 + a0;
-        return `#${r}${g}${b}${a}`.toLowerCase();
+        return `#${r0}${r0}${g0}${g0}${b0}${b0}${a0}${a0}`.toLowerCase();
     }
 
     if (raw.length === 6) return `#${raw}`.toLowerCase();
@@ -117,7 +101,6 @@ export function rgbaToHex(rgba: Rgba, opts?: { withAlpha?: boolean }) {
     const a = clamp01(rgba.a);
 
     const to2 = (n: number) => n.toString(16).padStart(2, "0");
-
     const base = `#${to2(r)}${to2(g)}${to2(b)}`.toLowerCase();
 
     if (opts?.withAlpha) {
@@ -132,15 +115,18 @@ export function rgbToHex(rgb: Rgb) {
     return rgbaToHex({ ...rgb, a: 1 });
 }
 
+export function rgbToString(rgb: Rgb): string {
+    return `${clamp255(rgb.r)} ${clamp255(rgb.g)} ${clamp255(rgb.b)}`;
+}
+
 /* ============================================================================
    RGB(A) <-> HSL(A)
 ============================================================================ */
 
-/** rgb (0..255) -> hsl (h 0..360, s/l 0..100) */
 export function rgbToHsl(rgb: Rgb): Hsl {
-    let r = clamp(rgb.r, 0, 255) / 255;
-    let g = clamp(rgb.g, 0, 255) / 255;
-    let b = clamp(rgb.b, 0, 255) / 255;
+    const r = clamp(rgb.r, 0, 255) / 255;
+    const g = clamp(rgb.g, 0, 255) / 255;
+    const b = clamp(rgb.b, 0, 255) / 255;
 
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
@@ -165,7 +151,7 @@ export function rgbToHsl(rgb: Rgb): Hsl {
                 break;
         }
 
-        h = h * 60;
+        h *= 60;
         if (h < 0) h += 360;
     }
 
@@ -176,7 +162,6 @@ export function rgbToHsl(rgb: Rgb): Hsl {
     };
 }
 
-/** hsl (h 0..360, s/l 0..100) -> rgb (0..255) */
 export function hslToRgb(hsl: Hsl): Rgb {
     const h = ((hsl.h % 360) + 360) % 360;
     const s = clamp(hsl.s, 0, 100) / 100;
@@ -198,26 +183,20 @@ export function hslToRgb(hsl: Hsl): Rgb {
     if (h < 60) {
         rp = c;
         gp = x;
-        bp = 0;
     } else if (h < 120) {
         rp = x;
         gp = c;
-        bp = 0;
     } else if (h < 180) {
-        rp = 0;
         gp = c;
         bp = x;
     } else if (h < 240) {
-        rp = 0;
         gp = x;
         bp = c;
     } else if (h < 300) {
         rp = x;
-        gp = 0;
         bp = c;
     } else {
         rp = c;
-        gp = 0;
         bp = x;
     }
 
@@ -239,35 +218,9 @@ export function rgbaToHsla(rgba: Rgba): Hsla {
 }
 
 /* ============================================================================
-   CSS STRING PARSING (best-effort)
+   CSS string parsing
 ============================================================================ */
 
-function parseNumberOrPercent(x: string): { value: number; isPercent: boolean } | null {
-    const s = x.trim();
-    if (!s) return null;
-
-    const isPercent = s.endsWith("%");
-    const n = Number(isPercent ? s.slice(0, -1) : s);
-    if (!Number.isFinite(n)) return null;
-
-    return { value: n, isPercent };
-}
-
-function splitCssArgs(args: string): string[] {
-    // supports both "a, b, c" and "a b c / d" styles
-    return args
-        .trim()
-        .replace(/\s*\/\s*/g, " / ")
-        .split(/[\s,]+/)
-        .filter(Boolean);
-}
-
-/**
- * Parse CSS color strings:
- * - #rgb/#rgba/#rrggbb/#rrggbbaa
- * - rgb(), rgba() (comma or space-separated)
- * - hsl(), hsla()
- */
 export function parseCssColor(input: string): ParsedColor | null {
     const s = input.trim();
 
@@ -285,8 +238,6 @@ export function parseCssColor(input: string): ParsedColor | null {
     if (!fnRaw || body === undefined) return null;
 
     const fn = fnRaw.toLowerCase();
-
-    // Split but preserve "/" token for alpha in modern syntax
     const parts = splitCssArgs(body);
     const slashIdx = parts.indexOf("/");
     const hasSlash = slashIdx >= 0;
@@ -348,7 +299,6 @@ export function parseCssColor(input: string): ParsedColor | null {
     return null;
 }
 
-/** Convert any supported CSS color string to RGBA (best-effort) */
 export function cssColorToRgba(input: string): Rgba | null {
     const parsed = parseCssColor(input);
     if (!parsed) return null;
@@ -363,7 +313,7 @@ export function cssColorToRgba(input: string): Rgba | null {
 }
 
 /* ============================================================================
-   OUTPUT HELPERS
+   Output helpers
 ============================================================================ */
 
 export function toCssRgb(rgb: Rgb) {
@@ -397,7 +347,7 @@ export function toCssHsla(hsla: Hsla) {
 }
 
 /* ============================================================================
-   COLOR OPS
+   Color ops
 ============================================================================ */
 
 export function withAlpha(rgb: Rgb, a: number): Rgba {
@@ -408,17 +358,15 @@ export function multiplyAlpha(rgba: Rgba, factor: number): Rgba {
     return { ...rgba, a: clamp01(rgba.a * factor) };
 }
 
-/** Linear mix in RGB space (good for UI tints). t in [0..1] */
-export function mixRgb(a: Rgb, b: Rgb, t: number): Rgb {
-    const k = clamp01(t);
-    return {
-        r: Math.round(a.r + (b.r - a.r) * k),
-        g: Math.round(a.g + (b.g - a.g) * k),
-        b: Math.round(a.b + (b.b - a.b) * k),
-    };
-}
+// export function mixRgb(a: Rgb, b: Rgb, t: number): Rgb {
+//     const k = clamp01(t);
+//     return {
+//         r: Math.round(a.r + (b.r - a.r) * k),
+//         g: Math.round(a.g + (b.g - a.g) * k),
+//         b: Math.round(a.b + (b.b - a.b) * k),
+//     };
+// }
 
-/** Relative luminance (sRGB) per WCAG */
 export function relativeLuminance(rgb: Rgb): number {
     const srgb = [rgb.r, rgb.g, rgb.b].map((v) => clamp(v, 0, 255) / 255);
     const lin = srgb.map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
@@ -428,7 +376,6 @@ export function relativeLuminance(rgb: Rgb): number {
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/** Contrast ratio (WCAG). 1..21 */
 export function contrastRatio(a: Rgb, b: Rgb): number {
     const L1 = relativeLuminance(a);
     const L2 = relativeLuminance(b);
@@ -437,7 +384,6 @@ export function contrastRatio(a: Rgb, b: Rgb): number {
     return round((hi + 0.05) / (lo + 0.05), 3);
 }
 
-/** Choose readable text (black/white) for a background color */
 export function readableTextColor(bg: Rgb, opts?: { light?: Rgb; dark?: Rgb }) {
     const light = opts?.light ?? { r: 255, g: 255, b: 255 };
     const dark = opts?.dark ?? { r: 0, g: 0, b: 0 };
@@ -449,7 +395,7 @@ export function readableTextColor(bg: Rgb, opts?: { light?: Rgb; dark?: Rgb }) {
 }
 
 /* ============================================================================
-   CONVENIENCE WRAPPERS
+   Convenience wrappers
 ============================================================================ */
 
 export function hexToHsl(hex: string): Hsl | null {
@@ -467,4 +413,132 @@ export function cssColorToHex(input: string, opts?: { withAlpha?: boolean }): st
 
     const hexOpts = opts?.withAlpha === undefined ? undefined : { withAlpha: opts.withAlpha };
     return rgbaToHex(rgba, hexOpts);
+}
+
+// export function rgbToCssRgb(rgb: Rgb) {
+//     return `${rgb.r} ${rgb.g} ${rgb.b}`;
+// }
+
+/**
+ * Parses a CSS-ish color string into RGB.
+ * Accepts:
+ * - "59 130 246"
+ * - "59,130,246"
+ * - "rgb(59, 130, 246)"
+ * - "#3b82f6"
+ */
+export function parseToRgb(input: string): Rgb | null {
+    const v = (input ?? "").trim();
+
+    if (/^#?[0-9a-fA-F]{6}$/.test(v)) {
+        const hex = v.startsWith("#") ? v.slice(1) : v;
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        return { r, g, b };
+    }
+
+    const rgbFn = v.match(
+        /rgb\s*\(\s*([0-9]{1,3})\s*[, ]\s*([0-9]{1,3})\s*[, ]\s*([0-9]{1,3})\s*\)/i
+    );
+    if (rgbFn) {
+        const r = Number(rgbFn[1]);
+        const g = Number(rgbFn[2]);
+        const b = Number(rgbFn[3]);
+
+        if ([r, g, b].every((n) => isFiniteNumber(n) && n >= 0 && n <= 255)) {
+            return { r, g, b };
+        }
+
+        return null;
+    }
+
+    const parts = v.split(/[\s,]+/).filter(Boolean);
+    if (parts.length >= 3) {
+        const r = Number(parts[0]);
+        const g = Number(parts[1]);
+        const b = Number(parts[2]);
+
+        if ([r, g, b].every((n) => isFiniteNumber(n) && n >= 0 && n <= 255)) {
+            return { r, g, b };
+        }
+    }
+
+    return null;
+}
+
+/* ============================================================================
+   IDS color / gradient helpers
+============================================================================ */
+
+export function tailwindColorVar(family: string, step: number) {
+    return `var(--ids-color-${family}-${step})`;
+}
+
+export function lighten(rgb: Rgb, amount: number): Rgb {
+    const mix = (channel: number) => Math.round(channel + (255 - channel) * clamp01(amount));
+
+    return {
+        r: mix(rgb.r),
+        g: mix(rgb.g),
+        b: mix(rgb.b),
+    };
+}
+
+export function darken(rgb: Rgb, amount: number): Rgb {
+    const mix = (channel: number) => Math.round(channel * (1 - clamp01(amount)));
+
+    return {
+        r: mix(rgb.r),
+        g: mix(rgb.g),
+        b: mix(rgb.b),
+    };
+}
+
+export function toTransparent(color: string, alpha = 0.1) {
+    const c = color.trim();
+
+    if (c.startsWith("rgba(")) {
+        return c.replace(
+            /rgba\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)/,
+            `rgba($1,$2,$3,${alpha})`
+        );
+    }
+
+    if (c.startsWith("hsl(") && c.includes("/")) {
+        return c.replace(/\/\s*([0-9.]+)\s*\)/, `/ ${alpha})`);
+    }
+
+    return `rgba(0,0,0,${alpha})`;
+}
+
+export function radial(size: string, at: string, color: string, fadeAt: string, tailAlpha = 0.1) {
+    const transparentColor = toTransparent(color, tailAlpha);
+    return `radial-gradient(${size} at ${at}, ${color} 0%, ${transparentColor} ${fadeAt})`;
+}
+
+/**
+ * Mixes two RGB colors in sRGB (simple linear mix).
+ * amount=0 -> a, amount=1 -> b
+ */
+export function mixRgb(a: Rgb, b: Rgb, amount: number): Rgb {
+    const t = clamp01(amount);
+    const r = a.r + (b.r - a.r) * t;
+    const g = a.g + (b.g - a.g) * t;
+    const bch = a.b + (b.b - a.b) * t;
+
+    return {
+        r: clamp255(r),
+        g: clamp255(g),
+        b: clamp255(bch),
+    };
+}
+
+export function rgbToCssRgb(rgb: Rgb): string {
+    return `rgb(${clamp255(rgb.r)}, ${clamp255(rgb.g)}, ${clamp255(rgb.b)})`;
+}
+
+export function rgba(rgb: Rgb, alpha: number): string {
+    const a = clamp01(alpha);
+    return `rgba(${clamp255(rgb.r)},${clamp255(rgb.g)},${clamp255(rgb.b)},${a})`;
 }

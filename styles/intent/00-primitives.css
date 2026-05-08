@@ -41,11 +41,16 @@
 }
 
 .intent-text {
-    color: var(--intent-text, oklch(from rgb(var(--ids-ink)) l c h));
+    color: var(--intent-text, oklch(from rgb(var(--ids-ink)) l c h)) !important;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
 }
 
 .rounded-ids-2xl {
     border-radius: 1rem !important;
+}
+
+.rounded-ids-2xl_popover {
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
 }

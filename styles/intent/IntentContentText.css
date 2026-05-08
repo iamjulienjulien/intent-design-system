@@ -1,0 +1,185 @@
+/* ============================================================================
+   src/styles/components/intent-content-text.css
+   IntentContentText
+   - Intent-first text content
+   - Supports resolved text color, gradient text, glow shadow
+   - Typography helpers for narrative / labels / headings
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-content-text {
+    position: relative;
+    min-width: 0;
+    color: rgb(var(--intent-text));
+    text-decoration: none;
+    transition:
+        opacity 160ms ease,
+        text-shadow 160ms ease,
+        filter 160ms ease;
+}
+
+.intent-content-text-inline {
+    display: inline-flex;
+    vertical-align: middle;
+}
+
+.intent-content-text-block {
+    display: flex;
+    width: 100%;
+}
+
+/* ============================================================================
+   Content slots
+============================================================================ */
+
+.intent-content-text-leading,
+.intent-content-text-trailing {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    opacity: 0.9;
+}
+
+.intent-content-text-content {
+    min-width: 0;
+    display: inline;
+}
+
+/* ============================================================================
+   Visual modifiers
+============================================================================ */
+
+.intent-content-text-gradient {
+    color: transparent;
+}
+
+.intent-content-text-muted {
+    opacity: 0.72;
+}
+
+.intent-content-text-glow {
+    filter: saturate(1.04);
+}
+
+.intent-content-text-truncate {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.intent-content-text-nowrap {
+    white-space: nowrap;
+}
+
+.intent-content-text-pretty {
+    text-wrap: pretty;
+}
+
+.intent-content-text-balance {
+    text-wrap: balance;
+}
+
+/* ============================================================================
+   Sizes
+============================================================================ */
+
+.ids-content-text-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    letter-spacing: -0.01em;
+}
+
+.ids-content-text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    letter-spacing: -0.012em;
+}
+
+.ids-content-text-md {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    letter-spacing: -0.014em;
+}
+
+.ids-content-text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    letter-spacing: -0.016em;
+}
+
+.ids-content-text-xl {
+    font-size: 1.25rem;
+    line-height: 1.9rem;
+    letter-spacing: -0.018em;
+}
+
+.ids-content-text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    letter-spacing: -0.022em;
+}
+
+.ids-content-text-3xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    letter-spacing: -0.028em;
+}
+
+/* ============================================================================
+   Weights
+============================================================================ */
+
+.ids-content-text-regular {
+    font-weight: 400;
+}
+
+.ids-content-text-medium {
+    font-weight: 500;
+}
+
+.ids-content-text-semibold {
+    font-weight: 600;
+}
+
+.ids-content-text-bold {
+    font-weight: 700;
+}
+
+/* ============================================================================
+   Alignment helpers
+============================================================================ */
+
+.intent-content-text.text-center {
+    justify-content: center;
+}
+
+.intent-content-text.text-right {
+    justify-content: flex-end;
+}
+
+/* ============================================================================
+   Optional polish
+============================================================================ */
+
+.intent-content-text-gradient .intent-content-text-leading,
+.intent-content-text-gradient .intent-content-text-trailing {
+    color: rgb(var(--intent-text));
+}
+
+.intent-content-text[data-gradient="true"] .intent-content-text-content {
+    display: inline-block;
+}
+
+/* ============================================================================
+   Disabled
+============================================================================ */
+
+.intent-content-text[aria-disabled="true"],
+.intent-content-text.is-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}

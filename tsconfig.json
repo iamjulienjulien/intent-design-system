@@ -3,6 +3,18 @@
         "rootDir": ".",
         "outDir": "dist",
 
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["src/*"],
+            "CORE": ["src/core/index.ts"],
+            "CORE/*": ["src/core/*"],
+            "SYSTEM": ["src/system/index.ts"],
+            "SYSTEM/*": ["src/system/*"],
+            "COMPONENTS/*": ["src/components/*"],
+            "HELPERS": ["src/helpers/index.ts"],
+            "API": ["src/api/index.ts"]
+        },
+
         "module": "ESNext",
         "target": "ES2020",
         "types": [],

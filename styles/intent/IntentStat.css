@@ -1,0 +1,263 @@
+/* ============================================================================
+   styles/intent/IntentStat.css
+   IntentStat
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-stat {
+    display: block;
+    padding: var(--ids-stat-py, 14px) var(--ids-stat-px, 16px);
+
+    /* Default "surface-ish" framing uses your existing intent hooks: */
+    /* - intent-bg sets background via vars/classes
+       - intent-border sets border via vars/classes
+       Those are applied by getIntentControlProps + your global CSS */
+}
+
+/* Inner layout container */
+.intent-stat .intent-stat-inner {
+    display: block;
+}
+
+/* Header row: icon, body, right slot */
+.intent-stat .intent-stat-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ids-stat-gap, 12px);
+}
+
+/* Icon */
+.intent-stat .intent-stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: var(--ids-stat-icon, 28px);
+    height: var(--ids-stat-icon, 28px);
+
+    flex: 0 0 auto;
+
+    opacity: 0.95;
+}
+
+/* Main body column */
+.intent-stat .intent-stat-body {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+/* Right slot */
+.intent-stat .intent-stat-right {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Value + delta line */
+.intent-stat .intent-stat-main {
+    display: flex;
+    align-items: baseline;
+    gap: var(--ids-stat-main-gap, 10px);
+}
+
+.intent-stat .intent-stat-value {
+    font-size: var(--ids-stat-value-size, 22px);
+    line-height: var(--ids-stat-value-line, 1.1);
+    letter-spacing: var(--ids-stat-value-tracking, -0.02em);
+    font-weight: var(--ids-stat-value-weight, 650);
+}
+
+.intent-stat .intent-stat-label {
+    margin-top: 6px;
+    font-size: var(--ids-stat-label-size, 13px);
+    line-height: var(--ids-stat-label-line, 1.25);
+    opacity: 0.8;
+}
+
+.intent-stat .intent-stat-delta {
+    font-size: var(--ids-stat-delta-size, 13px);
+    line-height: 1.2;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 9999px;
+
+    background: color-mix(in oklab, var(--intent-accent, currentColor) 12%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--intent-accent, currentColor) 22%, transparent);
+}
+
+.intent-stat .intent-stat-delta-label {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.2;
+    opacity: 0.65;
+}
+
+/* ============================================================================
+   Trend styling (stable hooks)
+============================================================================ */
+
+.intent-stat.is-trend-up .intent-stat-delta {
+    background: color-mix(in oklab, var(--intent-accent, currentColor) 14%, transparent);
+}
+
+.intent-stat.is-trend-down .intent-stat-delta {
+    background: color-mix(in oklab, var(--intent-accent, currentColor) 10%, transparent);
+    opacity: 0.95;
+}
+
+.intent-stat.is-trend-neutral .intent-stat-delta {
+    opacity: 0.9;
+}
+
+/* Optional: add a tiny symbol via CSS (no extra DOM) */
+.intent-stat.is-trend-up .intent-stat-delta::before {
+    content: "↑";
+    margin-right: 6px;
+    opacity: 0.8;
+}
+.intent-stat.is-trend-down .intent-stat-delta::before {
+    content: "↓";
+    margin-right: 6px;
+    opacity: 0.8;
+}
+
+/* ============================================================================
+   Layout variants
+============================================================================ */
+
+/* Vertical: default */
+.ids-stat-vertical .intent-stat-header {
+    align-items: flex-start;
+}
+
+/* Horizontal: icon + value/label in a row-ish balance */
+.ids-stat-horizontal .intent-stat-header {
+    align-items: center;
+}
+.ids-stat-horizontal .intent-stat-label {
+    margin-top: 4px;
+}
+
+/* Alignments */
+.ids-stat-left {
+    text-align: left;
+}
+.ids-stat-center {
+    text-align: center;
+}
+.ids-stat-right {
+    text-align: right;
+}
+
+.ids-stat-center .intent-stat-header {
+    justify-content: center;
+}
+.ids-stat-right .intent-stat-header {
+    justify-content: flex-end;
+}
+
+/* ============================================================================
+   Loading skeleton
+============================================================================ */
+
+.intent-stat.is-loading .intent-stat-value,
+.intent-stat.is-loading .intent-stat-label,
+.intent-stat.is-loading .intent-stat-delta,
+.intent-stat.is-loading .intent-stat-delta-label {
+    visibility: hidden;
+}
+
+.intent-stat .intent-stat-skeleton {
+    display: grid;
+    gap: 8px;
+}
+
+.intent-stat .intent-stat-skel {
+    display: block;
+    border-radius: 10px;
+    height: 12px;
+
+    background: color-mix(in oklab, currentColor 10%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, currentColor 10%, transparent);
+
+    position: relative;
+    overflow: hidden;
+}
+
+.intent-stat .intent-stat-skel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in oklab, currentColor 10%, transparent),
+        transparent
+    );
+    transform: translateX(-60%);
+    animation: ids-stat-shimmer 1.2s linear infinite;
+}
+
+@keyframes ids-stat-shimmer {
+    0% {
+        transform: translateX(-60%);
+    }
+    100% {
+        transform: translateX(60%);
+    }
+}
+
+.intent-stat .intent-stat-skel-value {
+    height: 22px;
+    width: min(220px, 70%);
+}
+
+.intent-stat .intent-stat-skel-label {
+    width: min(260px, 85%);
+}
+
+.intent-stat .intent-stat-skel-delta {
+    width: 120px;
+}
+
+/* ============================================================================
+   Size hooks (tokens)
+============================================================================ */
+
+.ids-stat-sm {
+    --ids-stat-px: 14px;
+    --ids-stat-py: 12px;
+    --ids-stat-gap: 10px;
+    --ids-stat-icon: 24px;
+
+    --ids-stat-value-size: 20px;
+    --ids-stat-label-size: 12px;
+    --ids-stat-delta-size: 12px;
+}
+
+.ids-stat-md {
+    --ids-stat-px: 16px;
+    --ids-stat-py: 14px;
+    --ids-stat-gap: 12px;
+    --ids-stat-icon: 28px;
+
+    --ids-stat-value-size: 22px;
+    --ids-stat-label-size: 13px;
+    --ids-stat-delta-size: 13px;
+}
+
+.ids-stat-lg {
+    --ids-stat-px: 18px;
+    --ids-stat-py: 16px;
+    --ids-stat-gap: 14px;
+    --ids-stat-icon: 32px;
+
+    --ids-stat-value-size: 26px;
+    --ids-stat-label-size: 14px;
+    --ids-stat-delta-size: 13px;
+}

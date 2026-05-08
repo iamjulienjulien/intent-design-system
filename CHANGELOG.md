@@ -6,6 +6,102 @@ The format is inspired by _Keep a Changelog_ and follows _Semantic Versioning_.
 
 ---
 
+## [0.3.0] — 2026-05-08
+
+### 🚀 Major release — Architecture overhaul & full component library
+
+This release doubles the component count, refactors the internal architecture,
+and stabilizes the public API for long-term use.
+
+---
+
+### ➕ Added
+
+#### 🧱 Surfaces
+
+- **IntentSurfaceCard** — card surface with media, interactive and responsive variants
+- **IntentSurfacePanel** — panel surface with header, body and footer slots
+- **IntentSurfaceSkeleton** — loading placeholder with intent-driven shimmer
+- **IntentSurfaceWidget** — collapsible dashboard widget with dismiss support
+
+#### 🕹️ Controls
+
+- **IntentControlButtonGroup** — grouped button selection with toggle behavior
+- **IntentControlColor** — color picker with swatch, hex and alpha support
+- **IntentControlCombobox** — autocomplete / typeahead with filtering
+- **IntentControlDate** — split date input (day / month / year), ISO output
+- **IntentControlDropdown** — dropdown menu for contextual actions
+- **IntentControlFiles** — file upload with dropzone support
+- **IntentControlNavList** — navigational list for sidebars and menus
+- **IntentControlRange** — range / slider input
+- **IntentControlTime** — split time input (HH:MM)
+
+#### 🔔 Feedback
+
+- **IntentConfirmDialog** — intent-driven confirmation dialog
+- **IntentDrawer** — side panel overlay with intent states
+
+#### 📐 Layout
+
+- **IntentDialog** — modal dialog with intent-aware surface
+- **IntentPopover** — portal-based popover / tooltip
+- **IntentStepper** — step-by-step progression control
+- **IntentTimeline** — chronological event list
+- **IntentToolbar** — sticky action bar
+
+#### 🧬 Data & content
+
+- **IntentContentText** — semantic rich text block
+- **IntentLoader** — intent-driven loading spinner
+- **IntentPdfViewer** — inline PDF preview
+- **IntentProgressBar** — intent-driven progress indicator
+- **IntentStat** — metric / KPI display
+
+#### 🎨 Design
+
+- **IntentThemePreview** — visual intent palette preview
+
+#### 🌳 Genealogy
+
+- **IntentGenealogyHierarchy** — SVG-based family tree / hierarchy viewer
+
+#### 🧠 System
+
+- Public export of the **component registry** (`src/system/registry.ts`)  
+  — `COMPONENT_REGISTRY`, `searchComponents`, `getComponentByKey`, identity and props accessors
+
+- **zustand `^5.0.11`** added as runtime dependency (powers internal state stores)
+
+---
+
+### 🔄 Changed
+
+- **Architecture refactored**: `src/lib/` removed, replaced by a clean modular structure:
+    - `src/system/` — types, constants, helpers, docProps, registry
+    - `src/core/` — intent resolver, store, config
+    - `src/api/` — Theme, Defaults
+    - `src/helpers/` — color utilities, core helpers, theme helpers
+
+- **CSS architecture**: monolithic `styles/intent.css` removed, replaced by
+  individual per-component files — better tree-shaking and partial imports
+
+- **peerDependency `tailwindcss`**: `>=3.4` → `>=4.0` (aligned with actual usage)
+
+---
+
+### 🐛 Fixed
+
+- `INTENT_DESIGN_SYSTEM_VERSION` was stale at `"0.1.0"` — corrected to `"0.3.0"`
+
+---
+
+### 🗑️ Removed
+
+- **IntentControlSelectOld** — dead code, was never exported nor referenced
+- `src/lib/` — replaced entirely by the new modular architecture
+
+---
+
 ## [0.2.2] — 2026-02-04
 
 ### ✨ Minor release — Form controls expansion

@@ -1,0 +1,115 @@
+/* styles/intent/IntentControlTime.css
+   IntentControlTime
+============================================================================ */
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-control.intent-control-time {
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+    min-width: 0;
+}
+
+/* Standalone slots */
+.intent-control.intent-control-time .intent-control-time-leading,
+.intent-control.intent-control-time .intent-control-time-trailing {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 calc(var(--ids-control-px, 0.85rem) * 0.6);
+    opacity: 0.8;
+    user-select: none;
+}
+
+/* ============================================================================
+   Inputs
+============================================================================ */
+
+.intent-control-time-el {
+    width: 100%;
+    min-width: 0;
+    font-size: var(--ids-control-fs, 0.875rem);
+    line-height: 1.2;
+    color: var(--intent-ink);
+    caret-color: var(--intent-ink);
+    background: transparent;
+    outline: none;
+    border: 0;
+}
+
+/* Standalone: internal spacing */
+.intent-control-time-standalone.intent-control-time-el {
+    height: var(--ids-control-h, 36px);
+    padding: 0 var(--ids-control-px, 0.85rem);
+}
+
+/* Naked (insideField): no padding */
+.intent-control-time-naked.intent-control-time-el {
+    padding: 0;
+    height: auto;
+}
+
+/* Placeholder */
+.intent-control-time-el::placeholder {
+    color: color-mix(in oklab, var(--intent-ink) 95%, transparent);
+    opacity: 0.55;
+}
+
+/* Disabled/readonly hooks */
+.intent-control-time-el.is-disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.intent-control-time-el.is-readonly {
+    opacity: 0.9;
+}
+
+/* ============================================================================
+   Split layout
+============================================================================ */
+
+.intent-control-time-split {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.intent-control-time-part {
+    width: auto;
+    min-width: 0;
+    text-align: center;
+    width: 3.2ch;
+}
+
+.intent-control-time-sep {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.55;
+    user-select: none;
+}
+
+.intent-control.intent-control-time .intent-control-time-split {
+    flex: 1 1 auto;
+}
+
+.intent-control-time-split.split-part,
+.intent-control-time-split.split-part .intent-control-time-el {
+    width: 100%;
+}
+
+/* ============================================================================
+   Mode hooks
+============================================================================ */
+
+.intent-control.intent-control-time.is-split {
+    /* reserved hook */
+}
+
+.intent-control.intent-control-time.is-single {
+    /* reserved hook */
+}

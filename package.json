@@ -1,6 +1,6 @@
 {
     "name": "intent-design-system",
-    "version": "0.2.3",
+    "version": "0.3.0",
     "private": false,
     "type": "module",
     "license": "MIT",
@@ -12,10 +12,13 @@
     "bugs": {
         "url": "https://github.com/iamjulienjulien/intent-design-system/issues"
     },
+    "dependencies": {
+        "zustand": "^5.0.11"
+    },
     "peerDependencies": {
         "react": ">=18",
         "react-dom": ">=18",
-        "tailwindcss": ">=3.4"
+        "tailwindcss": ">=4.0"
     },
     "devDependencies": {
         "@types/react": "^19.2.10",

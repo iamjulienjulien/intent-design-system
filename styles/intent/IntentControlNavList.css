@@ -1,0 +1,251 @@
+/* src/components/intent/intent-control-navlist.css */
+/* IntentControlNavList
+   - Vertical navigation list (sidebar-style)
+   - Stable hooks only
+   - Wrapper + items can be intent-resolved
+*/
+
+/* ============================================================================
+   Root / inner
+============================================================================ */
+
+.intent-control-navlist {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    overflow: clip;
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+    isolation: isolate;
+}
+
+.intent-control-navlist.is-disabled {
+    opacity: 0.75;
+}
+
+.intent-navlist-inner {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* Header/Footer */
+.intent-navlist-header,
+.intent-navlist-footer {
+    padding: 0.85rem 0.9rem;
+    min-width: 0;
+}
+
+.intent-navlist-separator {
+    height: 1px;
+    width: 100%;
+    background: color-mix(in oklab, var(--intent-border) 55%, transparent);
+    opacity: 0.55;
+}
+
+/* List container */
+.intent-navlist-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.35rem;
+    min-width: 0;
+    outline: none;
+}
+
+.intent-navlist-list:focus-visible {
+    box-shadow:
+        0 0 0 2px color-mix(in oklab, var(--intent-ring) 34%, transparent),
+        0 0 0 6px color-mix(in oklab, var(--intent-ring) 12%, transparent);
+    border-radius: calc(var(--ids-radius-2xl, 1.25rem) - 0.35rem);
+}
+
+/* ============================================================================
+   Item base
+============================================================================ */
+
+.intent-navlist-item {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+
+    width: 100%;
+    min-width: 0;
+
+    border: 0;
+    background: transparent;
+    text-decoration: none;
+    color: inherit;
+
+    border-radius: var(--ids-radius-xl, 1rem);
+    overflow: clip;
+
+    cursor: pointer;
+    user-select: none;
+
+    transition:
+        transform 120ms ease,
+        opacity 160ms ease,
+        background 180ms ease,
+        box-shadow 180ms ease,
+        border-color 180ms ease;
+}
+
+/* Content wrapper to sit above optional glow layers */
+.intent-navlist-item-content {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+
+    width: 100%;
+    min-width: 0;
+}
+
+/* Item padding controlled by size+density hooks */
+.intent-navlist-item {
+    padding: 0.65rem 0.75rem;
+}
+
+/* Hover / active feedback */
+.intent-navlist-item:hover:not(.is-disabled) {
+    background: color-mix(in oklab, var(--intent-bg) 10%, transparent);
+}
+
+.intent-navlist-item:active:not(.is-disabled) {
+    transform: translateY(0.5px);
+}
+
+.intent-navlist-item:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 2px color-mix(in oklab, var(--intent-ring) 36%, transparent),
+        0 0 0 6px color-mix(in oklab, var(--intent-ring) 14%, transparent);
+}
+
+/* Active state (kept subtle; item itself may have its own intent vars too) */
+.intent-navlist-item.is-active:not(.is-disabled) {
+    background: color-mix(in oklab, var(--intent-bg) 16%, transparent);
+    box-shadow: 0 14px 32px rgb(0 0 0 / 0.22);
+}
+
+/* Disabled */
+.intent-navlist-item.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Readonly (blocks interaction via JS, but keep calm cursor) */
+.intent-control-navlist.is-readonly .intent-navlist-item {
+    cursor: default;
+}
+
+/* Dangerous hook */
+.intent-navlist-item.is-dangerous .intent-navlist-item-label {
+    color: color-mix(in oklab, var(--intent-ink) 45%, rgb(255 80 80));
+}
+
+/* ============================================================================
+   Item layout parts
+============================================================================ */
+
+.intent-navlist-item-icon {
+    width: 1.15rem;
+    height: 1.15rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    opacity: 0.9;
+}
+
+.intent-navlist-item-icon.is-empty {
+    opacity: 0;
+}
+
+.intent-navlist-item-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+}
+
+.intent-navlist-item-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-size: 0.92rem;
+    line-height: 1.15rem;
+    font-weight: 600;
+}
+
+.intent-navlist-item-desc {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-size: 0.78rem;
+    line-height: 1rem;
+    opacity: 0.68;
+}
+
+.intent-navlist-item-meta {
+    flex: 0 0 auto;
+    font-size: 0.78rem;
+    line-height: 1rem;
+    opacity: 0.65;
+}
+
+/* ============================================================================
+   Density hooks
+============================================================================ */
+
+.intent-control-navlist.is-compact .intent-navlist-list {
+    gap: 0.18rem;
+    padding: 0.3rem;
+}
+
+.intent-control-navlist.is-compact .intent-navlist-item {
+    padding: 0.55rem 0.65rem;
+}
+
+.intent-control-navlist.is-comfortable .intent-navlist-item {
+    padding: 0.7rem 0.8rem;
+}
+
+/* ============================================================================
+   Size hooks
+============================================================================ */
+
+.ids-navlist-xs .intent-navlist-header,
+.ids-navlist-xs .intent-navlist-footer {
+    padding: 0.65rem 0.7rem;
+}
+
+.ids-navlist-xs .intent-navlist-item-label {
+    font-size: 0.82rem;
+}
+
+.ids-navlist-xs .intent-navlist-item-desc {
+    font-size: 0.72rem;
+}
+
+.ids-navlist-sm .intent-navlist-item-label {
+    font-size: 0.86rem;
+}
+
+.ids-navlist-md .intent-navlist-item-label {
+    font-size: 0.92rem;
+}
+
+.ids-navlist-lg .intent-navlist-item-label {
+    font-size: 0.98rem;
+}

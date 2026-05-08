@@ -2,8 +2,8 @@
    styles/intent/IntentControlSelect.css
    IntentControlSelect
    - Stable hooks only
-   - Popover should NOT be transparent by default
-   - ✅ Updated: harmonized sizing tokens with DS controls (ids-control-*)
+   - Supports portal / multiple / searchable / groups / custom option rendering
+   - Portal-safe: popover styles also work when detached from .intent-control-select root
 ============================================================================ */
 
 /* ============================================================================
@@ -14,62 +14,18 @@
     position: relative;
     min-width: 0;
     overflow: visible;
-
-    /* ✅ shared control tokens (default = md) */
-    /* --ids-control-h: 36px;
-    --ids-control-px: 0.85rem;
-    --ids-control-fs: 0.875rem; */
 }
 
-/* fullWidth is handled by class on root in TSX */
 .intent-control.intent-control-select.w-full {
     width: 100%;
 }
 
-/* ✅ Naked mode: when wrapped by IntentControlField, the field owns visuals.
-   Keep vars on root, but remove standalone wrapper layout. */
 .intent-control.intent-control-select.intent-control-select-naked {
     display: block;
 }
 
 /* ============================================================================
-   Sizes (size hook is on ROOT)
-   - Map ids-select-* hooks to ids-control-* tokens (same as Input)
-============================================================================ */
-
-/* .intent-control.intent-control-select.ids-select-xs {
-    --ids-control-h: 28px;
-    --ids-control-px: 0.65rem;
-    --ids-control-fs: 0.8125rem;
-}
-
-.intent-control.intent-control-select.ids-select-sm {
-    /* --ids-control-h: 32px;
-    --ids-control-px: 0.75rem;
-    --ids-control-fs: 0.875rem; 
-}
-
-.intent-control.intent-control-select.ids-select-md {
-    --ids-control-h: 36px;
-    --ids-control-px: 0.85rem;
-    --ids-control-fs: 0.875rem;
-}
-
-.intent-control.intent-control-select.ids-select-lg {
-    --ids-control-h: 40px;
-    --ids-control-px: 0.95rem;
-    --ids-control-fs: 0.9375rem;
-}
-
-.intent-control.intent-control-select.ids-select-xl {
-    --ids-control-h: 44px;
-    --ids-control-px: 1.05rem;
-    --ids-control-fs: 1rem;
-} */
-
-/* ============================================================================
-   Standalone wrapper layout (leading / trigger / trailing)
-   - Works only when not insideField
+   Standalone wrapper layout
 ============================================================================ */
 
 .intent-control.intent-control-select.intent-control-select-standalone {
@@ -82,7 +38,6 @@
     display: flex;
 }
 
-/* Leading / trailing (standalone only) */
 .intent-control.intent-control-select.intent-control-select-standalone
     .intent-control-select-leading,
 .intent-control.intent-control-select.intent-control-select-standalone
@@ -99,7 +54,6 @@
     user-select: none;
 }
 
-/* Disabled state also dims slots */
 .intent-control.intent-control-select.is-disabled .intent-control-select-leading,
 .intent-control.intent-control-select.is-disabled .intent-control-select-trailing {
     opacity: 0.55;
@@ -119,13 +73,10 @@
     min-width: 0;
 
     border-radius: var(--ids-radius-2xl, 1.25rem);
-
-    /* paint comes from resolver helpers (.intent-bg/.intent-ring/.intent-text) */
     background: transparent;
     border: 0;
     color: inherit;
 
-    /* ✅ harmonized sizing */
     min-height: var(--ids-control-h);
     padding: 0 var(--ids-control-px);
     font-size: var(--ids-control-fs);
@@ -140,20 +91,17 @@
     user-select: none;
 }
 
-/* ✅ When standalone, trigger should flex inside root */
 .intent-control.intent-control-select.intent-control-select-standalone
     .intent-control-select-trigger {
     flex: 1 1 auto;
 }
 
-/* ✅ In naked mode, keep it visually neutral (Field owns visuals). */
 .intent-control.intent-control-select.intent-control-select-naked .intent-control-select-trigger {
     padding: 0;
     min-height: auto;
     border-radius: 0;
 }
 
-/* intent-bg should win (same pattern as button/link) */
 .intent-control.intent-control-select .intent-control-select-trigger.intent-bg {
     background-color: color-mix(
         in oklab,
@@ -162,13 +110,11 @@
     );
 }
 
-/* Baseline edge when there is no intent-ring (standalone only) */
 .intent-control.intent-control-select.intent-control-select-standalone
     .intent-control-select-trigger:not(.intent-ring) {
     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 22%, transparent);
 }
 
-/* Kill baseline in flat + ghost */
 .intent-control.intent-control-select[data-variant="flat"]
     .intent-control-select-trigger:not(.intent-ring),
 .intent-control.intent-control-select[data-variant="ghost"]
@@ -176,7 +122,6 @@
     box-shadow: none;
 }
 
-/* Hover polish (standalone only) */
 .intent-control.intent-control-select.intent-control-select-standalone:not(.is-disabled)
     .intent-control-select-trigger:hover:not(.intent-ring) {
     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 38%, transparent);
@@ -202,7 +147,6 @@
     cursor: not-allowed;
 }
 
-/* ✅ Invalid: subtle ring hint (standalone only; Field usually handles it) */
 .intent-control.intent-control-select.intent-control-select-standalone.is-invalid
     .intent-control-select-trigger:not(.intent-ring) {
     box-shadow:
@@ -210,7 +154,6 @@
         0 0 0 4px color-mix(in oklab, var(--intent-border) 22%, transparent);
 }
 
-/* Empty value */
 .intent-control.intent-control-select.is-empty .intent-control-value {
     opacity: 0.55;
 }
@@ -219,16 +162,82 @@
    Trigger content
 ============================================================================ */
 
+.intent-control.intent-control-select .intent-control-select-valueWrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .intent-control.intent-control-select .intent-control-value {
     flex: 1 1 auto;
     min-width: 0;
-
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     text-align: left;
-
     opacity: 0.92;
+}
+
+.intent-control.intent-control-select.is-multiple .intent-control-value {
+    white-space: normal;
+}
+
+.intent-control.intent-control-select .intent-control-select-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.intent-control.intent-control-select .intent-control-select-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+
+    max-width: 100%;
+    min-width: 0;
+
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+
+    font-size: 0.92em;
+    line-height: 1.15;
+
+    background: rgba(255, 255, 255, 0.08);
+    color: inherit;
+}
+
+.intent-control.intent-control-select[data-mode="light"] .intent-control-select-tag {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.intent-control.intent-control-select .intent-control-select-clear {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 999px;
+
+    opacity: 0.62;
+    cursor: pointer;
+    user-select: none;
+
+    transition:
+        opacity 120ms ease,
+        background 120ms ease,
+        transform 120ms ease;
+}
+
+.intent-control.intent-control-select .intent-control-select-clear:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.intent-control.intent-control-select[data-mode="light"] .intent-control-select-clear:hover {
+    background: rgba(0, 0, 0, 0.06);
 }
 
 .intent-control.intent-control-select .intent-control-chevron {
@@ -246,11 +255,11 @@
 }
 
 /* ============================================================================
-   Glow layers (inside trigger)
-   - Only positioning here; actual visuals in shared glow CSS
+   Glow layers
 ============================================================================ */
 
-.intent-control.intent-control-select .intent-glow-layer {
+.intent-control.intent-control-select .intent-glow-layer,
+.intent-control-popover .intent-glow-layer {
     position: absolute;
     inset: 0;
     border-radius: inherit;
@@ -259,23 +268,22 @@
 
 /* ============================================================================
    Popover
+   Portal-safe rules:
+   - .intent-control-popover must be fully styled even outside the root
 ============================================================================ */
 
-.intent-control.intent-control-select .intent-control-popover {
+.intent-control-popover {
     position: absolute;
     top: calc(100% + 0.5rem);
     z-index: 50;
 
     min-width: 100%;
-    max-width: 100%;
+    max-width: min(36rem, calc(100vw - 24px));
 
     border-radius: var(--ids-radius-2xl, 1.25rem);
 
-    /* IMPORTANT: not transparent by default */
     background-color: transparent;
-
     color: var(--intent-ink);
-
     overflow: hidden;
 
     box-shadow:
@@ -285,7 +293,21 @@
         var(--intent-elev-shadow, none);
 }
 
-.intent-control.intent-control-select .intent-control-popover::before {
+.intent-control.intent-control-select .intent-control-popover {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+}
+
+.intent-control-popover.is-portal {
+    top: auto;
+}
+
+.intent-control-select-popoverHost {
+    /* padding: 2px; */
+    overflow: visible;
+}
+
+.intent-control-popover::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -293,21 +315,25 @@
     pointer-events: none;
     z-index: 0;
 
-    /* Dark mode default */
     background-color: color-mix(in oklab, black 88%, var(--intent-bg, black) 12%);
     backdrop-filter: saturate(1.05);
 }
 
-.intent-control.intent-control-select .intent-control-popover > * {
+.intent-control-popover > * {
     position: relative;
     z-index: 1;
 }
 
-.intent-control.intent-control-select[data-mode="light"] .intent-control-popover::before {
+.intent-control-popover.is-portal-content-width {
+    width: max-content;
+    max-width: min(48rem, calc(100vw - 24px));
+}
+
+.intent-control.intent-control-select[data-mode="light"] .intent-control-popover::before,
+.intent-control-popover[data-mode="light"]::before {
     background-color: color-mix(in oklab, white 92%, var(--intent-bg, white) 8%);
 }
 
-/* alignment hooks on ROOT */
 .intent-control.intent-control-select.ids-popover-align-start .intent-control-popover {
     left: 0;
 }
@@ -316,8 +342,7 @@
     right: 0;
 }
 
-/* Optional: if you still want intent-bg to override popover fill explicitly */
-.intent-control.intent-control-select .intent-control-popover.intent-bg {
+.intent-control-popover.intent-bg {
     background-color: color-mix(
         in oklab,
         var(--intent-bg) calc(var(--intent-bg-opacity, 1) * 100%),
@@ -325,16 +350,8 @@
     );
 }
 
-/* Glow inside popover (positioning only) */
-.intent-control.intent-control-select .intent-control-popover .intent-glow-layer {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-}
-
-/* Light mode tweaks */
-.intent-control.intent-control-select[data-mode="light"] .intent-control-popover {
+.intent-control.intent-control-select[data-mode="light"] .intent-control-popover,
+.intent-control-popover[data-mode="light"] {
     background-color: color-mix(in oklab, var(--intent-bg) 92%, white 8%);
     box-shadow:
         0 24px 60px rgba(0, 0, 0, 0.12),
@@ -344,16 +361,56 @@
 }
 
 /* ============================================================================
+   Popover sizing
+   - Reuses canonical ids-control-* tokens
+============================================================================ */
+
+.intent-control-popover {
+    font-size: var(--ids-control-fs);
+    line-height: 1.2;
+}
+
+/* ============================================================================
+   Search
+============================================================================ */
+
+.intent-control-select-search {
+    position: relative;
+    z-index: 1;
+    padding: calc(var(--ids-control-gap) + 0.05rem) calc(var(--ids-control-gap) + 0.05rem) 0;
+}
+
+.intent-control-select-searchInput {
+    width: 100%;
+    min-height: calc(var(--ids-control-h) * 0.92);
+
+    border: 0;
+    outline: none;
+    border-radius: calc(var(--ids-control-h) * 0.33);
+
+    padding: calc(var(--ids-control-py) * 0.9) var(--ids-control-px);
+    font-size: var(--ids-control-fs);
+    line-height: 1.2;
+    color: inherit;
+
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.intent-control.intent-control-select[data-mode="light"] .intent-control-select-searchInput,
+.intent-control-popover[data-mode="light"] .intent-control-select-searchInput {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* ============================================================================
    Listbox
 ============================================================================ */
 
-.intent-control.intent-control-select .intent-control-listbox {
+.intent-control-listbox {
     max-height: 16rem;
     overflow: auto;
-
     overscroll-behavior: contain;
 
-    padding: 0.25rem;
+    padding: calc(var(--ids-control-gap) * 0.55);
     margin: 0;
 
     list-style: none;
@@ -361,16 +418,32 @@
 }
 
 /* ============================================================================
+   Groups
+============================================================================ */
+
+.intent-control-select-group-label {
+    padding: calc(var(--ids-control-py) * 0.95) calc(var(--ids-control-px) * 0.9)
+        calc(var(--ids-control-py) * 0.55);
+
+    font-size: calc(var(--ids-control-fs) * 0.82);
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.58;
+    user-select: none;
+}
+
+/* ============================================================================
    Options
 ============================================================================ */
 
-.intent-control.intent-control-select .intent-control-option {
+.intent-control-option {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 0.75rem;
+    gap: calc(var(--ids-control-gap) * 1.6);
 
-    padding: 0.6rem 0.75rem;
+    padding: calc(var(--ids-control-py) * 0.95) var(--ids-control-px);
     border-radius: 0.9rem;
 
     cursor: pointer;
@@ -381,42 +454,82 @@
         opacity 120ms ease;
 }
 
-.intent-control.intent-control-select .intent-control-option:not(.is-option-disabled):hover {
+.intent-control-option:not(.is-option-disabled):hover {
     background: rgba(255, 255, 255, 0.06);
 }
 
-.intent-control.intent-control-select .intent-control-option.is-highlighted {
+.intent-control-option.is-highlighted {
     background: rgba(255, 255, 255, 0.1);
 }
 
-.intent-control.intent-control-select .intent-control-option.is-selected {
+.intent-control-option.is-selected {
     background: rgba(255, 255, 255, 0.08);
 }
 
-.intent-control.intent-control-select .intent-control-option.is-option-disabled {
+.intent-control-option.is-option-disabled {
     opacity: 0.45;
     cursor: not-allowed;
 }
 
-.intent-control.intent-control-select .intent-control-option-label {
+.intent-control-option-main {
+    display: block;
+    min-width: 0;
+    flex: 1 1 auto;
+    font-size: var(--ids-control-fs);
+}
+
+.intent-control-option-label {
     display: block;
     line-height: 1.2;
 }
 
-.intent-control.intent-control-select .intent-control-option-description {
-    display: block;
-    margin-top: 0.2rem;
+.intent-control-option-emoji {
+    margin-right: 0.75em;
+}
 
-    font-size: 0.8125em;
+.intent-control-option-description {
+    display: block;
+    margin-top: calc(var(--ids-control-gap) * 0.4);
+    font-size: calc(var(--ids-control-fs) * 0.875);
     opacity: 0.7;
+}
+
+.intent-control-option-meta {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(var(--ids-control-fs) * 1.25);
+}
+
+.intent-control-option-check {
+    opacity: 0.82;
+    font-size: calc(var(--ids-control-fs) * 0.92);
 }
 
 /* Light mode option hovers */
 .intent-control.intent-control-select[data-mode="light"]
-    .intent-control-option:not(.is-option-disabled):hover {
+    .intent-control-option:not(.is-option-disabled):hover,
+.intent-control-popover[data-mode="light"] .intent-control-option:not(.is-option-disabled):hover {
     background: rgba(0, 0, 0, 0.05);
 }
 
-.intent-control.intent-control-select[data-mode="light"] .intent-control-option.is-highlighted {
+.intent-control.intent-control-select[data-mode="light"] .intent-control-option.is-highlighted,
+.intent-control-popover[data-mode="light"] .intent-control-option.is-highlighted {
     background: rgba(0, 0, 0, 0.08);
+}
+
+.intent-control.intent-control-select[data-mode="light"] .intent-control-option.is-selected,
+.intent-control-popover[data-mode="light"] .intent-control-option.is-selected {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.intent-control-popover.is-portal-content-width .intent-control-option,
+.intent-control-popover.is-portal-content-width .intent-control-option-label,
+.intent-control-popover.is-portal-content-width .intent-control-option-description {
+    white-space: nowrap;
+}
+
+.intent-control-popover .intent-control-select-panel .intent-glow-border {
+    padding: 0 1px 1px 1px;
 }

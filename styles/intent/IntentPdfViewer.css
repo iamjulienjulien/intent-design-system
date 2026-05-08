@@ -1,0 +1,166 @@
+/* ============================================================================
+   IntentPdfViewer
+   src/styles/intent/intent-pdf-viewer.css
+   - Skin for .intent-pdf-viewer
+   - No dynamic Tailwind classes
+   - Uses DS CSS vars (--intent-*, --surface-*, etc.)
+============================================================================ */
+
+/* ============================================================================
+   🧱 ROOT
+============================================================================ */
+
+.intent-pdf-viewer {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Optional spacing alignment with other data components */
+.intent-pdf-viewer.has-header .intent-pdf-body {
+    border-top: 1px solid var(--border);
+}
+
+.intent-pdf-viewer.has-footer .intent-pdf-footer {
+    border-top: 1px solid var(--border);
+}
+
+/* ============================================================================
+   🪪 HEADER
+============================================================================ */
+
+.intent-pdf-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    padding: 0.75rem 1rem;
+}
+
+.intent-pdf-titleRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.intent-pdf-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    color: var(--foreground);
+    word-break: break-word;
+}
+
+.intent-pdf-meta {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    word-break: break-word;
+}
+
+.intent-pdf-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Compact control feel */
+.intent-pdf-open,
+.intent-pdf-download {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.6rem;
+    line-height: 1.2;
+}
+
+/* Disabled link state */
+.intent-pdf-open[aria-disabled="true"],
+.intent-pdf-download[aria-disabled="true"] {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* ============================================================================
+   📄 BODY
+============================================================================ */
+
+.intent-pdf-body {
+    position: relative;
+    display: block;
+    width: 100%;
+    overflow: auto;
+}
+
+/* Frame (iframe / object) */
+.intent-pdf-frame {
+    width: 100%;
+    display: block;
+    border: 0;
+    background: var(--muted);
+}
+
+/* Optional fit hooks (for future evolution, safe no-op for native PDF) */
+.intent-pdf-viewer.is-fit-contain .intent-pdf-frame {
+    object-fit: contain;
+}
+
+.intent-pdf-viewer.is-fit-cover .intent-pdf-frame {
+    object-fit: cover;
+}
+
+.intent-pdf-viewer.is-fit-auto .intent-pdf-frame {
+    object-fit: initial;
+}
+
+/* ============================================================================
+   🫥 EMPTY / ERROR STATES
+============================================================================ */
+
+.intent-pdf-empty,
+.intent-pdf-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    padding: 2rem 1rem;
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.intent-pdf-error a {
+    margin-left: 0.4rem;
+    text-decoration: underline;
+}
+
+/* ============================================================================
+   🧾 FOOTER
+============================================================================ */
+
+.intent-pdf-footer {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    opacity: 0.75;
+}
+
+/* ============================================================================
+   🧊 VARIANT HOOK ADJUSTMENTS
+   (Optional subtle tweaks depending on surface variant)
+============================================================================ */
+
+/* Example: outlined variant */
+.intent-pdf-viewer[data-variant="outlined"] {
+    border: 1px solid var(--border);
+}
+
+/* Elevated surfaces already styled by DS base layer */
+
+/* ============================================================================
+   🌗 MODE HOOK (optional future refinements)
+============================================================================ */
+
+.intent-pdf-viewer[data-mode="dark"] .intent-pdf-frame {
+    background: rgba(255, 255, 255, 0.02);
+}

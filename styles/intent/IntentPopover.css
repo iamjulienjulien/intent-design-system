@@ -1,0 +1,218 @@
+/* src/styles/intent/intent-popover.css
+   IntentPopover styles
+   - No dynamic Tailwind classes
+   - Uses class hooks + data-side + data-state
+*/
+
+/* ============================================================================
+   Root
+============================================================================ */
+
+.intent-popover,
+.intent-popover-portal {
+    /* Layering */
+    --intent-popover-z: 70;
+
+    /* Panel */
+    --intent-popover-radius: 16px;
+    --intent-popover-pad-x: 12px;
+    --intent-popover-pad-y: 10px;
+
+    /* Arrow */
+    --intent-popover-arrow-shadow: rgba(0, 0, 0, 0.18);
+
+    /* Typography */
+    --intent-popover-title-size: 12px;
+    --intent-popover-body-size: 12px;
+
+    /* Motion */
+    --intent-popover-duration: 120ms;
+    --intent-popover-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Keep trigger inline by default */
+.intent-popover-trigger {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* ============================================================================
+   Portal layer + panel positioning
+============================================================================ */
+
+.intent-popover-panel {
+    position: fixed;
+    /* z-index: 1; */
+    pointer-events: none;
+}
+
+.intent-popover-panel {
+    position: fixed;
+    z-index: 2;
+    pointer-events: auto;
+
+    border-radius: var(--intent-popover-radius);
+
+    /* Surface visuals come from DS via intent-surface + composeIntentClassName()
+       This file adds layout/spacing, not colors. */
+    padding: var(--intent-popover-pad-y) var(--intent-popover-pad-x);
+
+    /* Sane constraints */
+    min-width: 140px;
+    max-width: 90vw;
+
+    transform-origin: center;
+    animation: intent-popover-in var(--intent-popover-duration) var(--intent-popover-ease) both;
+
+    outline: none;
+    overflow: visible;
+}
+
+/* ============================================================================
+   Arrow
+   - Simple rotated square
+============================================================================ */
+
+.intent-popover-arrow {
+    position: absolute;
+    z-index: 0;
+
+    /* Diamond */
+    transform-origin: center;
+
+    background: rgba(255, 255, 255, 0.18);
+    /* border-radius: 4px; */
+
+    box-shadow: 0 8px 24px var(--intent-popover-arrow-shadow);
+    backdrop-filter: blur(8px);
+}
+
+/* Light mode tweak */
+[data-mode="light"] .intent-popover-arrow {
+    background: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================================================
+   Header / Body / Footer
+============================================================================ */
+
+.intent-popover-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-bottom: 8px;
+
+    font-size: var(--intent-popover-title-size);
+    font-weight: 650;
+    letter-spacing: 0.02em;
+    opacity: 0.92;
+}
+
+.intent-popover-body {
+    font-size: var(--intent-popover-body-size);
+    line-height: 1.35;
+    opacity: 0.9;
+}
+
+.intent-popover-footer {
+    margin-top: 10px;
+    padding-top: 10px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+    font-size: 12px;
+    opacity: 0.85;
+}
+
+[data-mode="light"] .intent-popover-footer {
+    border-top-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================================================
+   Animation
+============================================================================ */
+
+@keyframes intent-popover-in {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 2px, 0) scale(0.985);
+        filter: saturate(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: saturate(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .intent-popover-panel {
+        animation: none;
+    }
+}
+
+/* ============================================================================
+   Side micro-adjustments (purely aesthetic)
+============================================================================ */
+
+.intent-popover.side-top .intent-popover-panel {
+    transform-origin: bottom center;
+}
+
+.intent-popover.side-bottom .intent-popover-panel {
+    transform-origin: top center;
+}
+
+.intent-popover.side-left .intent-popover-panel {
+    transform-origin: center right;
+}
+
+.intent-popover.side-right .intent-popover-panel {
+    transform-origin: center left;
+}
+
+/* ============================================================================
+   Disabled state
+============================================================================ */
+
+.intent-popover.is-disabled .intent-popover-trigger {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* ============================================================================
+   State hooks
+============================================================================ */
+
+.intent-popover.is-open .intent-popover-panel {
+    pointer-events: auto;
+}
+
+.intent-popover:not(.is-open) .intent-popover-panel {
+    pointer-events: none;
+}
+
+/* ============================================================================
+   Backdrop
+============================================================================ */
+
+.intent-popover-portal .intent-popover-panel::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(6px);
+
+    opacity: 0;
+    transition: opacity var(--intent-popover-duration) var(--intent-popover-ease);
+
+    pointer-events: none;
+    z-index: 0;
+}
+
+.intent-popover-portal[data-state="open"] .intent-popover-panel::before {
+    opacity: 1;
+}

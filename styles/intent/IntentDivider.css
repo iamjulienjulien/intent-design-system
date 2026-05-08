@@ -8,7 +8,6 @@
 ============================================================================ */
 
 .intent-control.intent-divider {
-    /* Defaults */
     --ids-divider-color: var(--intent-border, rgba(255, 255, 255, 0.18));
     --ids-divider-opacity: 0.55;
 
@@ -16,20 +15,70 @@
     --ids-divider-gap: 0.75rem;
     --ids-divider-label-pad-x: 0.5rem;
 
+    /* space-only */
+    --ids-divider-space: 0.75rem;
+
+    /* dots / dashed tuning */
+    --ids-divider-dot-size: 2px;
+    --ids-divider-dot-gap: 8px;
+
+    --ids-divider-dash-size: 10px;
+    --ids-divider-dash-gap: 8px;
+
     position: relative;
     min-width: 0;
 }
 
+.intent-control.intent-divider[data-mode="light"] {
+    --ids-divider-color: var(--intent-border, rgba(0, 0, 0, 0.18));
+}
+
+/* full stretch hooks (stable) */
+.intent-control.intent-divider.ids-divider-fullw {
+    width: 100%;
+}
+.intent-control.intent-divider.ids-divider-fullh {
+    height: 100%;
+}
+
 /* ============================================================================
-   Orientation
+   Orientation base
 ============================================================================ */
 
 .intent-control.intent-divider.intent-divider-horizontal {
     width: 100%;
 }
-
 .intent-control.intent-divider.intent-divider-vertical {
     height: 100%;
+}
+
+/* ============================================================================
+   Label row layout (no Tailwind)
+============================================================================ */
+
+.intent-control.intent-divider.ids-divider-row {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.intent-control.intent-divider.ids-divider-justify-left {
+    justify-content: flex-start;
+}
+.intent-control.intent-divider.ids-divider-justify-center {
+    justify-content: center;
+}
+.intent-control.intent-divider.ids-divider-justify-right {
+    justify-content: flex-end;
+}
+
+.intent-control.intent-divider.ids-divider-seg-flex {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.intent-control.intent-divider.ids-divider-seg-fixed {
+    flex: none;
+    width: 2.5rem;
 }
 
 /* ============================================================================
@@ -37,36 +86,39 @@
 ============================================================================ */
 
 .intent-control.intent-divider .intent-divider-line {
-    background: var(--ids-divider-color);
-    opacity: var(--ids-divider-opacity);
+    display: block;
     border-radius: 999px;
+
+    opacity: var(--ids-divider-opacity);
 }
 
 .intent-control.intent-divider.intent-divider-horizontal .intent-divider-line {
     height: var(--ids-divider-thickness);
+    width: 100%;
 }
 
 .intent-control.intent-divider.intent-divider-vertical .intent-divider-line {
     width: var(--ids-divider-thickness);
+    height: 100%;
 }
 
 .intent-control.intent-divider .intent-divider-label {
     color: var(--intent-ink, rgba(255, 255, 255, 0.85));
     opacity: 0.7;
-
     padding: 0 var(--ids-divider-label-pad-x);
     line-height: 1;
-
     user-select: none;
+    white-space: nowrap;
+}
+
+/* label gap */
+.intent-control.intent-divider.has-label {
+    gap: var(--ids-divider-gap);
 }
 
 /* ============================================================================
    States
 ============================================================================ */
-
-.intent-control.intent-divider.has-label {
-    gap: var(--ids-divider-gap);
-}
 
 .intent-control.intent-divider.is-disabled {
     --ids-divider-opacity: 0.35;
@@ -74,41 +126,194 @@
 }
 
 /* ============================================================================
-   Size hooks (thickness)
+   Thickness hooks
 ============================================================================ */
 
 .intent-control.intent-divider.ids-divider-hairline {
     --ids-divider-thickness: 1px;
 }
-
 .intent-control.intent-divider.ids-divider-thin {
     --ids-divider-thickness: 2px;
 }
-
 .intent-control.intent-divider.ids-divider-medium {
     --ids-divider-thickness: 3px;
 }
 
-/* ============================================================================
-   Size hooks (gap)
-============================================================================ */
-
+/* gap hooks */
 .intent-control.intent-divider.ids-divider-gap-xs {
     --ids-divider-gap: 0.5rem;
 }
-
 .intent-control.intent-divider.ids-divider-gap-sm {
     --ids-divider-gap: 0.75rem;
 }
-
 .intent-control.intent-divider.ids-divider-gap-md {
     --ids-divider-gap: 1rem;
 }
 
 /* ============================================================================
-   Mode overrides
+   Space-only style
 ============================================================================ */
 
-.intent-control.intent-divider[data-mode="light"] {
-    --ids-divider-color: var(--intent-border, rgba(0, 0, 0, 0.18));
+.intent-control.intent-divider.ids-divider-style-space .intent-divider-line {
+    display: none;
+}
+
+.intent-control.intent-divider.ids-divider-style-space.intent-divider-horizontal {
+    height: var(--ids-divider-space);
+}
+
+.intent-control.intent-divider.ids-divider-style-space.intent-divider-vertical {
+    width: var(--ids-divider-space);
+}
+
+/* space sizes */
+.intent-control.intent-divider.ids-divider-space-xs {
+    --ids-divider-space: 0.5rem;
+}
+.intent-control.intent-divider.ids-divider-space-sm {
+    --ids-divider-space: 0.75rem;
+}
+.intent-control.intent-divider.ids-divider-space-md {
+    --ids-divider-space: 1rem;
+}
+.intent-control.intent-divider.ids-divider-space-lg {
+    --ids-divider-space: 1.5rem;
+}
+
+/* ============================================================================
+   Style: line (default)
+============================================================================ */
+
+.intent-control.intent-divider.ids-divider-style-line .intent-divider-line {
+    background: var(--ids-divider-color);
+}
+
+/* ============================================================================
+   Style: dashed (repeating gradient)
+============================================================================ */
+
+.intent-control.intent-divider.ids-divider-style-dashed.intent-divider-horizontal
+    .intent-divider-line {
+    background: repeating-linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--ids-divider-color) 100%, transparent) 0,
+        color-mix(in srgb, var(--ids-divider-color) 100%, transparent) var(--ids-divider-dash-size),
+        transparent var(--ids-divider-dash-size),
+        transparent calc(var(--ids-divider-dash-size) + var(--ids-divider-dash-gap))
+    );
+}
+
+.intent-control.intent-divider.ids-divider-style-dashed.intent-divider-vertical
+    .intent-divider-line {
+    background: repeating-linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--ids-divider-color) 100%, transparent) 0,
+        color-mix(in srgb, var(--ids-divider-color) 100%, transparent) var(--ids-divider-dash-size),
+        transparent var(--ids-divider-dash-size),
+        transparent calc(var(--ids-divider-dash-size) + var(--ids-divider-dash-gap))
+    );
+}
+
+/* ============================================================================
+   Style: dots (tiny beads)
+============================================================================ */
+
+.intent-control.intent-divider.ids-divider-style-dots.intent-divider-horizontal
+    .intent-divider-line {
+    height: var(--ids-divider-dot-size);
+    background: repeating-linear-gradient(
+        90deg,
+        var(--ids-divider-color) 0,
+        var(--ids-divider-color) var(--ids-divider-dot-size),
+        transparent var(--ids-divider-dot-size),
+        transparent var(--ids-divider-dot-gap)
+    );
+    border-radius: 999px;
+}
+
+.intent-control.intent-divider.ids-divider-style-dots.intent-divider-vertical .intent-divider-line {
+    width: var(--ids-divider-dot-size);
+    background: repeating-linear-gradient(
+        180deg,
+        var(--ids-divider-color) 0,
+        var(--ids-divider-color) var(--ids-divider-dot-size),
+        transparent var(--ids-divider-dot-size),
+        transparent var(--ids-divider-dot-gap)
+    );
+    border-radius: 999px;
+}
+
+/* ============================================================================
+   Style: fade (line that vanishes at edges)
+============================================================================ */
+
+.intent-control.intent-divider.ids-divider-style-fade.intent-divider-horizontal
+    .intent-divider-line {
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--ids-divider-color) 18%,
+        var(--ids-divider-color) 82%,
+        transparent 100%
+    );
+}
+
+.intent-control.intent-divider.ids-divider-style-fade.intent-divider-vertical .intent-divider-line {
+    background: linear-gradient(
+        180deg,
+        transparent 0%,
+        var(--ids-divider-color) 18%,
+        var(--ids-divider-color) 82%,
+        transparent 100%
+    );
+}
+
+/* ============================================================================
+   Style: double (two parallel lines)
+============================================================================ */
+
+.intent-control.intent-divider.ids-divider-style-double.intent-divider-horizontal
+    .intent-divider-line {
+    height: calc(var(--ids-divider-thickness) * 2 + 2px);
+    background: linear-gradient(
+        180deg,
+        var(--ids-divider-color) 0,
+        var(--ids-divider-color) var(--ids-divider-thickness),
+        transparent var(--ids-divider-thickness),
+        transparent calc(var(--ids-divider-thickness) + 2px),
+        var(--ids-divider-color) calc(var(--ids-divider-thickness) + 2px),
+        var(--ids-divider-color) calc(var(--ids-divider-thickness) * 2 + 2px)
+    );
+}
+
+.intent-control.intent-divider.ids-divider-style-double.intent-divider-vertical
+    .intent-divider-line {
+    width: calc(var(--ids-divider-thickness) * 2 + 2px);
+    background: linear-gradient(
+        90deg,
+        var(--ids-divider-color) 0,
+        var(--ids-divider-color) var(--ids-divider-thickness),
+        transparent var(--ids-divider-thickness),
+        transparent calc(var(--ids-divider-thickness) + 2px),
+        var(--ids-divider-color) calc(var(--ids-divider-thickness) + 2px),
+        var(--ids-divider-color) calc(var(--ids-divider-thickness) * 2 + 2px)
+    );
+}
+
+/* ============================================================================
+   Style: hatch (subtle diagonal texture)
+============================================================================ */
+
+.intent-control.intent-divider.ids-divider-style-hatch .intent-divider-line {
+    background:
+        linear-gradient(0deg, transparent, transparent),
+        repeating-linear-gradient(
+            45deg,
+            color-mix(in srgb, var(--ids-divider-color) 55%, transparent) 0,
+            color-mix(in srgb, var(--ids-divider-color) 55%, transparent) 6px,
+            transparent 6px,
+            transparent 12px
+        );
+    opacity: calc(var(--ids-divider-opacity) * 0.9);
+    border-radius: 999px;
 }

@@ -4,16 +4,19 @@
 // IntentDivider
 // - Layout divider (horizontal / vertical)
 // - Intent-first: uses resolveIntent() to compute stable hooks + CSS vars
+// - Styles: line | dots | space | dashed | fade | double | hatch
 // - No glow layers (divider should stay subtle)
 // - No dynamic Tailwind classes: only stable hooks
 
 import * as React from "react";
 
-import type { IntentInput } from "../lib/intent/types";
-import { resolveIntent, getIntentLayoutProps } from "../lib/intent/resolve";
-
-import type { DocsPropRow, ComponentIdentity } from "../lib/intent/types";
-import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
+import { resolveIntent, getIntentLayoutProps } from "CORE";
+import {
+    SYSTEM_PROPS_TABLE,
+    type IntentInput,
+    type DocsPropRow,
+    type ComponentIdentity,
+} from "SYSTEM";
 
 /* ============================================================================
    🧰 HELPERS
@@ -27,21 +30,35 @@ type DividerOrientation = "horizontal" | "vertical";
 type DividerThickness = "hairline" | "thin" | "medium";
 type DividerAlign = "left" | "center" | "right";
 
+export type IntentDividerStyle = "line" | "dots" | "space" | "dashed" | "fade" | "double" | "hatch";
+type DividerSpaceSize = "xs" | "sm" | "md" | "lg";
+
 /* ============================================================================
    🧩 TYPES
 ============================================================================ */
 
 export type IntentDividerProps = IntentInput &
-    Omit<React.HTMLAttributes<HTMLDivElement>, "className" | "children"> & {
+    Omit<React.HTMLAttributes<HTMLDivElement>, "className" | "children" | "style"> & {
         className?: string;
 
         orientation?: DividerOrientation; // default: "horizontal"
         thickness?: DividerThickness; // default: "hairline"
-        fullWidth?: boolean; // default: true for horizontal, false for vertical (but we expose it)
+        fullWidth?: boolean; // default: true for horizontal, false for vertical
+
+        /**
+         * Visual style of the divider.
+         */
+        lineStyle?: IntentDividerStyle; // default: "line"
+
+        /**
+         * Only used when style="space".
+         * Controls the spacer size.
+         */
+        spaceSize?: DividerSpaceSize; // default: "sm"
 
         /**
          * Optional label displayed “inside” the divider.
-         * For horizontal only. For vertical: ignored.
+         * Horizontal only. Vertical: ignored.
          */
         label?: React.ReactNode;
 
@@ -62,13 +79,25 @@ export type IntentDividerProps = IntentInput &
 
 const INTENT_DIVIDER_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
-        name: "className",
+        name: "lineStyle",
         description: {
-            fr: "Classes CSS additionnelles appliquées au root.",
-            en: "Additional CSS classes applied to the root element.",
+            fr: "Style visuel du divider.",
+            en: "Divider visual style.",
         },
-        type: "string",
+        type: `"line" | "dots" | "space" | "dashed" | "fade" | "double" | "hatch"`,
         required: false,
+        default: "line",
+        fromSystem: false,
+    },
+    {
+        name: "spaceSize",
+        description: {
+            fr: "Taille de l’espace (uniquement si style='space').",
+            en: "Spacer size (only when style='space').",
+        },
+        type: `"xs" | "sm" | "md" | "lg"`,
+        required: false,
+        default: "sm",
         fromSystem: false,
     },
     {
@@ -157,12 +186,12 @@ export const IntentDividerIdentity: ComponentIdentity = {
     name: "IntentDivider",
     kind: "layout",
     description: {
-        fr: "Divider intent-first (layout) : ligne horizontale/verticale avec label optionnel, stylé via resolveIntent().",
-        en: "Intent-first divider (layout): horizontal/vertical line with optional label, styled via resolveIntent().",
+        fr: "Divider intent-first (layout) : horizontal/vertical, label optionnel, styles multiples via hooks stables.",
+        en: "Intent-first divider (layout): horizontal/vertical, optional label, multiple styles via stable hooks.",
     },
     since: "0.2.0",
     docs: {
-        route: "/playground/components/IntentDivider",
+        route: "/playground/components/intent-divider",
     },
     anatomy: {
         root: "<div>",
@@ -179,6 +208,20 @@ export const IntentDividerIdentity: ComponentIdentity = {
         "ids-divider-hairline",
         "ids-divider-thin",
         "ids-divider-medium",
+        "ids-divider-gap-xs",
+        "ids-divider-gap-sm",
+        "ids-divider-gap-md",
+        "ids-divider-style-line",
+        "ids-divider-style-dots",
+        "ids-divider-style-space",
+        "ids-divider-style-dashed",
+        "ids-divider-style-fade",
+        "ids-divider-style-double",
+        "ids-divider-style-hatch",
+        "ids-divider-space-xs",
+        "ids-divider-space-sm",
+        "ids-divider-space-md",
+        "ids-divider-space-lg",
         "is-disabled",
         "has-label",
     ],
@@ -210,6 +253,23 @@ function gapClass(g: "xs" | "sm" | "md") {
     }
 }
 
+function styleClass(s: IntentDividerStyle) {
+    if (s === "dots") return "ids-divider-style-dots";
+    if (s === "space") return "ids-divider-style-space";
+    if (s === "dashed") return "ids-divider-style-dashed";
+    if (s === "fade") return "ids-divider-style-fade";
+    if (s === "double") return "ids-divider-style-double";
+    if (s === "hatch") return "ids-divider-style-hatch";
+    return "ids-divider-style-line";
+}
+
+function spaceSizeClass(s: DividerSpaceSize) {
+    if (s === "xs") return "ids-divider-space-xs";
+    if (s === "md") return "ids-divider-space-md";
+    if (s === "lg") return "ids-divider-space-lg";
+    return "ids-divider-space-sm";
+}
+
 export function IntentDivider(props: IntentDividerProps) {
     const {
         className,
@@ -217,6 +277,9 @@ export function IntentDivider(props: IntentDividerProps) {
         orientation = "horizontal",
         thickness = "hairline",
         fullWidth,
+
+        lineStyle = "line",
+        spaceSize = "sm",
 
         label,
         align = "center",
@@ -237,7 +300,7 @@ export function IntentDivider(props: IntentDividerProps) {
 
     const intentInput: IntentInput = {
         ...(intent !== undefined ? { intent } : {}),
-        variant: "ghost", // ✅ force neutral
+        variant: "ghost",
         ...(tone !== undefined ? { tone } : {}),
         ...(intensity !== undefined ? { intensity } : {}),
         ...(mode !== undefined ? { mode } : {}),
@@ -245,32 +308,28 @@ export function IntentDivider(props: IntentDividerProps) {
     };
 
     const resolved = resolveIntent(intentInput);
-
-    // Reuse control props to get stable class hooks + CSS vars
     const layoutProps = getIntentLayoutProps(resolved, className);
 
     const isHorizontal = orientation === "horizontal";
     const stretch = fullWidth !== undefined ? fullWidth : isHorizontal ? true : false;
 
     const hasLabel = Boolean(label) && isHorizontal;
+    const isSpaceOnly = lineStyle === "space";
 
     const rootCls = cn(
         "intent-control intent-divider",
         isHorizontal ? "intent-divider-horizontal" : "intent-divider-vertical",
-        "relative",
         thicknessClass(thickness),
+        styleClass(lineStyle),
+        isSpaceOnly && spaceSizeClass(spaceSize),
         hasLabel && "has-label",
         disabled && "is-disabled",
-        stretch && (isHorizontal ? "w-full" : "h-full")
+        stretch && (isHorizontal ? "ids-divider-fullw" : "ids-divider-fullh")
     );
 
-    const lineCls = cn(
-        "intent-divider-line",
-        "block",
-        isHorizontal ? "h-px w-full" : "w-px h-full"
-    );
+    const lineCls = cn("intent-divider-line");
 
-    // Label only makes sense horizontally
+    // Vertical or no-label render: single line element
     if (!isHorizontal || !label) {
         return (
             <div
@@ -290,7 +349,11 @@ export function IntentDivider(props: IntentDividerProps) {
 
     // Horizontal + label: render as flex with two lines + label
     const justify =
-        align === "left" ? "justify-start" : align === "right" ? "justify-end" : "justify-center";
+        align === "left"
+            ? "ids-divider-justify-left"
+            : align === "right"
+              ? "ids-divider-justify-right"
+              : "ids-divider-justify-center";
 
     return (
         <div
@@ -299,7 +362,7 @@ export function IntentDivider(props: IntentDividerProps) {
             className={cn(
                 layoutProps.className,
                 rootCls,
-                "flex items-center",
+                "ids-divider-row",
                 justify,
                 gapClass(gap)
             )}
@@ -308,21 +371,20 @@ export function IntentDivider(props: IntentDividerProps) {
             data-intensity={resolved.intensity}
             data-mode={resolved.mode}
         >
-            {/* Left segment */}
             <span
                 aria-hidden
-                className={cn(lineCls, align === "left" ? "w-10 flex-none" : "flex-1")}
+                className={cn(
+                    lineCls,
+                    align === "left" ? "ids-divider-seg-fixed" : "ids-divider-seg-flex"
+                )}
             />
-
-            {/* Label */}
-            <span className="intent-divider-label text-xs opacity-70 whitespace-nowrap">
-                {label}
-            </span>
-
-            {/* Right segment */}
+            <span className="intent-divider-label">{label}</span>
             <span
                 aria-hidden
-                className={cn(lineCls, align === "right" ? "w-10 flex-none" : "flex-1")}
+                className={cn(
+                    lineCls,
+                    align === "right" ? "ids-divider-seg-fixed" : "ids-divider-seg-flex"
+                )}
             />
         </div>
     );

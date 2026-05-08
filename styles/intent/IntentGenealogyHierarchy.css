@@ -1,0 +1,149 @@
+/* src/components/intent/IntentGenealogyHierarchy.css
+   IntentGenealogyHierarchy
+   - pastel cards + crisp orthogonal connectors
+   - stable hooks only
+*/
+
+.intent-genealogy {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 360px;
+    overflow: hidden;
+
+    --igh-bg: rgba(255, 255, 255, 0.9);
+
+    --igh-line: rgba(0, 0, 0, 0.85);
+    --igh-line-soft: rgba(0, 0, 0, 0.55);
+
+    --igh-card-radius: 18px;
+    --igh-card-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+
+    --igh-font:
+        ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, Cambria,
+        "Times New Roman", Times, serif;
+
+    background: var(--igh-bg);
+}
+
+/* optional light/dark harmony if your DS flips mode */
+.intent-genealogy[data-mode="dark"] {
+    --igh-bg: rgba(10, 12, 18, 0.35);
+    --igh-line: rgba(255, 255, 255, 0.92);
+    --igh-line-soft: rgba(255, 255, 255, 0.62);
+}
+
+.intent-genealogy-empty {
+    height: 100%;
+    min-height: 240px;
+    display: grid;
+    place-items: center;
+    opacity: 0.6;
+    font-family: var(--igh-font);
+}
+
+/* SVG */
+.intent-genealogy-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    user-select: none;
+}
+
+.intent-genealogy-stage {
+    transform-origin: 0 0;
+}
+
+/* Links */
+.intent-genealogy-family,
+.intent-genealogy-spouse {
+    fill: none;
+    stroke: var(--igh-line);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.intent-genealogy-spouse {
+    stroke-width: 2.2;
+}
+
+.intent-genealogy-dot {
+    fill: var(--igh-line);
+    vector-effect: non-scaling-stroke;
+}
+
+/* Nodes */
+.intent-genealogy-node {
+    cursor: pointer;
+}
+
+.intent-genealogy-hit {
+    fill: transparent;
+}
+
+.intent-genealogy-fo {
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+}
+
+.intent-genealogy-card {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+
+    border-radius: var(--igh-card-radius);
+    border: 1.5px solid rgba(0, 0, 0, 0.18);
+    box-shadow: var(--igh-card-shadow);
+
+    padding: 10px 12px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+
+    font-family: var(--igh-font);
+}
+
+.intent-genealogy-cardTop {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.intent-genealogy-cardTitle {
+    font-size: 16px;
+    line-height: 1.05;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.intent-genealogy-cardMeta {
+    font-size: 12px;
+    opacity: 0.55;
+    white-space: nowrap;
+    margin-left: 8px;
+}
+
+.intent-genealogy-cardSub {
+    font-size: 12px;
+    line-height: 1.1;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Selection */
+.intent-genealogy-node.is-selected .intent-genealogy-card {
+    outline: 2px solid color-mix(in oklab, var(--igh-line) 35%, transparent);
+    outline-offset: 2px;
+}

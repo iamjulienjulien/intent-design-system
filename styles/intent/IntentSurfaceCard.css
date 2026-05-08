@@ -1,0 +1,294 @@
+/* src/components/intent/intent-surface-card.css */
+/* IntentSurfaceCard
+   - Item surface (smaller rhythm than Panel)
+   - Stable hooks only
+   - Optional media/header/footer with dividers
+   - Padding scale + bleed mode
+   - Optional interactive polish
+*/
+
+.intent-surface-card {
+    position: relative;
+    min-width: 0;
+
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+
+    /* keeps glow layers clipped nicely */
+    overflow: clip;
+
+    /* default text color from intent vars */
+    color: var(--intent-ink);
+}
+
+/* Optional full width helper */
+.intent-surface-card.is-fullwidth {
+    width: 100%;
+}
+
+/* Content wrapper sits above glow layers */
+.intent-surface-card-content {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Padding scale
+--------------------------------------------------------------------------- */
+
+.intent-surface-card--padded-none .intent-surface-card-header,
+.intent-surface-card--padded-none .intent-surface-card-body,
+.intent-surface-card--padded-none .intent-surface-card-footer {
+    padding: 0;
+}
+
+.intent-surface-card--padded-xs .intent-surface-card-body {
+    padding: 0.6rem 0.75rem;
+}
+.intent-surface-card--padded-xs .intent-surface-card-header {
+    padding: 0.6rem 0.75rem 0;
+}
+.intent-surface-card--padded-xs .intent-surface-card-footer {
+    padding: 0 0.75rem 0.6rem;
+}
+
+.intent-surface-card--padded-sm .intent-surface-card-body {
+    padding: 0.8rem 0.95rem;
+}
+.intent-surface-card--padded-sm .intent-surface-card-header {
+    padding: 0.8rem 0.95rem 0;
+}
+.intent-surface-card--padded-sm .intent-surface-card-footer {
+    padding: 0 0.95rem 0.8rem;
+}
+
+.intent-surface-card--padded-md .intent-surface-card-header,
+.intent-surface-card--padded-md .intent-surface-card-body,
+.intent-surface-card--padded-md .intent-surface-card-footer {
+    padding: 1rem 1.1rem;
+}
+
+/* Bleed: removes body padding without killing header/footer rhythm */
+.intent-surface-card--bleed .intent-surface-card-body {
+    padding: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Media
+--------------------------------------------------------------------------- */
+
+.intent-surface-card-media {
+    width: 100%;
+    min-width: 0;
+
+    /* consumer can provide their own sizing.
+       We just ensure nice clipping + a subtle base */
+    overflow: clip;
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+
+    background: color-mix(in oklab, var(--intent-bg) 10%, transparent);
+}
+
+/* If consumer places an <img>, help it behave */
+.intent-surface-card-media img,
+.intent-surface-card-media video {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* ---------------------------------------------------------------------------
+   Header
+--------------------------------------------------------------------------- */
+
+.intent-surface-card-header {
+    min-width: 0;
+}
+
+.intent-surface-card-headerInner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+
+    min-width: 0;
+}
+
+.intent-surface-card-headerMain {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.intent-surface-card-eyebrow {
+    font-size: 0.7rem;
+    line-height: 0.95rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+
+    opacity: 0.62;
+    margin-bottom: 0.3rem;
+}
+
+.intent-surface-card-titleRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    min-width: 0;
+}
+
+.intent-surface-card-title {
+    font-size: 0.95rem;
+    line-height: 1.15rem;
+    font-weight: 650;
+
+    letter-spacing: -0.01em;
+
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intent-surface-card-emoji {
+    margin-right: 0.7em;
+}
+
+.intent-surface-card-subtitle {
+    margin-top: 0.3rem;
+
+    font-size: 0.85rem;
+    line-height: 1.15rem;
+    opacity: 0.72;
+
+    min-width: 0;
+}
+
+/* Right side: meta + actions */
+.intent-surface-card-headerSide {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.intent-surface-card-meta {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    opacity: 0.7;
+    white-space: nowrap;
+}
+
+.intent-surface-card-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Divider
+--------------------------------------------------------------------------- */
+
+.intent-surface-card-divider {
+    height: 1px;
+    width: 100%;
+    background: color-mix(in oklab, var(--intent-border) 55%, transparent);
+    opacity: 0.55;
+}
+
+/* Divider alignment with padding (matches each scale) */
+.intent-surface-card--padded-xs .intent-surface-card-divider {
+    margin-left: 0.75rem;
+    margin-right: 0.75rem;
+}
+.intent-surface-card--padded-sm .intent-surface-card-divider {
+    margin-left: 0.95rem;
+    margin-right: 0.95rem;
+}
+.intent-surface-card--padded-md .intent-surface-card-divider {
+    margin-left: 1.1rem;
+    margin-right: 1.1rem;
+}
+
+/* Bleed: divider spans full width */
+.intent-surface-card--bleed .intent-surface-card-divider {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Body / Footer
+--------------------------------------------------------------------------- */
+
+.intent-surface-card-body,
+.intent-surface-card-footer {
+    min-width: 0;
+}
+
+.intent-surface-card-bodyInner,
+.intent-surface-card-footerInner {
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Interactive polish
+--------------------------------------------------------------------------- */
+
+.intent-surface-card.intent-surface-card--interactive {
+    cursor: pointer;
+    user-select: none;
+
+    transition:
+        transform 140ms ease,
+        box-shadow 140ms ease,
+        filter 140ms ease;
+}
+
+/* Hover polish (skip disabled) */
+.intent-surface-card.intent-surface-card--interactive:not(.is-disabled):hover {
+    transform: translateY(-1px);
+    filter: saturate(1.02);
+
+    box-shadow:
+        0 10px 22px color-mix(in oklab, #000 18%, transparent),
+        0 2px 6px color-mix(in oklab, #000 12%, transparent);
+}
+
+/* Focus polish (works for <a>, <button>, or focusable children) */
+.intent-surface-card.intent-surface-card--interactive:not(.is-disabled):focus,
+.intent-surface-card.intent-surface-card--interactive:not(.is-disabled):focus-within {
+    outline: none;
+    box-shadow:
+        0 0 0 2px color-mix(in oklab, var(--intent-ring) 22%, transparent),
+        0 0 0 6px color-mix(in oklab, var(--intent-ring) 10%, transparent),
+        0 10px 22px color-mix(in oklab, #000 18%, transparent);
+}
+
+/* Pressed/selected state */
+.intent-surface-card.is-pressed {
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-ring) 38%, transparent);
+}
+
+/* Disabled (keep it consistent with other controls) */
+.intent-surface-card.is-disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Variant polish: ghost stays airy */
+.intent-surface-card[data-variant="ghost"] .intent-surface-card-divider {
+    background: color-mix(in oklab, var(--intent-ink) 12%, transparent);
+    opacity: 0.45;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .intent-surface-card.intent-surface-card--interactive {
+        transition: none;
+    }
+    .intent-surface-card.intent-surface-card--interactive:not(.is-disabled):hover {
+        transform: none;
+    }
+}

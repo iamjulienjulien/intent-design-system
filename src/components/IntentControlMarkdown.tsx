@@ -11,11 +11,13 @@
 
 import * as React from "react";
 
-import type { IntentInput } from "../lib/intent/types";
-import { resolveIntent, getIntentLayoutProps, getIntentControlProps } from "../lib/intent/resolve";
-
-import type { DocsPropRow, ComponentIdentity } from "../lib/intent/types";
-import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
+import { resolveIntent, getIntentLayoutProps, getIntentControlProps } from "CORE";
+import {
+    SYSTEM_PROPS_TABLE,
+    type IntentInput,
+    type DocsPropRow,
+    type ComponentIdentity,
+} from "SYSTEM";
 
 /* ============================================================================
    🧰 HELPERS

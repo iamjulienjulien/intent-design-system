@@ -9,19 +9,18 @@
 
 import * as React from "react";
 
-import type { IntentInput } from "../lib/intent/types";
-import { resolveIntent, getIntentControlProps } from "../lib/intent/resolve";
-
-import type { DocsPropRow, ComponentIdentity } from "../lib/intent/types";
-import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
+import { resolveIntent, getIntentControlProps } from "CORE";
+import {
+    SYSTEM_PROPS_TABLE,
+    type IntentInput,
+    type DocsPropRow,
+    type ComponentIdentity,
+} from "SYSTEM";
+import { cn } from "HELPERS";
 
 /* ============================================================================
    🧰 HELPERS
 ============================================================================ */
-
-function cn(...classes: Array<string | false | null | undefined>) {
-    return classes.filter(Boolean).join(" ");
-}
 
 type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
 
@@ -209,142 +208,151 @@ export const IntentControlButtonIdentity: ComponentIdentity = {
    ✅ MAIN
 ============================================================================ */
 
-export function IntentControlButton(props: IntentControlButtonProps) {
-    const {
-        className,
-        children,
+export const IntentControlButton = React.forwardRef<HTMLButtonElement, IntentControlButtonProps>(
+    function IntentControlButton(props, ref) {
+        const {
+            className,
+            children,
 
-        size = "md",
-        fullWidth = false,
+            size = "md",
+            fullWidth = false,
 
-        loading = false,
-        pressed = false,
+            loading = false,
+            pressed = false,
 
-        leftIcon,
-        rightIcon,
+            leftIcon,
+            rightIcon,
 
-        // ✅ Pull DS props OUT so they never reach the DOM via {...buttonProps}
-        intent,
-        variant,
-        tone,
-        glow,
-        intensity,
-        mode,
-        disabled: disabledProp,
+            // ✅ Pull DS props OUT so they never reach the DOM via {...buttonProps}
+            intent,
+            variant,
+            tone,
+            glow,
+            intensity,
+            toneStep,
+            mode,
+            disabled: disabledProp,
 
-        // ✅ Only real DOM props remain here
-        ...buttonProps
-    } = props;
+            // ✅ Only real DOM props remain here
+            ...buttonProps
+        } = props;
 
-    const disabled = Boolean(disabledProp) || loading;
+        const disabled = Boolean(disabledProp) || loading;
 
-    const intentInput: IntentInput = {
-        ...(intent !== undefined ? { intent } : {}),
-        ...(variant !== undefined ? { variant } : {}), // ✅ IMPORTANT
-        ...(tone !== undefined ? { tone } : {}),
-        ...(glow !== undefined ? { glow } : {}),
-        ...(intensity !== undefined ? { intensity } : {}),
-        ...(mode !== undefined ? { mode } : {}),
-        disabled,
-    };
+        const intentInput: IntentInput = {
+            ...(intent !== undefined ? { intent } : {}),
+            ...(variant !== undefined ? { variant } : {}), // ✅ IMPORTANT
+            ...(tone !== undefined ? { tone } : {}),
+            ...(glow !== undefined ? { glow } : {}),
+            ...(intensity !== undefined ? { intensity } : {}),
+            ...(toneStep !== undefined ? { toneStep } : {}),
+            ...(mode !== undefined ? { mode } : {}),
+            disabled,
+        };
 
-    const resolved = resolveIntent(intentInput);
+        const resolved = resolveIntent(intentInput);
 
-    const surfaceProps = getIntentControlProps(resolved, className);
+        const surfaceProps = getIntentControlProps(resolved, className);
 
-    /* ============================================================================
+        /* ============================================================================
        ✨ Glow layers (same rules as IntentSurface)
     ============================================================================ */
 
-    const hasGlow = Boolean(resolved.glowBackground);
-    const v = resolved.variant;
+        const hasGlow = Boolean(resolved.glowBackground);
+        const v = resolved.variant;
 
-    const glowAllowed = hasGlow && v !== "ghost";
-    const isGlowed = resolved.intent === "glowed";
+        const glowAllowed = hasGlow && v !== "ghost";
+        const isGlowed = resolved.intent === "glowed";
 
-    // Variant rules:
-    // - Normal intents: flat/elevated => fill, outlined/elevated => border
-    // - glowed: aura exists even in outlined (fill allowed for all except ghost)
-    const allowFillGlow = glowAllowed && (isGlowed || v === "flat" || v === "elevated");
-    const allowBorderGlow = glowAllowed && (v === "outlined" || v === "elevated");
+        // Variant rules:
+        // - Normal intents: flat/elevated => fill, outlined/elevated => border
+        // - glowed: aura exists even in outlined (fill allowed for all except ghost)
+        const allowFillGlow = glowAllowed && (isGlowed || v === "flat" || v === "elevated");
+        const allowBorderGlow = glowAllowed && (v === "outlined" || v === "elevated");
 
-    const readOpacity = (key: "--intent-glow-fill-opacity" | "--intent-glow-border-opacity") => {
-        const raw = resolved.style?.[key] ?? "0";
-        const n = Number(raw.toString());
-        return Number.isFinite(n) ? n : 0;
-    };
+        const readOpacity = (
+            key: "--intent-glow-fill-opacity" | "--intent-glow-border-opacity"
+        ) => {
+            const raw = resolved.style?.[key] ?? "0";
+            const n = Number(raw.toString());
+            return Number.isFinite(n) ? n : 0;
+        };
 
-    /* ============================================================================
+        /* ============================================================================
        🧱 Control class hooks (stable)
     ============================================================================ */
 
-    const rootCls = cn(
-        "intent-control intent-control-button",
-        "relative inline-flex items-center justify-center",
-        "select-none whitespace-nowrap",
-        // "rounded-ids-2xl",
-        "transition",
-        sizeClass(size),
-        fullWidth && "w-full",
-        pressed && "is-pressed",
-        loading && "is-loading",
-        disabled && "is-disabled"
-    );
+        const rootCls = cn(
+            "intent-control intent-control-button",
+            "relative inline-flex items-center justify-center",
+            "select-none whitespace-nowrap",
+            // "rounded-ids-2xl",
+            "transition",
+            sizeClass(size),
+            fullWidth && "w-full",
+            pressed && "is-pressed",
+            loading && "is-loading",
+            disabled && "is-disabled"
+        );
 
-    return (
-        <button
-            {...buttonProps}
-            {...surfaceProps}
-            className={cn(surfaceProps.className, rootCls)}
-            disabled={disabled}
-            type={buttonProps.type ?? "button"}
-            aria-pressed={pressed || undefined}
-            aria-busy={loading || undefined}
-            data-intent={resolved.intent}
-            data-variant={resolved.variant}
-            data-intensity={resolved.intensity}
-            data-mode={resolved.mode}
-        >
-            {/* Glow layers (under content) */}
-            {glowAllowed ? (
-                <>
-                    {allowFillGlow ? (
-                        <span
-                            aria-hidden
-                            className={cn("intent-glow-layer intent-glow-fill")}
-                            style={{ opacity: readOpacity("--intent-glow-fill-opacity") }}
-                        />
-                    ) : null}
+        return (
+            <button
+                ref={ref}
+                {...buttonProps}
+                {...surfaceProps}
+                className={cn(surfaceProps.className, rootCls)}
+                disabled={disabled}
+                type={buttonProps.type ?? "button"}
+                aria-pressed={pressed || undefined}
+                aria-busy={loading || undefined}
+                data-intent={resolved.intent}
+                data-variant={resolved.variant}
+                data-intensity={resolved.intensity}
+                data-mode={resolved.mode}
+            >
+                {/* Glow layers (under content) */}
+                {glowAllowed ? (
+                    <>
+                        {allowFillGlow ? (
+                            <span
+                                aria-hidden
+                                className={cn("intent-glow-layer intent-glow-fill")}
+                                style={{ opacity: readOpacity("--intent-glow-fill-opacity") }}
+                            />
+                        ) : null}
 
-                    {allowBorderGlow ? (
-                        <span
-                            aria-hidden
-                            className={cn("intent-glow-layer intent-glow-border")}
-                            style={{
-                                opacity: readOpacity("--intent-glow-border-opacity"),
-                                borderRadius: "inherit",
-                            }}
-                        />
-                    ) : null}
-                </>
-            ) : null}
-
-            {/* Content */}
-            <span className="relative z-10 inline-flex w-full justify-center items-center gap-2">
-                {loading ? (
-                    <span aria-hidden className="intent-control-spinner" />
-                ) : leftIcon ? (
-                    <span className="intent-control-icon intent-control-icon-left">{leftIcon}</span>
+                        {allowBorderGlow ? (
+                            <span
+                                aria-hidden
+                                className={cn("intent-glow-layer intent-glow-border")}
+                                style={{
+                                    opacity: readOpacity("--intent-glow-border-opacity"),
+                                    borderRadius: "inherit",
+                                }}
+                            />
+                        ) : null}
+                    </>
                 ) : null}
 
-                <span className="intent-control-label">{children}</span>
+                {/* Content */}
+                <span className="relative z-10 inline-flex w-full justify-center items-center gap-2">
+                    {loading ? (
+                        <span aria-hidden className="intent-control-spinner" />
+                    ) : leftIcon ? (
+                        <span className="intent-control-icon intent-control-icon-left">
+                            {leftIcon}
+                        </span>
+                    ) : null}
 
-                {rightIcon ? (
-                    <span className="intent-control-icon intent-control-icon-right">
-                        {rightIcon}
-                    </span>
-                ) : null}
-            </span>
-        </button>
-    );
-}
+                    <span className="intent-control-label">{children}</span>
+
+                    {rightIcon ? (
+                        <span className="intent-control-icon intent-control-icon-right">
+                            {rightIcon}
+                        </span>
+                    ) : null}
+                </span>
+            </button>
+        );
+    }
+);

@@ -11,11 +11,13 @@
 
 import * as React from "react";
 
-import type { IntentInput } from "../lib/intent/types";
-import { resolveIntent, getIntentLayoutProps, composeIntentClassName } from "../lib/intent/resolve";
-
-import type { DocsPropRow, ComponentIdentity } from "../lib/intent/types";
-import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
+import { resolveIntent, getIntentLayoutProps, composeIntentClassName } from "CORE";
+import {
+    SYSTEM_PROPS_TABLE,
+    type IntentInput,
+    type DocsPropRow,
+    type ComponentIdentity,
+} from "SYSTEM";
 
 /* ============================================================================
    🧰 HELPERS
@@ -63,8 +65,6 @@ function firstFocusable(root: HTMLElement | null) {
 }
 
 function getDrawerSizePx(position: IntentDrawerPosition, size: IntentDrawerSize): number | null {
-    // If numeric override, handled elsewhere.
-    // These are pragmatic defaults; panel can also be styled via CSS hooks.
     const isHorizontal = position === "left" || position === "right";
 
     const map = isHorizontal
@@ -91,30 +91,30 @@ export type IntentDrawerProps = IntentInput &
         onOpenChange?: (open: boolean) => void;
 
         /** Behavior */
-        closeOnOverlay?: boolean; // default true
-        closeOnEscape?: boolean; // default true
-        lockScroll?: boolean; // default true
-        trapFocus?: boolean; // default true
-        restoreFocus?: boolean; // default true
-        preventClose?: boolean; // default false (disables all closing interactions)
+        closeOnOverlay?: boolean;
+        closeOnEscape?: boolean;
+        lockScroll?: boolean;
+        trapFocus?: boolean;
+        restoreFocus?: boolean;
+        preventClose?: boolean;
 
         /** Layout */
-        position?: IntentDrawerPosition; // default "right"
-        size?: IntentDrawerSize; // default "md"
-        sizePx?: number; // overrides size map (width for left/right, height for top/bottom)
-        inset?: boolean; // default false (panel not full height/width, leaves padding)
-        overlay?: boolean; // default true
-        opaqueBackdrop?: boolean; // default false (adds a solid underlay behind the drawer panel)
+        position?: IntentDrawerPosition;
+        size?: IntentDrawerSize;
+        sizePx?: number;
+        inset?: boolean;
+        overlay?: boolean;
+        opaqueBackdrop?: boolean;
 
         /** Content */
-        title?: React.ReactNode; // optional header title
-        description?: React.ReactNode; // optional header description
-        header?: React.ReactNode; // custom header override
-        footer?: React.ReactNode; // footer slot
+        title?: React.ReactNode;
+        description?: React.ReactNode;
+        header?: React.ReactNode;
+        footer?: React.ReactNode;
         children?: React.ReactNode;
 
         /** Accessibility */
-        ariaLabel?: string; // default "Drawer"
+        ariaLabel?: string;
         initialFocusRef?: React.RefObject<HTMLElement>;
         finalFocusRef?: React.RefObject<HTMLElement>;
     };
@@ -199,8 +199,8 @@ const INTENT_DRAWER_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "opaqueBackdrop",
         description: {
-            fr: "Ajoute un fond opaque (via ::before) derrière le panel pour supprimer la transparence du contenu sous-jacent.",
-            en: "Adds an opaque underlay (via ::before) behind the panel to remove see-through transparency.",
+            fr: "Ajoute un fond opaque uniquement derrière le panneau du drawer, sans couvrir toute la page.",
+            en: "Adds an opaque underlay only behind the drawer panel, without covering the whole page.",
         },
         type: "boolean",
         required: false,
@@ -419,7 +419,6 @@ export function IntentDrawer(props: IntentDrawerProps) {
         initialFocusRef,
         finalFocusRef,
 
-        // DS props (removed from DOM)
         intent,
         variant,
         tone,
@@ -450,11 +449,7 @@ export function IntentDrawer(props: IntentDrawerProps) {
     };
 
     const resolved = resolveIntent(intentInput);
-
-    // Root: vars only
     const layoutProps = getIntentLayoutProps(resolved, className);
-
-    // Panel: surface recipe using vars
     const panelSurfaceClassName = composeIntentClassName(resolved);
 
     const panelRef = React.useRef<HTMLDivElement | null>(null);
@@ -483,7 +478,6 @@ export function IntentDrawer(props: IntentDrawerProps) {
         setOpen(false);
     }, [canClose, setOpen]);
 
-    // Lock body scroll
     React.useEffect(() => {
         if (!open || !lockScroll) return;
 
@@ -495,13 +489,11 @@ export function IntentDrawer(props: IntentDrawerProps) {
         };
     }, [open, lockScroll]);
 
-    // Remember focused element before opening
     React.useEffect(() => {
         if (!open) return;
         lastActiveElement.current = document.activeElement as HTMLElement | null;
     }, [open]);
 
-    // Initial focus on open
     React.useEffect(() => {
         if (!open) return;
 
@@ -515,7 +507,6 @@ export function IntentDrawer(props: IntentDrawerProps) {
         return () => window.clearTimeout(t);
     }, [open, initialFocusRef]);
 
-    // Restore focus on close
     React.useEffect(() => {
         if (open) return;
         if (!restoreFocus) return;
@@ -524,7 +515,6 @@ export function IntentDrawer(props: IntentDrawerProps) {
         target?.focus?.();
     }, [open, restoreFocus, finalFocusRef]);
 
-    // Escape to close
     React.useEffect(() => {
         if (!open) return;
         if (!closeOnEscape) return;
@@ -540,7 +530,6 @@ export function IntentDrawer(props: IntentDrawerProps) {
         return () => window.removeEventListener("keydown", onKeyDown);
     }, [open, closeOnEscape, canClose, onClose]);
 
-    // Focus trap (simple)
     React.useEffect(() => {
         if (!open) return;
         if (!trapFocus) return;
@@ -597,13 +586,12 @@ export function IntentDrawer(props: IntentDrawerProps) {
         return () => window.removeEventListener("keydown", onKeyDown);
     }, [open, trapFocus]);
 
-    // Overlay click to close
     const onOverlayMouseDown = React.useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
             if (!overlay) return;
             if (!closeOnOverlay) return;
             if (!canClose) return;
-            if (e.target !== e.currentTarget) return; // only outside panel
+            if (e.target !== e.currentTarget) return;
             onClose();
         },
         [overlay, closeOnOverlay, canClose, onClose]
@@ -696,16 +684,3 @@ export function IntentDrawer(props: IntentDrawerProps) {
         </div>
     );
 }
-
-/* ============================================================================
-   ✨ Notes CSS hooks (for your stylesheet)
-============================================================================
-.intent-drawer { }
-.intent-drawer-overlay { }
-.intent-drawer-panel { }
-.intent-drawer.pos-right .intent-drawer-panel { }
-.intent-drawer.pos-left  .intent-drawer-panel { }
-.intent-drawer.pos-top   .intent-drawer-panel { }
-.intent-drawer.pos-bottom .intent-drawer-panel { }
-.intent-drawer.is-inset .intent-drawer-panel { }
-*/

@@ -1,0 +1,255 @@
+/* src/components/intent/intent-control-dropdown.css */
+/* IntentControlDropdown
+   - Actions menu in popover
+   - Stable hooks only
+   - Keyboard navigation + typeahead
+*/
+
+.intent-control-dropdown {
+    position: relative;
+    display: inline-flex;
+    min-width: 0;
+    overflow: visible;
+    width: 100%;
+}
+
+.intent-control-dropdown.is-disabled {
+    opacity: 0.7;
+}
+
+.intent-control-dropdown-trigger {
+    min-width: 0;
+    width: 100%;
+}
+
+.intent-control-dropdown-triggerInner {
+    display: inline-flex;
+    min-width: 0;
+    width: 100%;
+}
+
+.intent-control-dropdown .intent-control {
+    overflow: visible;
+}
+
+.intent-control-dropdown-triggerInner > .intent-control {
+    overflow: hidden;
+}
+
+/* ---------------------------------------------------------------------------
+   Popover positioning
+--------------------------------------------------------------------------- */
+
+.intent-control-dropdown-popover {
+    position: absolute;
+    z-index: 50;
+
+    min-width: 14rem;
+    max-width: min(24rem, calc(100vw - 2rem));
+
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+    overflow: clip;
+
+    transform: translateZ(0);
+    background-color: transparent;
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.06),
+        var(--intent-ring-shadow, none),
+        var(--intent-elev-shadow, none);
+}
+
+.intent-control-dropdown-popover.is-portal {
+    position: fixed;
+    z-index: 70;
+
+    /* safe defaults (actual top/left set inline) */
+    top: 0;
+    left: 0;
+}
+
+/* During measure pass (hidden at 0,0), prevent flicker/clicks */
+.intent-control-dropdown-popover.is-portal.is-measuring {
+    pointer-events: none;
+}
+
+/* Backdrop layer */
+.intent-control-dropdown-popover::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+
+    background-color: color-mix(in oklab, black 88%, var(--intent-bg, black) 12%);
+    backdrop-filter: saturate(1.05);
+}
+
+.intent-control-dropdown-popover > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Light mode */
+.intent-control-dropdown[data-mode="light"] .intent-control-dropdown-popover::before {
+    background-color: color-mix(in oklab, white 92%, var(--intent-bg, white) 8%);
+}
+
+.intent-control-dropdown[data-mode="light"] .intent-control-dropdown-popover {
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(0, 0, 0, 0.08),
+        var(--intent-ring-shadow, none),
+        var(--intent-elev-shadow, none);
+}
+
+/* Inline side/align rules (ignored in portal mode) */
+.intent-control-dropdown.ids-popover-side-bottom .intent-control-dropdown-popover:not(.is-portal) {
+    top: calc(100% + var(--ids-popover-offset, 8px));
+}
+
+.intent-control-dropdown.ids-popover-side-top .intent-control-dropdown-popover:not(.is-portal) {
+    bottom: calc(100% + var(--ids-popover-offset, 8px));
+}
+
+.intent-control-dropdown.ids-popover-align-start .intent-control-dropdown-popover:not(.is-portal) {
+    left: 0;
+}
+
+.intent-control-dropdown.ids-popover-align-end .intent-control-dropdown-popover:not(.is-portal) {
+    right: 0;
+}
+
+.intent-control-dropdown-popover.is-match-trigger:not(.is-portal) {
+    width: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+   Menu container
+--------------------------------------------------------------------------- */
+
+.intent-control-dropdown-menu {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    min-width: 0;
+
+    outline: none;
+    padding: 0.4rem;
+}
+
+.intent-control-dropdown-header,
+.intent-control-dropdown-footer {
+    padding: 0.5rem 0.55rem;
+    min-width: 0;
+}
+
+.intent-control-dropdown-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Separators
+--------------------------------------------------------------------------- */
+
+.intent-control-dropdown-separator {
+    height: 1px;
+    width: 100%;
+    margin: 0.35rem 0;
+    background: color-mix(in oklab, var(--intent-border) 55%, transparent);
+    opacity: 0.55;
+}
+
+.intent-control-dropdown[data-variant="ghost"] .intent-control-dropdown-separator {
+    background: color-mix(in oklab, var(--intent-ink) 12%, transparent);
+    opacity: 0.45;
+}
+
+/* ---------------------------------------------------------------------------
+   Items
+--------------------------------------------------------------------------- */
+
+.intent-control-dropdown-item {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.6rem;
+
+    border-radius: var(--ids-radius-xl, 1rem);
+    padding: 0.6rem 0.65rem;
+
+    cursor: pointer;
+    user-select: none;
+    text-align: left;
+
+    background: transparent;
+    border: 0;
+
+    color: inherit;
+    text-decoration: none;
+}
+
+.intent-control-dropdown-item:focus {
+    outline: none;
+}
+
+.intent-control-dropdown-item.is-item-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.intent-control-dropdown-item-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+
+    opacity: 0.85;
+}
+
+.intent-control-dropdown-item-icon.is-empty {
+    opacity: 0;
+}
+
+.intent-control-dropdown-item-label {
+    flex: 1 1 auto;
+    min-width: 0;
+
+    font-size: 0.9rem;
+    line-height: 1.1rem;
+    font-weight: 560;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intent-control-dropdown-item-meta {
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    opacity: 0.6;
+}
+
+.intent-control-dropdown-item:hover:not(.is-item-disabled),
+.intent-control-dropdown-item.is-highlighted:not(.is-item-disabled) {
+    background: color-mix(in oklab, var(--intent-bg) 22%, transparent);
+}
+
+.intent-control-dropdown-item.is-dangerous .intent-control-dropdown-item-label {
+    color: color-mix(in oklab, var(--intent-ink) 45%, rgb(255 80 80));
+}
+
+.intent-control-dropdown.is-readonly .intent-control-dropdown-item {
+    cursor: default;
+}

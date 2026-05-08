@@ -10,9 +10,16 @@
 
 import * as React from "react";
 
-import type { ToneName, IntentInput, DocsPropRow, ComponentIdentity } from "../lib/intent/types";
-import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
-
+import {
+    SYSTEM_PROPS_TABLE,
+    type Tone,
+    type IntentInput,
+    type DocsPropRow,
+    type ComponentIdentity,
+    TONE,
+    type ToneMeta,
+} from "SYSTEM";
+import { cn } from "HELPERS";
 import { IntentControlField } from "./IntentControlField";
 import { IntentControlSelect, type IntentControlSelectOption } from "./IntentControlSelect";
 
@@ -20,11 +27,7 @@ import { IntentControlSelect, type IntentControlSelectOption } from "./IntentCon
    🧰 HELPERS
 ============================================================================ */
 
-function cn(...classes: Array<string | false | null | undefined>) {
-    return classes.filter(Boolean).join(" ");
-}
-
-export type ToneValue = ToneName | "themed" | "ink";
+export type ToneValue = Tone | "themed" | "ink";
 
 const DEFAULT_TONE_OPTIONS: ToneValue[] = [
     "slate",
@@ -52,8 +55,8 @@ const DEFAULT_TONE_OPTIONS: ToneValue[] = [
 ];
 
 function normalizeToneValue(v: string): ToneValue {
-    if (v === "themed" || v === "ink") return v;
-    return v as ToneName;
+    // if (v === "themed" || v === "ink") return v;
+    return v as Tone;
 }
 
 /**
@@ -65,57 +68,14 @@ function normalizeToneValue(v: string): ToneValue {
  * Notes:
  * - This is "best-effort": if your DS defines tone tokens as CSS vars, swap mapping here.
  */
-function toneSwatchStyle(tone: ToneValue): React.CSSProperties {
-    if (tone === "themed") {
-        return {
-            background: "color-mix(in oklab, var(--intent-bg) 60%, transparent)",
-            boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 55%, transparent)",
-        };
-    }
-
-    if (tone === "ink") {
-        return {
-            background: "color-mix(in oklab, var(--intent-ink) 85%, transparent)",
-            boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 55%, transparent)",
-        };
-    }
-
-    // Tailwind-like fallback palette (works even if you don't have a token system per tone)
-    // You can replace these with your own CSS vars per tone later.
-    const map: Record<string, string> = {
-        slate: "#64748b",
-        gray: "#6b7280",
-        zinc: "#71717a",
-        neutral: "#737373",
-        stone: "#78716c",
-        red: "#ef4444",
-        orange: "#f97316",
-        amber: "#f59e0b",
-        yellow: "#eab308",
-        lime: "#84cc16",
-        green: "#22c55e",
-        emerald: "#10b981",
-        teal: "#14b8a6",
-        cyan: "#06b6d4",
-        sky: "#0ea5e9",
-        blue: "#3b82f6",
-        indigo: "#6366f1",
-        violet: "#8b5cf6",
-        purple: "#a855f7",
-        fuchsia: "#d946ef",
-        pink: "#ec4899",
-        rose: "#f43f5e",
-    };
-
-    const color = map[tone] ?? "#94a3b8";
-
+function toneSwatchStyle(tone: ToneMeta): React.CSSProperties {
     return {
-        background: color,
+        background: tone.color.hex,
         boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.18)",
     };
 }
 
-function Swatch({ tone }: { tone: ToneValue }) {
+function Swatch({ tone }: { tone: ToneMeta }) {
     return <span aria-hidden className="intent-picker-tone-swatch" style={toneSwatchStyle(tone)} />;
 }
 
@@ -131,7 +91,7 @@ export type IntentPickerToneProps = IntentInput &
         value: ToneValue;
 
         /** Change callback */
-        onChange: (tone: ToneValue) => void;
+        onChange: (tone: ToneValue | null) => void;
 
         /** Options */
         options?: ToneValue[]; // default: DEFAULT_TONE_OPTIONS (+ extras depending on flags)
@@ -176,21 +136,21 @@ const INTENT_PICKER_TONE_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "value",
         description: { fr: "Tone sélectionné.", en: "Selected tone." },
-        type: "ToneName | 'themed' | 'ink'",
+        type: "Tone | 'themed' | 'ink'",
         required: true,
         fromSystem: false,
     },
     {
         name: "onChange",
         description: { fr: "Callback de changement.", en: "Change callback." },
-        type: "(tone: ToneName | 'themed' | 'ink') => void",
+        type: "(tone: Tone | 'themed' | 'ink') => void",
         required: true,
         fromSystem: false,
     },
     {
         name: "options",
         description: { fr: "Liste d’options tonales.", en: "Tone options list." },
-        type: "(ToneName | 'themed' | 'ink')[]",
+        type: "(Tone | 'themed' | 'ink')[]",
         required: false,
         default: "DEFAULT_TONE_OPTIONS",
         fromSystem: false,
@@ -374,13 +334,13 @@ export function IntentPickerTone(props: IntentPickerToneProps) {
     const fieldId = labelFor ?? React.useId();
 
     const optionsResolved = React.useMemo(() => {
-        const base = options ?? DEFAULT_TONE_OPTIONS;
-        const out: ToneValue[] = [...base];
+        const base = TONE;
+        // const out: ToneValue[] = [...base];
 
-        if (includeThemed && !out.includes("themed")) out.push("themed");
-        if (includeInk && !out.includes("ink")) out.push("ink");
+        // if (includeThemed && !out.includes("themed")) out.push("themed");
+        // if (includeInk && !out.includes("ink")) out.push("ink");
 
-        return Array.from(new Set(out));
+        return base;
     }, [options, includeThemed, includeInk]);
 
     // Build select options with swatches in label.
@@ -404,19 +364,19 @@ export function IntentPickerTone(props: IntentPickerToneProps) {
     const selectOptions: IntentControlSelectOption[] = React.useMemo(
         () =>
             optionsResolved.map((t) => ({
-                value: String(t),
-                searchText: String(t),
+                value: t.value,
+                searchText: t.value,
                 label: (
                     <span className="intent-picker-tone-option">
                         <Swatch tone={t} />
-                        <span className="intent-picker-tone-optionText">{t}</span>
+                        <span className="intent-picker-tone-optionText">{t.label}</span>
                     </span>
                 ),
             })),
         [optionsResolved]
     );
 
-    const selectedTone = normalizeToneValue(String(value));
+    // const selectedTone = normalizeToneValue(String(value));
 
     // ✅ exactOptionalPropertyTypes: do NOT pass undefined as a value
     const dsInput: IntentInput = {
@@ -455,6 +415,7 @@ export function IntentPickerTone(props: IntentPickerToneProps) {
             padded={false}
             leading={leading}
             trailing={trailing}
+            optionalLabel=""
         >
             <div className="w-full min-w-0">
                 <IntentControlSelect
@@ -468,12 +429,12 @@ export function IntentPickerTone(props: IntentPickerToneProps) {
                         if (next === null) {
                             // clearable path: pick first available option
                             // (IntentPickerTone has no "null" in its value type)
-                            const fallback = optionsResolved[0] ?? "slate";
-                            onChange(fallback);
+                            // const fallback = optionsResolved[0] ?? "slate";
+                            onChange(null);
                             return;
                         }
 
-                        onChange(normalizeToneValue(next));
+                        onChange(next as ToneValue);
                     }}
                     placeholder={placeholder}
                     size={size}

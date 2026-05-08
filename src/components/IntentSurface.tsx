@@ -1,14 +1,16 @@
 import * as React from "react";
+import { resolveIntent, getIntentSurfaceProps } from "CORE";
+import {
+    SYSTEM_PROPS_TABLE,
+    type IntentInput,
+    type DocsPropRow,
+    type ComponentIdentity,
+} from "SYSTEM";
+import { cn } from "HELPERS";
 
-import type { IntentInput } from "../lib/intent/types";
-import { resolveIntent, getIntentSurfaceProps } from "../lib/intent/resolve";
-
-import type { DocsPropRow, ComponentIdentity } from "../lib/intent/types";
-import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
-
-function cn(...classes: Array<string | false | null | undefined>) {
-    return classes.filter(Boolean).join(" ");
-}
+/* ============================================================================
+   🏷️ LOCAL TYPE
+============================================================================ */
 
 export type IntentSurfaceComponentProps<T extends React.ElementType = "div"> = IntentInput & {
     as?: T;
@@ -104,9 +106,35 @@ export const IntentSurfaceIdentity: ComponentIdentity = {
 export function IntentSurface<T extends React.ElementType = "div">(
     props: IntentSurfaceComponentProps<T>
 ) {
-    const { as, className, children, ...intentInput } = props;
+    const {
+        as,
+        className,
+        children,
+        intent,
+        variant: dsVariant,
+        tone,
+        glow,
+        intensity,
+        mode,
+        toneStep,
+        disabled: disabledProp,
+        ...restProps
+    } = props;
 
     const Tag = (as ?? "div") as React.ElementType;
+
+    const disabled = Boolean(disabledProp);
+
+    const intentInput: IntentInput = {
+        ...(intent !== undefined ? { intent } : {}),
+        ...(dsVariant !== undefined ? { variant: dsVariant } : {}),
+        ...(tone !== undefined ? { tone } : {}),
+        ...(glow !== undefined ? { glow } : {}),
+        ...(intensity !== undefined ? { intensity } : {}),
+        ...(mode !== undefined ? { mode } : {}),
+        ...(toneStep !== undefined ? { toneStep } : {}),
+        disabled,
+    };
 
     const resolved = resolveIntent(intentInput);
     const surfaceProps = getIntentSurfaceProps(resolved, className);
@@ -127,7 +155,7 @@ export function IntentSurface<T extends React.ElementType = "div">(
     };
 
     return (
-        <Tag {...surfaceProps}>
+        <Tag {...surfaceProps} {...restProps}>
             {glowAllowed ? (
                 <>
                     {allowFillGlow ? (
@@ -149,7 +177,7 @@ export function IntentSurface<T extends React.ElementType = "div">(
                 </>
             ) : null}
 
-            <div className="relative z-10">{children}</div>
+            <div className="relative z-10 w-full">{children}</div>
         </Tag>
     );
 }

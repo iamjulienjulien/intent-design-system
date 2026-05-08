@@ -1,0 +1,363 @@
+/* src/components/intent/intent-surface-widget.css */
+/* IntentSurfaceWidget
+   - Compact dashboard/widget surface
+   - Lighter header rhythm than Card / Panel
+   - Optional collapse / dismiss
+   - Stable hooks only
+*/
+
+.intent-surface-widget {
+    position: relative;
+    min-width: 0;
+    color: var(--intent-ink);
+    overflow: clip;
+}
+
+.intent-surface-widget.intent-surface-widget--radius-lg {
+    border-radius: var(--ids-radius-xl, 1rem);
+}
+
+.intent-surface-widget.intent-surface-widget--radius-xl {
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+}
+
+.intent-surface-widget.intent-surface-widget--radius-2xl {
+    border-radius: var(--ids-radius-3xl, 1.5rem);
+}
+
+.intent-surface-widget.is-fullwidth {
+    width: 100%;
+}
+
+.intent-surface-widget-content {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Padding scale
+--------------------------------------------------------------------------- */
+
+.intent-surface-widget--padded-none .intent-surface-widget-header,
+.intent-surface-widget--padded-none .intent-surface-widget-body,
+.intent-surface-widget--padded-none .intent-surface-widget-footer {
+    padding: 0;
+}
+
+.intent-surface-widget--padded-xs .intent-surface-widget-header,
+.intent-surface-widget--padded-xs .intent-surface-widget-body,
+.intent-surface-widget--padded-xs .intent-surface-widget-footer {
+    padding: 0.55rem 0.7rem;
+}
+
+.intent-surface-widget--padded-sm .intent-surface-widget-header,
+.intent-surface-widget--padded-sm .intent-surface-widget-body,
+.intent-surface-widget--padded-sm .intent-surface-widget-footer {
+    padding: 0.7rem 0.85rem;
+}
+
+.intent-surface-widget--padded-md .intent-surface-widget-header,
+.intent-surface-widget--padded-md .intent-surface-widget-body,
+.intent-surface-widget--padded-md .intent-surface-widget-footer {
+    padding: 0.9rem 1rem;
+}
+
+.intent-surface-widget--bleed .intent-surface-widget-body {
+    padding: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Header
+--------------------------------------------------------------------------- */
+
+.intent-surface-widget-header,
+.intent-surface-widget-body,
+.intent-surface-widget-footer {
+    min-width: 0;
+}
+
+.intent-surface-widget-headerInner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.intent-surface-widget--header-start .intent-surface-widget-headerInner {
+    align-items: flex-start;
+}
+
+.intent-surface-widget--header-center .intent-surface-widget-headerInner {
+    align-items: center;
+}
+
+.intent-surface-widget-headerMain {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.intent-surface-widget-leading {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.intent-surface-widget-emoji {
+    width: 1.9rem;
+    height: 1.9rem;
+    /* border-radius: 999px; */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 0.95rem;
+    line-height: 1;
+
+    /* background: color-mix(in oklab, var(--intent-bg) 24%, transparent); */
+    /* box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 45%, transparent); */
+}
+
+.intent-surface-widget-titleWrap {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.intent-surface-widget-eyebrow {
+    font-size: 0.67rem;
+    line-height: 0.9rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.58;
+    margin-bottom: 0.18rem;
+}
+
+.intent-surface-widget-titleRow {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.intent-surface-widget-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-size: 0.92rem;
+    line-height: 1.1rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+}
+
+.intent-surface-widget-subtitle {
+    margin-top: 0.22rem;
+    min-width: 0;
+
+    font-size: 0.78rem;
+    line-height: 1.02rem;
+    opacity: 0.72;
+}
+
+.intent-surface-widget-headerSide {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    min-width: 0;
+    max-width: 55%;
+}
+
+.intent-surface-widget-badges,
+.intent-surface-widget-actions,
+.intent-surface-widget-chrome {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.intent-surface-widget-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    font-size: 0.72rem;
+    line-height: 0.95rem;
+    white-space: nowrap;
+    opacity: 0.7;
+}
+
+.intent-surface-widget-chromeButton {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: inherit;
+
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 999px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    opacity: 0.8;
+    font-size: 2em;
+
+    transition:
+        background 140ms ease,
+        opacity 140ms ease,
+        transform 140ms ease,
+        box-shadow 140ms ease;
+}
+
+.intent-surface-widget-chromeButton:hover:not(:disabled) {
+    opacity: 1;
+    background: color-mix(in oklab, var(--intent-bg) 28%, transparent);
+}
+
+.intent-surface-widget-chromeButton:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 2px color-mix(in oklab, var(--intent-ring) 24%, transparent),
+        0 0 0 5px color-mix(in oklab, var(--intent-ring) 10%, transparent);
+}
+
+.intent-surface-widget-chromeButton:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.intent-surface-widget-chromeButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.intent-surface-widget-chromeButton > span {
+    position: relative;
+    top: -3px;
+}
+
+/* ---------------------------------------------------------------------------
+   Divider
+--------------------------------------------------------------------------- */
+
+.intent-surface-widget-divider {
+    height: 1px;
+    width: 100%;
+    background: color-mix(in oklab, var(--intent-border) 52%, transparent);
+    opacity: 0.5;
+}
+
+.intent-surface-widget--padded-xs .intent-surface-widget-divider {
+    margin-left: 0.7rem;
+    margin-right: 0.7rem;
+}
+
+.intent-surface-widget--padded-sm .intent-surface-widget-divider {
+    margin-left: 0.85rem;
+    margin-right: 0.85rem;
+}
+
+.intent-surface-widget--padded-md .intent-surface-widget-divider {
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.intent-surface-widget--bleed .intent-surface-widget-divider {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Body / Footer
+--------------------------------------------------------------------------- */
+
+.intent-surface-widget-header + .intent-surface-widget-body {
+    padding-top: 0;
+}
+
+.intent-surface-widget-bodyInner,
+.intent-surface-widget-footerInner {
+    min-width: 0;
+}
+
+.intent-surface-widget-bodyInner.is-scrollable {
+    overflow: auto;
+}
+
+/* ---------------------------------------------------------------------------
+   States
+--------------------------------------------------------------------------- */
+
+.intent-surface-widget.is-collapsed .intent-surface-widget-body {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.intent-surface-widget.is-pressed {
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-ring) 38%, transparent);
+}
+
+.intent-surface-widget.is-disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.intent-surface-widget[data-variant="ghost"] .intent-surface-widget-divider {
+    background: color-mix(in oklab, var(--intent-ink) 12%, transparent);
+    opacity: 0.42;
+}
+
+/* ---------------------------------------------------------------------------
+   Interactive polish
+--------------------------------------------------------------------------- */
+
+.intent-surface-widget.intent-surface-widget--interactive {
+    cursor: pointer;
+    user-select: none;
+
+    transition:
+        transform 140ms ease,
+        box-shadow 140ms ease,
+        filter 140ms ease;
+}
+
+.intent-surface-widget.intent-surface-widget--interactive:not(.is-disabled):hover {
+    transform: translateY(-1px);
+    filter: saturate(1.02);
+
+    box-shadow:
+        0 10px 22px color-mix(in oklab, #000 18%, transparent),
+        0 2px 6px color-mix(in oklab, #000 12%, transparent);
+}
+
+.intent-surface-widget.intent-surface-widget--interactive:not(.is-disabled):focus,
+.intent-surface-widget.intent-surface-widget--interactive:not(.is-disabled):focus-within {
+    outline: none;
+    box-shadow:
+        0 0 0 2px color-mix(in oklab, var(--intent-ring) 22%, transparent),
+        0 0 0 6px color-mix(in oklab, var(--intent-ring) 10%, transparent),
+        0 10px 22px color-mix(in oklab, #000 18%, transparent);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .intent-surface-widget.intent-surface-widget--interactive,
+    .intent-surface-widget-chromeButton {
+        transition: none;
+    }
+
+    .intent-surface-widget.intent-surface-widget--interactive:not(.is-disabled):hover {
+        transform: none;
+    }
+}

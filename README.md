@@ -5,23 +5,19 @@
 
 ---
 
-## 🚀 v0.2.0 — A Major Step Forward
+## 🚀 v0.3.0 — Full Component Library
 
-Version **0.2.0** marks a foundational milestone for Intent Design System.
+Version **0.3.0** marks a new milestone for Intent Design System.
 
-What started with **2 core components** (`IntentSurface`, `IntentControlButton`)  
-has grown into a **coherent ecosystem of 18 intent-first components**, covering:
+The system now ships **50 intent-first components** across every UI layer:
 
-- surfaces
-- controls
-- data display
-- layout & structure
-- indicators and feedback
+- surfaces, overlays and feedback
+- form controls (inputs, selects, tags, date, color, files, markdown…)
+- data display (table, tree, code, PDF, stats, charts…)
+- layout and navigation (toolbar, drawer, dialog, stepper, timeline…)
+- design utilities (theme preview, tone picker, glow picker)
 
-This release focuses on **consistency, composability, and narrative clarity**.
-
-> Intent Design System is no longer a concept.  
-> It is now a usable, extensible system.
+> Intent Design System is a complete, extensible semantic UI system.
 
 ---
 
@@ -55,6 +51,36 @@ npm install intent-design-system
 ```ts
 import "intent-design-system/styles";
 ```
+
+> **Note:** `zustand` is bundled as a runtime dependency — no separate install needed.
+
+---
+
+## 🧱 Components (50)
+
+### Surfaces
+`IntentSurface` · `IntentSurfaceCard` · `IntentSurfacePanel` · `IntentSurfaceSkeleton` · `IntentSurfaceWidget`
+
+### Controls
+`IntentControlButton` · `IntentControlButtonGroup` · `IntentControlLink` · `IntentControlToggle` · `IntentControlSegmented` · `IntentControlTabs` · `IntentControlSelect` · `IntentControlCombobox` · `IntentControlInput` · `IntentControlTags` · `IntentControlDate` · `IntentControlTime` · `IntentControlField` · `IntentControlMarkdown` · `IntentControlData` · `IntentControlColor` · `IntentControlFiles` · `IntentControlDropdown` · `IntentControlNavList` · `IntentControlRange`
+
+### Overlays & Feedback
+`IntentCommandPalette` · `IntentDialog` · `IntentDrawer` · `IntentPopover` · `IntentConfirmDialog` · `IntentToast`
+
+### Layout
+`IntentDivider` · `IntentJourney` · `IntentStepper` · `IntentTimeline` · `IntentToolbar`
+
+### Data & Content
+`IntentTable` · `IntentTree` · `IntentCodeViewer` · `IntentContentText` · `IntentStat` · `IntentPdfViewer` · `IntentLoader` · `IntentProgressBar`
+
+### Indicators
+`IntentIndicator`
+
+### Visualization
+`IntentVisualizationBar` · `IntentGenealogyHierarchy`
+
+### Design
+`IntentPickerTone` · `IntentPickerGlow` · `IntentThemePreview`
 
 ---
 

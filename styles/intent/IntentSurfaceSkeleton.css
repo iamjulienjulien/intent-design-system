@@ -1,0 +1,965 @@
+/* src/components/intent/intent-surface-skeleton.css */
+/* IntentSurfaceSkeleton
+   - Loading placeholder for surface containers
+   - Supports header/body/footer anatomy
+   - Supports widget/card/panel presets
+   - Stable hooks only
+*/
+
+.intent-surface-skeleton {
+    position: relative;
+    min-width: 0;
+    color: var(--intent-ink);
+    overflow: clip;
+}
+
+.intent-surface-skeleton.intent-surface-skeleton--radius-lg {
+    border-radius: var(--ids-radius-xl, 1rem);
+}
+
+.intent-surface-skeleton.intent-surface-skeleton--radius-xl {
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+}
+
+.intent-surface-skeleton.intent-surface-skeleton--radius-2xl {
+    border-radius: var(--ids-radius-3xl, 1.5rem);
+}
+
+.intent-surface-skeleton.is-fullwidth {
+    width: 100%;
+}
+
+.intent-surface-skeleton-content {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Base skeleton tokens
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton {
+    --ids-skeleton-bg: color-mix(in oklab, var(--intent-ink) 10%, transparent);
+    --ids-skeleton-bg-2: color-mix(in oklab, var(--intent-ink) 16%, transparent);
+    --ids-skeleton-shimmer: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in oklab, white 18%, transparent) 45%,
+        transparent 100%
+    );
+    --ids-skeleton-gap: 0.6rem;
+    --ids-skeleton-line-h: 0.78rem;
+    --ids-skeleton-block-radius: 0.7rem;
+}
+
+.intent-surface-skeleton.intent-surface-skeleton--compact {
+    --ids-skeleton-gap: 0.48rem;
+    --ids-skeleton-line-h: 0.68rem;
+}
+
+.intent-surface-skeleton.intent-surface-skeleton--dense {
+    --ids-skeleton-gap: 0.38rem;
+    --ids-skeleton-line-h: 0.62rem;
+}
+
+.intent-surface-skeleton-block,
+.intent-surface-skeleton-line {
+    position: relative;
+    overflow: hidden;
+    background: var(--ids-skeleton-bg);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 18%, transparent);
+}
+
+.intent-surface-skeleton-block {
+    width: 100%;
+    height: 1rem;
+    border-radius: var(--ids-skeleton-block-radius);
+}
+
+.intent-surface-skeleton-line {
+    height: var(--ids-skeleton-line-h);
+    border-radius: 999px;
+}
+
+/* Width helpers */
+.intent-surface-skeleton-line.is-w-full {
+    width: 100%;
+}
+.intent-surface-skeleton-line.is-w-11-12 {
+    width: 91.6667%;
+}
+.intent-surface-skeleton-line.is-w-10-12 {
+    width: 83.3333%;
+}
+.intent-surface-skeleton-line.is-w-9-12 {
+    width: 75%;
+}
+.intent-surface-skeleton-line.is-w-8-12 {
+    width: 66.6667%;
+}
+.intent-surface-skeleton-line.is-w-7-12 {
+    width: 58.3333%;
+}
+.intent-surface-skeleton-line.is-w-6-12 {
+    width: 50%;
+}
+.intent-surface-skeleton-line.is-w-5-12 {
+    width: 41.6667%;
+}
+.intent-surface-skeleton-line.is-w-4-12 {
+    width: 33.3333%;
+}
+.intent-surface-skeleton-line.is-w-3-12 {
+    width: 25%;
+}
+.intent-surface-skeleton-line.is-w-2-12 {
+    width: 16.6667%;
+}
+
+/* Radius helpers */
+.intent-surface-skeleton-block.is-rounded-sm {
+    border-radius: 0.45rem;
+}
+.intent-surface-skeleton-block.is-rounded-lg {
+    border-radius: 1rem;
+}
+.intent-surface-skeleton-block.is-rounded-full {
+    border-radius: 999px;
+}
+
+/* Animation */
+.intent-surface-skeleton--animated.intent-surface-skeleton--animation-pulse
+    .intent-surface-skeleton-block,
+.intent-surface-skeleton--animated.intent-surface-skeleton--animation-pulse
+    .intent-surface-skeleton-line {
+    animation: ids-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.intent-surface-skeleton--animated.intent-surface-skeleton--animation-shimmer
+    .intent-surface-skeleton-block::after,
+.intent-surface-skeleton--animated.intent-surface-skeleton--animation-shimmer
+    .intent-surface-skeleton-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%);
+    background: var(--ids-skeleton-shimmer);
+    animation: ids-skeleton-shimmer 1.7s ease-in-out infinite;
+}
+
+@keyframes ids-skeleton-pulse {
+    0%,
+    100% {
+        opacity: 0.55;
+    }
+    50% {
+        opacity: 0.9;
+    }
+}
+
+@keyframes ids-skeleton-shimmer {
+    100% {
+        transform: translateX(120%);
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   Padding scale
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton--padded-none .intent-surface-skeleton-header,
+.intent-surface-skeleton--padded-none .intent-surface-skeleton-body,
+.intent-surface-skeleton--padded-none .intent-surface-skeleton-footer {
+    padding: 0;
+}
+
+.intent-surface-skeleton--padded-xs .intent-surface-skeleton-header,
+.intent-surface-skeleton--padded-xs .intent-surface-skeleton-body,
+.intent-surface-skeleton--padded-xs .intent-surface-skeleton-footer {
+    padding: 0.55rem 0.7rem;
+}
+
+.intent-surface-skeleton--padded-sm .intent-surface-skeleton-header,
+.intent-surface-skeleton--padded-sm .intent-surface-skeleton-body,
+.intent-surface-skeleton--padded-sm .intent-surface-skeleton-footer {
+    padding: 0.7rem 0.85rem;
+}
+
+.intent-surface-skeleton--padded-md .intent-surface-skeleton-header,
+.intent-surface-skeleton--padded-md .intent-surface-skeleton-body,
+.intent-surface-skeleton--padded-md .intent-surface-skeleton-footer {
+    padding: 0.9rem 1rem;
+}
+
+.intent-surface-skeleton--bleed .intent-surface-skeleton-body {
+    padding: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Header
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton-header,
+.intent-surface-skeleton-body,
+.intent-surface-skeleton-footer {
+    min-width: 0;
+}
+
+.intent-surface-skeleton-headerInner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.intent-surface-skeleton--header-start .intent-surface-skeleton-headerInner {
+    align-items: flex-start;
+}
+
+.intent-surface-skeleton--header-center .intent-surface-skeleton-headerInner {
+    align-items: center;
+}
+
+.intent-surface-skeleton-headerMain {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.intent-surface-skeleton-leading {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.intent-surface-skeleton-titleWrap {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.intent-surface-skeleton-eyebrowLine {
+    margin-bottom: 0.32rem;
+}
+
+.intent-surface-skeleton-titleLine + .intent-surface-skeleton-subtitleLine {
+    margin-top: 0.35rem;
+}
+
+.intent-surface-skeleton-headerSide {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.45rem;
+    min-width: 0;
+    max-width: 55%;
+}
+
+/* ---------------------------------------------------------------------------
+   Divider
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton-divider {
+    height: 1px;
+    width: 100%;
+    background: color-mix(in oklab, var(--intent-border) 35%, transparent);
+    opacity: 0.45;
+}
+
+.intent-surface-skeleton--padded-xs .intent-surface-skeleton-divider {
+    margin-left: 0.7rem;
+    margin-right: 0.7rem;
+}
+
+.intent-surface-skeleton--padded-sm .intent-surface-skeleton-divider {
+    margin-left: 0.85rem;
+    margin-right: 0.85rem;
+}
+
+.intent-surface-skeleton--padded-md .intent-surface-skeleton-divider {
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.intent-surface-skeleton--bleed .intent-surface-skeleton-divider {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.intent-surface-skeleton[data-variant="ghost"] .intent-surface-skeleton-divider {
+    background: color-mix(in oklab, var(--intent-ink) 10%, transparent);
+    opacity: 0.35;
+}
+
+/* ---------------------------------------------------------------------------
+   Body
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton-bodyInner {
+    min-width: 0;
+}
+
+.intent-surface-skeleton-bodyInner.is-scrollable {
+    overflow: auto;
+}
+
+.intent-surface-skeleton-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ids-skeleton-gap);
+}
+
+.intent-surface-skeleton-media {
+    width: 100%;
+}
+
+.intent-surface-skeleton-chart {
+    width: 100%;
+    min-height: 8rem;
+    padding: 0.5rem;
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--intent-bg) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 20%, transparent);
+}
+
+.intent-surface-skeleton-chartBars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.45rem;
+    height: 100%;
+    min-height: 7rem;
+}
+
+.intent-surface-skeleton-chartBar {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+}
+
+.intent-surface-skeleton-chartBar.is-h-20 {
+    height: 20%;
+}
+.intent-surface-skeleton-chartBar.is-h-24 {
+    height: 24%;
+}
+.intent-surface-skeleton-chartBar.is-h-28 {
+    height: 28%;
+}
+.intent-surface-skeleton-chartBar.is-h-36 {
+    height: 36%;
+}
+.intent-surface-skeleton-chartBar.is-h-40 {
+    height: 40%;
+}
+.intent-surface-skeleton-chartBar.is-h-44 {
+    height: 44%;
+}
+.intent-surface-skeleton-chartBar.is-h-52 {
+    height: 52%;
+}
+
+.intent-surface-skeleton-statGrid,
+.intent-surface-skeleton-cardGrid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.intent-surface-skeleton-statGrid--1 {
+    grid-template-columns: 1fr;
+}
+.intent-surface-skeleton-statGrid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.intent-surface-skeleton-statGrid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.intent-surface-skeleton-statGrid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.intent-surface-skeleton-statGrid--5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.intent-surface-skeleton-cardGrid--1 {
+    grid-template-columns: 1fr;
+}
+.intent-surface-skeleton-cardGrid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.intent-surface-skeleton-cardGrid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.intent-surface-skeleton-statCard,
+.intent-surface-skeleton-innerCard {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.85rem;
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--intent-bg) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 20%, transparent);
+}
+
+.intent-surface-skeleton-innerMedia {
+    width: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+   Footer
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton-footerInner {
+    min-width: 0;
+}
+
+.intent-surface-skeleton-footerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.intent-surface-skeleton-footerLines {
+    min-width: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.intent-surface-skeleton-footerActions {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+/* ---------------------------------------------------------------------------
+   States
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton.is-disabled {
+    opacity: 0.65;
+}
+
+@media (max-width: 720px) {
+    .intent-surface-skeleton-statGrid--3,
+    .intent-surface-skeleton-statGrid--4,
+    .intent-surface-skeleton-cardGrid--3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .intent-surface-skeleton-statGrid,
+    .intent-surface-skeleton-cardGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .intent-surface-skeleton-footerRow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .intent-surface-skeleton-headerSide {
+        max-width: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .intent-surface-skeleton-block,
+    .intent-surface-skeleton-line,
+    .intent-surface-skeleton-block::after,
+    .intent-surface-skeleton-line::after {
+        animation: none !important;
+    }
+}
+/* src/components/intent/intent-surface-skeleton.css */
+/* IntentSurfaceSkeleton
+   - Loading placeholder for surface containers
+   - Supports header/body/footer anatomy
+   - Supports widget/card/panel presets
+   - Stable hooks only
+*/
+
+.intent-surface-skeleton {
+    position: relative;
+    min-width: 0;
+    color: var(--intent-ink);
+    overflow: clip;
+}
+
+.intent-surface-skeleton.intent-surface-skeleton--radius-lg {
+    border-radius: var(--ids-radius-xl, 1rem);
+}
+
+.intent-surface-skeleton.intent-surface-skeleton--radius-xl {
+    border-radius: var(--ids-radius-2xl, 1.25rem);
+}
+
+.intent-surface-skeleton.intent-surface-skeleton--radius-2xl {
+    border-radius: var(--ids-radius-3xl, 1.5rem);
+}
+
+.intent-surface-skeleton.is-fullwidth {
+    width: 100%;
+}
+
+.intent-surface-skeleton-content {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Base skeleton tokens
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton {
+    --ids-skeleton-bg: color-mix(in oklab, var(--intent-ink) 10%, transparent);
+    --ids-skeleton-bg-2: color-mix(in oklab, var(--intent-ink) 16%, transparent);
+    --ids-skeleton-shimmer: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in oklab, white 18%, transparent) 45%,
+        transparent 100%
+    );
+    --ids-skeleton-gap: 0.6rem;
+    --ids-skeleton-line-h: 0.78rem;
+    --ids-skeleton-block-radius: 0.7rem;
+}
+
+.intent-surface-skeleton.intent-surface-skeleton--compact {
+    --ids-skeleton-gap: 0.48rem;
+    --ids-skeleton-line-h: 0.68rem;
+}
+
+.intent-surface-skeleton.intent-surface-skeleton--dense {
+    --ids-skeleton-gap: 0.38rem;
+    --ids-skeleton-line-h: 0.62rem;
+}
+
+.intent-surface-skeleton-block,
+.intent-surface-skeleton-line {
+    position: relative;
+    overflow: hidden;
+    background: var(--ids-skeleton-bg);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 18%, transparent);
+}
+
+.intent-surface-skeleton-block {
+    width: 100%;
+    height: 1rem;
+    border-radius: var(--ids-skeleton-block-radius);
+}
+
+.intent-surface-skeleton-line {
+    height: var(--ids-skeleton-line-h);
+    border-radius: 999px;
+}
+
+/* Width helpers */
+.intent-surface-skeleton-line.is-w-full {
+    width: 100%;
+}
+.intent-surface-skeleton-line.is-w-11-12 {
+    width: 91.6667%;
+}
+.intent-surface-skeleton-line.is-w-10-12 {
+    width: 83.3333%;
+}
+.intent-surface-skeleton-line.is-w-9-12 {
+    width: 75%;
+}
+.intent-surface-skeleton-line.is-w-8-12 {
+    width: 66.6667%;
+}
+.intent-surface-skeleton-line.is-w-7-12 {
+    width: 58.3333%;
+}
+.intent-surface-skeleton-line.is-w-6-12 {
+    width: 50%;
+}
+.intent-surface-skeleton-line.is-w-5-12 {
+    width: 41.6667%;
+}
+.intent-surface-skeleton-line.is-w-4-12 {
+    width: 33.3333%;
+}
+.intent-surface-skeleton-line.is-w-3-12 {
+    width: 25%;
+}
+.intent-surface-skeleton-line.is-w-2-12 {
+    width: 16.6667%;
+}
+
+/* Radius helpers */
+.intent-surface-skeleton-block.is-rounded-sm {
+    border-radius: 0.45rem;
+}
+.intent-surface-skeleton-block.is-rounded-lg {
+    border-radius: 1rem;
+}
+.intent-surface-skeleton-block.is-rounded-full {
+    border-radius: 999px;
+}
+
+/* Animation */
+.intent-surface-skeleton--animated.intent-surface-skeleton--animation-pulse
+    .intent-surface-skeleton-block,
+.intent-surface-skeleton--animated.intent-surface-skeleton--animation-pulse
+    .intent-surface-skeleton-line {
+    animation: ids-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.intent-surface-skeleton--animated.intent-surface-skeleton--animation-shimmer
+    .intent-surface-skeleton-block::after,
+.intent-surface-skeleton--animated.intent-surface-skeleton--animation-shimmer
+    .intent-surface-skeleton-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%);
+    background: var(--ids-skeleton-shimmer);
+    animation: ids-skeleton-shimmer 1.7s ease-in-out infinite;
+}
+
+@keyframes ids-skeleton-pulse {
+    0%,
+    100% {
+        opacity: 0.55;
+    }
+    50% {
+        opacity: 0.9;
+    }
+}
+
+@keyframes ids-skeleton-shimmer {
+    100% {
+        transform: translateX(120%);
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   Padding scale
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton--padded-none .intent-surface-skeleton-header,
+.intent-surface-skeleton--padded-none .intent-surface-skeleton-body,
+.intent-surface-skeleton--padded-none .intent-surface-skeleton-footer {
+    padding: 0;
+}
+
+.intent-surface-skeleton--padded-xs .intent-surface-skeleton-header,
+.intent-surface-skeleton--padded-xs .intent-surface-skeleton-body,
+.intent-surface-skeleton--padded-xs .intent-surface-skeleton-footer {
+    padding: 0.55rem 0.7rem;
+}
+
+.intent-surface-skeleton--padded-sm .intent-surface-skeleton-header,
+.intent-surface-skeleton--padded-sm .intent-surface-skeleton-body,
+.intent-surface-skeleton--padded-sm .intent-surface-skeleton-footer {
+    padding: 0.7rem 0.85rem;
+}
+
+.intent-surface-skeleton--padded-md .intent-surface-skeleton-header,
+.intent-surface-skeleton--padded-md .intent-surface-skeleton-body,
+.intent-surface-skeleton--padded-md .intent-surface-skeleton-footer {
+    padding: 0.9rem 1rem;
+}
+
+.intent-surface-skeleton--bleed .intent-surface-skeleton-body {
+    padding: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Header
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton-header,
+.intent-surface-skeleton-body,
+.intent-surface-skeleton-footer {
+    min-width: 0;
+}
+
+.intent-surface-skeleton-headerInner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.intent-surface-skeleton--header-start .intent-surface-skeleton-headerInner {
+    align-items: flex-start;
+}
+
+.intent-surface-skeleton--header-center .intent-surface-skeleton-headerInner {
+    align-items: center;
+}
+
+.intent-surface-skeleton-headerMain {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.intent-surface-skeleton-leading {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.intent-surface-skeleton-titleWrap {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.intent-surface-skeleton-eyebrowLine {
+    margin-bottom: 0.32rem;
+}
+
+.intent-surface-skeleton-titleLine + .intent-surface-skeleton-subtitleLine {
+    margin-top: 0.35rem;
+}
+
+.intent-surface-skeleton-headerSide {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.45rem;
+    min-width: 0;
+    max-width: 55%;
+}
+
+/* ---------------------------------------------------------------------------
+   Divider
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton-divider {
+    height: 1px;
+    width: 100%;
+    background: color-mix(in oklab, var(--intent-border) 35%, transparent);
+    opacity: 0.45;
+}
+
+.intent-surface-skeleton--padded-xs .intent-surface-skeleton-divider {
+    margin-left: 0.7rem;
+    margin-right: 0.7rem;
+}
+
+.intent-surface-skeleton--padded-sm .intent-surface-skeleton-divider {
+    margin-left: 0.85rem;
+    margin-right: 0.85rem;
+}
+
+.intent-surface-skeleton--padded-md .intent-surface-skeleton-divider {
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.intent-surface-skeleton--bleed .intent-surface-skeleton-divider {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.intent-surface-skeleton[data-variant="ghost"] .intent-surface-skeleton-divider {
+    background: color-mix(in oklab, var(--intent-ink) 10%, transparent);
+    opacity: 0.35;
+}
+
+/* ---------------------------------------------------------------------------
+   Body
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton-bodyInner {
+    min-width: 0;
+}
+
+.intent-surface-skeleton-bodyInner.is-scrollable {
+    overflow: auto;
+}
+
+.intent-surface-skeleton-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ids-skeleton-gap);
+}
+
+.intent-surface-skeleton-media {
+    width: 100%;
+}
+
+.intent-surface-skeleton-chart {
+    width: 100%;
+    min-height: 8rem;
+    padding: 0.5rem;
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--intent-bg) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 20%, transparent);
+}
+
+.intent-surface-skeleton-chartBars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.45rem;
+    height: 100%;
+    min-height: 7rem;
+}
+
+.intent-surface-skeleton-chartBar {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+}
+
+.intent-surface-skeleton-chartBar.is-h-20 {
+    height: 20%;
+}
+.intent-surface-skeleton-chartBar.is-h-24 {
+    height: 24%;
+}
+.intent-surface-skeleton-chartBar.is-h-28 {
+    height: 28%;
+}
+.intent-surface-skeleton-chartBar.is-h-36 {
+    height: 36%;
+}
+.intent-surface-skeleton-chartBar.is-h-40 {
+    height: 40%;
+}
+.intent-surface-skeleton-chartBar.is-h-44 {
+    height: 44%;
+}
+.intent-surface-skeleton-chartBar.is-h-52 {
+    height: 52%;
+}
+
+.intent-surface-skeleton-statGrid,
+.intent-surface-skeleton-cardGrid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.intent-surface-skeleton-statGrid--1 {
+    grid-template-columns: 1fr;
+}
+.intent-surface-skeleton-statGrid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.intent-surface-skeleton-statGrid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.intent-surface-skeleton-statGrid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.intent-surface-skeleton-cardGrid--1 {
+    grid-template-columns: 1fr;
+}
+.intent-surface-skeleton-cardGrid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.intent-surface-skeleton-cardGrid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.intent-surface-skeleton-statCard,
+.intent-surface-skeleton-innerCard {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.85rem;
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--intent-bg) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--intent-border) 20%, transparent);
+}
+
+.intent-surface-skeleton-innerMedia {
+    width: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+   Footer
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton-footerInner {
+    min-width: 0;
+}
+
+.intent-surface-skeleton-footerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.intent-surface-skeleton-footerLines {
+    min-width: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.intent-surface-skeleton-footerActions {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+/* ---------------------------------------------------------------------------
+   States
+--------------------------------------------------------------------------- */
+
+.intent-surface-skeleton.is-disabled {
+    opacity: 0.65;
+}
+
+@media (max-width: 720px) {
+    .intent-surface-skeleton-statGrid--3,
+    .intent-surface-skeleton-statGrid--4,
+    .intent-surface-skeleton-cardGrid--3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .intent-surface-skeleton-statGrid,
+    .intent-surface-skeleton-cardGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .intent-surface-skeleton-footerRow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .intent-surface-skeleton-headerSide {
+        max-width: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .intent-surface-skeleton-block,
+    .intent-surface-skeleton-line,
+    .intent-surface-skeleton-block::after,
+    .intent-surface-skeleton-line::after {
+        animation: none !important;
+    }
+}

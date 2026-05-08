@@ -9,17 +9,29 @@
 //   - "custom": consumer provides node positions (e.g. D3 hierarchy/tree)
 // - Features:
 //   - Zoom / pan (controlled/uncontrolled viewport)
-//   - Collapsible nodes (controlled/uncontrolled)
+//   - Collapsible nodes (controlled/uncontrolled) (collapse affects children expansion)
 //   - Selection (controlled/uncontrolled)
 //   - Highly customizable node rendering (foreignObject) + link rendering
 //   - Mini-map + Search + Lineage highlight + Scope modes + Fullscreen + Action toolbar
 // - No dynamic Tailwind classes: stable hooks only
+//
+// ✅ Genealogy upgrades:
+// - scopeMode: "both" => show ancestors + descendants around root
+//   - Root centered
+//   - Parents above (NOW: side-by-side, centered per generation)
+//   - Children below
+// - Multiple parents + multiple children supported in ALL scopes
+//   - Adds getParents accessor (optional)
+//   - Computed nodes now expose parentIds (and keep parentId for backward compatibility)
 
 import * as React from "react";
-
-import type { IntentInput, DocsPropRow, ComponentIdentity } from "../lib/intent/types";
-import { SYSTEM_PROPS_TABLE } from "../lib/intent/props";
-import { resolveIntent, getIntentLayoutProps, composeIntentClassName } from "../lib/intent/resolve";
+import { resolveIntent, getIntentLayoutProps, composeIntentClassName } from "CORE";
+import {
+    SYSTEM_PROPS_TABLE,
+    type IntentInput,
+    type DocsPropRow,
+    type ComponentIdentity,
+} from "SYSTEM";
 
 /* ============================================================================
    🧰 HELPERS
@@ -121,7 +133,7 @@ export type IntentTreeNodeMeta = {
     tags?: IntentTreeTagKey[];
 };
 
-export type IntentTreeScopeMode = "desc" | "asc" | "siblings" | "full";
+export type IntentTreeScopeMode = "desc" | "asc" | "both" | "siblings" | "full";
 
 export type IntentTreeToolbarAction =
     | "fit"
@@ -173,10 +185,18 @@ export type IntentTreeNode<T> = T;
 
 export type IntentTreeComputedNode<T> = {
     id: string;
+
+    /** Back-compat: first parent (if any) */
     parentId: string | null;
+
+    /** Multi-parents (genealogy) */
+    parentIds: string[];
+
     data: T;
 
+    /** Layout depth (can be negative in scope "asc"/"both") */
     depth: number;
+
     order: number;
 
     x: number;
@@ -196,6 +216,9 @@ export type IntentTreeProps<T> = IntentInput &
 
         /** How to access children */
         getChildren: (node: T) => T[] | null | undefined;
+
+        /** Optional: how to access parents (genealogy) */
+        getParents?: (node: T) => T[] | null | undefined;
 
         /** Stable id accessor (required for collapse/selection correctness) */
         getId: (node: T) => string | number;
@@ -324,6 +347,16 @@ const INTENT_TREE_LOCAL_PROPS_TABLE: DocsPropRow[] = [
         description: { fr: "Accès aux enfants.", en: "Children accessor." },
         type: "(node: T) => T[] | null | undefined",
         required: true,
+        fromSystem: false,
+    },
+    {
+        name: "getParents",
+        description: {
+            fr: "Accès aux parents (pour généalogie, scopes asc/both/siblings).",
+            en: "Parents accessor (genealogy, asc/both/siblings scopes).",
+        },
+        type: "(node: T) => T[] | null | undefined",
+        required: false,
         fromSystem: false,
     },
     {
@@ -601,17 +634,17 @@ const INTENT_TREE_LOCAL_PROPS_TABLE: DocsPropRow[] = [
     {
         name: "scopeMode",
         description: {
-            fr: "Mode scope: asc/desc/fratrie/full.",
-            en: "Scope mode: asc/desc/siblings/full.",
+            fr: "Mode scope: asc/desc/both/fratrie/full.",
+            en: "Scope mode: asc/desc/both/siblings/full.",
         },
-        type: `"asc" | "desc" | "siblings" | "full"`,
+        type: `"asc" | "desc" | "both" | "siblings" | "full"`,
         required: false,
         default: "full",
         fromSystem: false,
     },
     {
         name: "scopeDepth",
-        description: { fr: "Limite de profondeur pour asc/desc.", en: "Depth limit for asc/desc." },
+        description: { fr: "Limite de profondeur pour asc/desc/both.", en: "Depth limit." },
         type: "number",
         required: false,
         default: "Infinity",
@@ -721,82 +754,152 @@ export const IntentTreeIdentity: ComponentIdentity = {
 };
 
 /* ============================================================================
-   🌳 TREE BUILD
+   🌳 GRAPH BUILD (supports multi-parents)
 ============================================================================ */
-
-export type FlatNode<T> = {
-    id: string;
-    parentId: string | null;
-    depth: number;
-    data: T;
-};
 
 function isDefined<T>(v: T | null | undefined): v is T {
     return v !== null && v !== undefined;
 }
 
-function flattenTree<T>(args: {
+type FlatNode<T> = {
+    id: string;
+    data: T;
+    depth: number; // can be negative (ancestors)
+};
+
+type GraphPack<T> = {
+    nodes: FlatNode<T>[];
+    orderById: Map<string, number>;
+    childrenById: Map<string, string[]>;
+    parentsById: Map<string, string[]>;
+};
+
+function buildGraph<T>(args: {
     root: T;
     getChildren: (node: T) => Array<T | null | undefined> | null | undefined;
+    getParents?: ((node: T) => Array<T | null | undefined> | null | undefined) | undefined;
     getId: (node: T) => string | number;
     collapsedSet: ReadonlySet<string | number>;
-}): { nodes: FlatNode<T>[]; orderById: Map<string, number>; childrenById: Map<string, string[]> } {
-    const { root, getChildren, getId, collapsedSet } = args;
+    scopeMode: IntentTreeScopeMode;
+    scopeDepth: number;
+}): GraphPack<T> {
+    const { root, getChildren, getParents, getId, collapsedSet, scopeMode, scopeDepth } = args;
 
     const collapsedKeys = new Set<string>(Array.from(collapsedSet, (x) => toKey(x)));
 
-    const nodes: FlatNode<T>[] = [];
+    const nodesById = new Map<string, FlatNode<T>>();
     const childrenById = new Map<string, string[]>();
+    const parentsById = new Map<string, string[]>();
 
-    const stack: Array<{ node: T; parentId: string | null; depth: number }> = [
-        { node: root, parentId: null, depth: 0 },
-    ];
+    const rootId = toKey(getId(root));
 
-    while (stack.length) {
-        const cur = stack.pop();
-        if (!cur) break;
+    type QItem = { node: T; id: string; depth: number };
+    const q: QItem[] = [{ node: root, id: rootId, depth: 0 }];
 
-        const id = toKey(getId(cur.node));
-        nodes.push({ id, parentId: cur.parentId, data: cur.node, depth: cur.depth });
+    const allowChildren =
+        scopeMode === "full" ||
+        scopeMode === "desc" ||
+        scopeMode === "both" ||
+        scopeMode === "siblings";
+    const allowParents = scopeMode === "asc" || scopeMode === "both" || scopeMode === "siblings";
 
-        const isCollapsed = collapsedKeys.has(id);
+    while (q.length) {
+        const cur = q.shift()!;
+        const { node, id, depth } = cur;
 
-        const rawChildren = isCollapsed ? [] : (getChildren(cur.node) ?? []);
-        const children = rawChildren.filter(isDefined);
+        if (!nodesById.has(id)) {
+            nodesById.set(id, { id, data: node, depth });
+        } else {
+            const prev = nodesById.get(id)!;
+            if (Math.abs(depth) < Math.abs(prev.depth)) {
+                nodesById.set(id, { id, data: prev.data, depth });
+            }
+        }
 
-        const childIds = children.map((c) => toKey(getId(c)));
-        childrenById.set(id, childIds);
+        const absDepth = Math.abs(depth);
+        if (absDepth >= scopeDepth) continue;
 
-        for (let i = children.length - 1; i >= 0; i--) {
-            stack.push({ node: children[i]!, parentId: id, depth: cur.depth + 1 });
+        if (allowChildren) {
+            const isCollapsed = collapsedKeys.has(id);
+            const rawChildren = isCollapsed ? [] : (getChildren(node) ?? []);
+            const children = rawChildren.filter(isDefined);
+
+            const childIds = children.map((c) => toKey(getId(c)));
+            childrenById.set(id, childIds);
+
+            for (const c of children) {
+                const cid = toKey(getId(c));
+                const prevParents = parentsById.get(cid) ?? [];
+                if (!prevParents.includes(id)) parentsById.set(cid, [...prevParents, id]);
+
+                q.push({ node: c, id: cid, depth: depth + 1 });
+            }
+        } else if (!childrenById.has(id)) {
+            childrenById.set(id, []);
+        }
+
+        if (allowParents && getParents) {
+            const rawParents = getParents(node) ?? [];
+            const parents = rawParents.filter(isDefined);
+
+            const parentIds = parents.map((p) => toKey(getId(p)));
+            parentsById.set(
+                id,
+                Array.from(new Set([...(parentsById.get(id) ?? []), ...parentIds]))
+            );
+
+            for (const p of parents) {
+                const pid = toKey(getId(p));
+
+                const prevKids = childrenById.get(pid) ?? [];
+                if (!prevKids.includes(id)) childrenById.set(pid, [...prevKids, id]);
+
+                q.push({ node: p, id: pid, depth: depth - 1 });
+            }
+        } else if (!parentsById.has(id)) {
+            parentsById.set(id, parentsById.get(id) ?? []);
         }
     }
 
+    for (const id of nodesById.keys()) {
+        if (!childrenById.has(id)) childrenById.set(id, []);
+        if (!parentsById.has(id)) parentsById.set(id, []);
+    }
+
+    const nodes: FlatNode<T>[] = Array.from(nodesById.values());
     const orderById = new Map<string, number>();
     nodes.forEach((n, idx) => orderById.set(n.id, idx));
 
-    return { nodes, orderById, childrenById };
+    return { nodes, orderById, childrenById, parentsById };
 }
+
+/* ============================================================================
+   📐 LAYOUT
+============================================================================ */
 
 function computeAutoLayout<T>(args: {
     flat: FlatNode<T>[];
     orderById: Map<string, number>;
     childrenById: Map<string, string[]>;
+    parentsById: Map<string, string[]>;
     orientation: IntentTreeOrientation;
     nodeWidth: number;
     nodeHeight: number;
     levelGap: number;
     siblingGap: number;
+    scopeMode: IntentTreeScopeMode;
 }): IntentTreeComputedNode<T>[] {
     const {
         flat,
         orderById,
         childrenById,
+        parentsById,
         orientation,
         nodeWidth,
         nodeHeight,
         levelGap,
         siblingGap,
+        scopeMode,
     } = args;
 
     const byDepth = new Map<number, FlatNode<T>[]>();
@@ -811,23 +914,65 @@ function computeAutoLayout<T>(args: {
         byDepth.set(d, arr);
     }
 
+    const stepPrimary = orientation === "vertical" ? nodeHeight + levelGap : nodeWidth + levelGap;
+    const stepSecondary =
+        orientation === "vertical" ? nodeWidth + siblingGap : nodeHeight + siblingGap;
+
     const computed: IntentTreeComputedNode<T>[] = [];
+
+    // ✅ "both" + vertical:
+    // - root row centered
+    // - descendants rows centered below
+    // - ancestors rows centered above (SIDE-BY-SIDE per generation)
+    if (scopeMode === "both" && orientation === "vertical") {
+        for (const n of flat) {
+            const depth = n.depth;
+
+            const row = byDepth.get(depth) ?? [];
+            const idx = row.findIndex((x) => x.id === n.id);
+            const order = idx >= 0 ? idx : 0;
+
+            const count = Math.max(1, row.length);
+            const rowOffset = -((count - 1) / 2) * (nodeWidth + siblingGap);
+
+            const x = rowOffset + order * (nodeWidth + siblingGap);
+            const y = depth * stepPrimary;
+
+            const pids = parentsById.get(n.id) ?? [];
+            computed.push({
+                id: n.id,
+                parentIds: pids,
+                parentId: pids[0] ?? null,
+                data: n.data,
+                depth,
+                order,
+                x,
+                y,
+                childrenIds: childrenById.get(n.id) ?? [],
+            });
+        }
+
+        computed.sort((a, b) => (orderById.get(a.id) ?? 0) - (orderById.get(b.id) ?? 0));
+        return computed;
+    }
+
+    // Default auto layout
     for (const n of flat) {
         const siblings = byDepth.get(n.depth) ?? [];
         const idx = siblings.findIndex((x) => x.id === n.id);
         const order = idx >= 0 ? idx : 0;
 
-        const primary =
-            n.depth * (orientation === "vertical" ? nodeHeight + levelGap : nodeWidth + levelGap);
-        const secondary =
-            order * (orientation === "vertical" ? nodeWidth + siblingGap : nodeHeight + siblingGap);
+        const primary = n.depth * stepPrimary;
+        const secondary = order * stepSecondary;
 
         const x = orientation === "vertical" ? secondary : primary;
         const y = orientation === "vertical" ? primary : secondary;
 
+        const pids = parentsById.get(n.id) ?? [];
         computed.push({
             id: n.id,
-            parentId: n.parentId,
+            parentIds: pids,
+            parentId: pids[0] ?? null,
             data: n.data,
             depth: n.depth,
             order,
@@ -844,23 +989,26 @@ function computeCustomLayout<T>(args: {
     flat: FlatNode<T>[];
     orderById: Map<string, number>;
     childrenById: Map<string, string[]>;
+    parentsById: Map<string, string[]>;
     getNodePosition: NonNullable<IntentTreeProps<T>["getNodePosition"]>;
 }): IntentTreeComputedNode<T>[] {
-    const { flat, orderById, childrenById, getNodePosition } = args;
+    const { flat, orderById, childrenById, parentsById, getNodePosition } = args;
 
     return flat.map((n) => {
         const order = orderById.get(n.id) ?? 0;
+        const pids = parentsById.get(n.id) ?? [];
         const pos = getNodePosition({
             node: n.data,
             id: n.id,
             depth: n.depth,
             order,
-            parentId: n.parentId,
+            parentId: pids[0] ?? null,
         });
 
         return {
             id: n.id,
-            parentId: n.parentId,
+            parentIds: pids,
+            parentId: pids[0] ?? null,
             data: n.data,
             depth: n.depth,
             order,
@@ -924,6 +1072,7 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
 
         root,
         getChildren,
+        getParents,
         getId,
         getLabel,
         getSubtitle,
@@ -1080,35 +1229,52 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
     const collapsedSet = React.useMemo(() => new Set(collapsedIds.map(toKey)), [collapsedIds]);
 
     /* --------------------------------------------
-       Flatten + layout
+       Build graph + layout
     -------------------------------------------- */
 
-    const flatPack = React.useMemo(() => {
+    const graphPack = React.useMemo(() => {
         if (!root) return null;
-        return flattenTree({ root, getChildren, getId, collapsedSet });
-    }, [root, getChildren, getId, collapsedSet]);
+
+        return buildGraph({
+            root,
+            getChildren,
+            getParents,
+            getId,
+            collapsedSet,
+            scopeMode,
+            scopeDepth,
+        });
+    }, [root, getChildren, getParents, getId, collapsedSet, scopeMode, scopeDepth]);
 
     const computedNodes = React.useMemo(() => {
-        if (!flatPack) return [] as IntentTreeComputedNode<T>[];
+        if (!graphPack) return [] as IntentTreeComputedNode<T>[];
 
-        const { nodes: flat, orderById, childrenById } = flatPack;
+        const { nodes: flat, orderById, childrenById, parentsById } = graphPack;
 
         if (layout === "custom" && getNodePosition) {
-            return computeCustomLayout({ flat, orderById, childrenById, getNodePosition });
+            return computeCustomLayout({
+                flat,
+                orderById,
+                childrenById,
+                parentsById,
+                getNodePosition,
+            });
         }
 
         return computeAutoLayout({
             flat,
             orderById,
             childrenById,
+            parentsById,
             orientation,
             nodeWidth,
             nodeHeight,
             levelGap,
             siblingGap,
+            scopeMode,
         });
     }, [
-        flatPack,
+        graphPack,
         layout,
         getNodePosition,
         orientation,
@@ -1116,6 +1282,7 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
         nodeHeight,
         levelGap,
         siblingGap,
+        scopeMode,
     ]);
 
     const nodeById = React.useMemo(() => {
@@ -1127,12 +1294,16 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
     const links = React.useMemo(() => {
         const out: Array<{ source: IntentTreeComputedNode<T>; target: IntentTreeComputedNode<T> }> =
             [];
+
         for (const n of computedNodes) {
-            if (!n.parentId) continue;
-            const p = nodeById.get(n.parentId);
-            if (!p) continue;
-            out.push({ source: p, target: n });
+            const parents = n.parentIds ?? [];
+            for (const pid of parents) {
+                const p = nodeById.get(pid);
+                if (!p) continue;
+                out.push({ source: p, target: n });
+            }
         }
+
         return out;
     }, [computedNodes, nodeById]);
 
@@ -1140,9 +1311,9 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
        Parent/children indexes (for lineage + scope)
     -------------------------------------------- */
 
-    const parentById = React.useMemo(() => {
-        const m = new Map<string, string | null>();
-        for (const n of computedNodes) m.set(n.id, n.parentId);
+    const parentsById = React.useMemo(() => {
+        const m = new Map<string, string[]>();
+        for (const n of computedNodes) m.set(n.id, n.parentIds ?? []);
         return m;
     }, [computedNodes]);
 
@@ -1156,16 +1327,20 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
         const out = new Set<string>();
         if (!id) return out;
 
-        let cur: string | null = id;
-        let steps = 0;
+        const seen = new Set<string>([id]);
+        const stack: Array<{ id: string; depth: number }> = [{ id, depth: 0 }];
 
-        while (cur && steps < limitSteps) {
-            const p: string | null = parentById.get(cur) ?? null;
-            if (!p) break;
+        while (stack.length) {
+            const cur = stack.pop()!;
+            if (cur.depth >= limitSteps) continue;
 
-            out.add(p);
-            cur = p;
-            steps++;
+            const ps = parentsById.get(cur.id) ?? [];
+            for (const p of ps) {
+                if (seen.has(p)) continue;
+                seen.add(p);
+                out.add(p);
+                stack.push({ id: p, depth: cur.depth + 1 });
+            }
         }
 
         return out;
@@ -1175,13 +1350,17 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
         const out = new Set<string>();
         if (!id) return out;
 
+        const seen = new Set<string>([id]);
         const stack: Array<{ id: string; depth: number }> = [{ id, depth: 0 }];
+
         while (stack.length) {
             const cur = stack.pop()!;
             if (cur.depth >= limitSteps) continue;
 
             const kids = childrenById.get(cur.id) ?? [];
             for (const k of kids) {
+                if (seen.has(k)) continue;
+                seen.add(k);
                 out.add(k);
                 stack.push({ id: k, depth: cur.depth + 1 });
             }
@@ -1194,11 +1373,13 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
         const out = new Set<string>();
         if (!id) return out;
 
-        const p = parentById.get(id) ?? null;
-        if (!p) return out;
+        const ps = parentsById.get(id) ?? [];
+        if (!ps.length) return out;
 
-        const sibs = childrenById.get(p) ?? [];
-        for (const s of sibs) if (s !== id) out.add(s);
+        for (const p of ps) {
+            const sibs = childrenById.get(p) ?? [];
+            for (const s of sibs) if (s !== id) out.add(s);
+        }
 
         return out;
     }
@@ -1335,7 +1516,7 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
         if (!root) return;
         fitToContent();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [autoFit, root, collapsedIds.join("|")]);
+    }, [autoFit, root, collapsedIds.join("|"), scopeMode, scopeDepth]);
 
     /* --------------------------------------------
        Fullscreen
@@ -1499,7 +1680,7 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
 
     const ancestorsSet = React.useMemo(
         () => (selectedKey ? collectAncestors(selectedKey, scopeDepth) : new Set<string>()),
-        [selectedKey, scopeDepth, parentById]
+        [selectedKey, scopeDepth, parentsById]
     );
 
     const descendantsSet = React.useMemo(
@@ -1509,7 +1690,7 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
 
     const siblingsSet = React.useMemo(
         () => (selectedKey ? collectSiblings(selectedKey) : new Set<string>()),
-        [selectedKey, parentById, childrenById]
+        [selectedKey, parentsById, childrenById]
     );
 
     const siblingsChildrenSet = React.useMemo(
@@ -1534,14 +1715,17 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
             return out;
         }
 
-        // siblings (B): parent + siblings + children of siblings + selected
-        if (scopeMode === "siblings") {
-            const p = parentById.get(selectedKey) ?? null;
-            if (p) out.add(p);
+        if (scopeMode === "both") {
+            for (const a of ancestorsSet) out.add(a);
+            for (const d of descendantsSet) out.add(d);
+            return out;
+        }
 
+        if (scopeMode === "siblings") {
+            const ps = parentsById.get(selectedKey) ?? [];
+            for (const p of ps) out.add(p);
             for (const s of siblingsSet) out.add(s);
             for (const c of siblingsChildrenSet) out.add(c);
-
             return out;
         }
 
@@ -1553,19 +1737,13 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
         descendantsSet,
         siblingsSet,
         siblingsChildrenSet,
-        parentById,
+        parentsById,
     ]);
 
     const scopedNodes = React.useMemo(() => {
         if (!scopeSet) return computedNodes;
         return computedNodes.filter((n) => scopeSet.has(n.id));
     }, [computedNodes, scopeSet]);
-
-    const scopedNodeById = React.useMemo(() => {
-        const m = new Map<string, IntentTreeComputedNode<T>>();
-        for (const n of scopedNodes) m.set(n.id, n);
-        return m;
-    }, [scopedNodes]);
 
     const scopedLinks = React.useMemo(() => {
         if (!scopeSet) return links;
@@ -2187,14 +2365,14 @@ export function IntentTree<T>(props: IntentTreeProps<T>) {
 
                     <g className="intent-tree-links">
                         {scopedLinks.map(({ source, target }) => {
-                            const sx = source.x + nodeWidth / 2;
-                            const sy = source.y + nodeHeight;
-                            const tx = target.x + nodeWidth / 2;
-                            const ty = target.y;
+                            const sxV = source.x + nodeWidth / 2;
+                            const syV = source.y + nodeHeight;
+                            const txV = target.x + nodeWidth / 2;
+                            const tyV = target.y;
 
                             const a =
                                 orientation === "vertical"
-                                    ? { sx, sy, tx, ty }
+                                    ? { sx: sxV, sy: syV, tx: txV, ty: tyV }
                                     : {
                                           sx: source.x + nodeWidth,
                                           sy: source.y + nodeHeight / 2,

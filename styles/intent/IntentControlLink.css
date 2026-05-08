@@ -46,12 +46,16 @@
         var(--intent-elev-shadow, none);
 }
 
+.intent-control-link > span {
+    justify-content: center;
+}
+
 .ids-link-xs {
     padding: 0.45rem 0.7rem;
     font-size: 0.75rem;
     line-height: 1.05rem;
     font-weight: 600;
-    border-radius: 0.25rem;
+    border-radius: 1rem;
 }
 
 .ids-link-sm {
