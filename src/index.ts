@@ -1,5 +1,5 @@
 // src/index.ts
-export const INTENT_DESIGN_SYSTEM_VERSION = "0.3.0";
+export const INTENT_DESIGN_SYSTEM_VERSION = "0.3.1";
 
 export * from "./components/IntentSurface";
 export * from "./components/IntentSurfacePanel";
@@ -55,3 +55,4 @@ export * from "./components/IntentProgressBar";
 export { Theme, Defaults as IntentDefaults } from "./api";
 export * from "./system";
 export * from "./core";
+export * from "./system/registry";

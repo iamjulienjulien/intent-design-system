@@ -6,5 +6,4 @@
 export * from "./constants";
 export * from "./types";
 export * from "./helpers";
-export * from "./registry";
 export * from "./docProps";
